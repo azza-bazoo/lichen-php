@@ -139,7 +139,7 @@ ENDBAR;
 
 	// Caution: HTML hacks in the search form.
 	echo <<<ENDSEARCH
-<li id="btn-search"><form action="$LICHEN_URL" onsubmit="doQuickSearch();return false" style="display: inline; margin: 0;"><label for="qsearch"><img src="theme/{$USER_SETTINGS['theme']}/icons/mail_find.png" alt="" title="Search messages" /></label> <input type="text" name="qsearch" id="qsearch" style="display:inline;vertical-align:middle" /> <input type="submit" value="Go" style="display:inline;vertical-align:middle" /></form></li>
+<li id="btn-search"><form action="$LICHEN_URL" onsubmit="doQuickSearch();return false" style="display: inline; margin: 0;"><label for="qsearch"><img src="themes/{$USER_SETTINGS['theme']}/icons/mail_find.png" alt="" title="Search messages" /></label> <input type="text" name="qsearch" id="qsearch" style="display:inline;vertical-align:middle" /> <input type="submit" value="Go" style="display:inline;vertical-align:middle" /></form></li>
 ENDSEARCH;
 
 	echo "</ul><ul id=\"comp-bar\" class=\"toolbar\">";
@@ -197,10 +197,12 @@ ENDSEARCH;
 
 // Print HTML for the page header.
 function printPageHeader() {
+	global $USER_SETTINGS;
+
 	if ( isset( $USER_SETTINGS['theme'] ) ) {
-		$themePath = $USER_SETTINGS['theme'];
+		$themePath = "themes/" . $USER_SETTINGS['theme'];
 	} else {
-		$themePath = "theme/default";
+		$themePath = "themes/default";
 	}
 
 	echo <<<ENDHEAD
@@ -228,7 +230,7 @@ function drawToolbarButton( $buttonLabel, $icon, $anchorTarget, $id, $clickHandl
 		echo " onclick=\"$clickHandler;return false\"";
 	}
 	echo ">";
-	echo "<img src=\"theme/", $USER_SETTINGS['theme'], "/icons/", $icon, ".png\" alt=\"\" /> ";
+	echo "<img src=\"themes/", $USER_SETTINGS['theme'], "/icons/", $icon, ".png\" alt=\"\" /> ";
 	echo _( $buttonLabel );
 	echo "</a></li>\n";
 }

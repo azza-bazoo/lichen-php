@@ -803,14 +803,14 @@ var MailboxManagerClass = new Class({
 		// Internal function to generate buttons to work with each mailbox.
 		// TODO: Assumes that it's instance is called "MailboxManager"
 		var buttonsHtml = "<a href=\"#\" onclick=\"MailboxManager.newChild('" + fullboxname + "'); return false\">";
-		buttonsHtml += "<img src=\"theme/" + userSettings.theme + "/icons/add.png\"></a>";
+		buttonsHtml += "<img src=\"themes/" + userSettings.theme + "/icons/add.png\"></a>";
 		if ( !toplevel ) {
 			buttonsHtml += "<a href=\"#\" onclick=\"MailboxManager.renameInline('" + fullboxname + "', '" + displayname + "'); return false\">";
-			buttonsHtml += "<img src=\"theme/" + userSettings.theme + "/icons/edit.png\"></a>";
+			buttonsHtml += "<img src=\"themes/" + userSettings.theme + "/icons/edit.png\"></a>";
 			buttonsHtml += "<a href=\"#\" onclick=\"MailboxManager.changeParentInline('" + fullboxname + "', '" + displayname + "'); return false\">";
-			buttonsHtml += "<img src=\"theme/" + userSettings.theme + "/icons/changeparent.png\"></a>";
+			buttonsHtml += "<img src=\"themes/" + userSettings.theme + "/icons/changeparent.png\"></a>";
 			buttonsHtml += "<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('" + fullboxname + "', '" + displayname + "'); return false\">";
-			buttonsHtml += "<img src=\"theme/" + userSettings.theme + "/icons/remove.png\"></a>";
+			buttonsHtml += "<img src=\"themes/" + userSettings.theme + "/icons/remove.png\"></a>";
 		}
 
 		return buttonsHtml;
@@ -1336,7 +1336,7 @@ var MessageDisplay = new Class({
 		// Find the next/previous messages.
 		var adjacentMessages = Messages.fetchAdjacentMessages( listCurrentMailbox, listCurrentSearch, listCurrentPage, listCurrentSort, message.uid );
 
-		var htmlFragment = "<div class=\"header-bar\"><img src=\"theme/" + userSettings.theme + "/top-corner.png\" alt=\"\" id=\"top-corner\" />";
+		var htmlFragment = "<div class=\"header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" id=\"top-corner\" />";
 
 		var messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"#inbox\" onclick=\"if_returnToList(lastShownUID);return false\">back to " + listCurrentMailbox + "</a></div>";
 
@@ -1423,7 +1423,7 @@ var MessageDisplay = new Class({
 			htmlFragment += "</ul>";
 		}
 
-		htmlFragment += "<div class=\"footer-bar\"><img src=\"theme/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" id=\"bottom-corner\" />" + messageNavBar + "</div>";
+		htmlFragment += "<div class=\"footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" id=\"bottom-corner\" />" + messageNavBar + "</div>";
 
 		return htmlFragment;
 	},
@@ -1736,9 +1736,9 @@ function list_twiddleFlagCB( responseText ) {
 			var flagIcon = $( result.flag + '_' + uidsAffected[i] );
 			if ( flagIcon ) {
 				if ( result.state ) {
-					flagIcon.src = 'theme/' + userSettings.theme + '/icons/' + result.flag + '.png';
+					flagIcon.src = 'themes/' + userSettings.theme + '/icons/' + result.flag + '.png';
 				} else {
-					flagIcon.src = 'theme/' + userSettings.theme + '/icons/un' + result.flag + '.png';
+					flagIcon.src = 'themes/' + userSettings.theme + '/icons/un' + result.flag + '.png';
 				}
 			}
 		}
@@ -1769,7 +1769,7 @@ function list_sort( sort ) {
 	// Clear the old sort image.
 	var oldImg = $('sort_' + listCurrentSort + '_dir');
 	if ( oldImg ) {
-		oldImg.src = 'theme/' + userSettings.theme + 'icons/blank.png';
+		oldImg.src = 'themes/' + userSettings.theme + 'icons/blank.png';
 	}
 
 	if ( sort == listCurrentSort ) {
@@ -1833,7 +1833,7 @@ function list_showCB( responseText ) {
 	var tableContents = "";
 	var pageSwitchBar = list_createPageBar( result );
 
-	tableContents += "<div class=\"header-bar\"><img src=\"theme/" + userSettings.theme + "/top-corner.png\" alt=\"\" id=\"top-corner\" />" + pageSwitchBar + "</div>";
+	tableContents += "<div class=\"header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" id=\"top-corner\" />" + pageSwitchBar + "</div>";
 
 	if ( result.search != "" ) {
 		tableContents += "<div class=\"header-bar\">Search results for \"" + result.search + "\". " +
@@ -1849,12 +1849,12 @@ function list_showCB( responseText ) {
 	if ( userSettings['list_showflagged'] ) {
 		tableContents += "<th></th>"; // Toggle flagged button
 	}
-	tableContents += "<th><a href=\"#sort-from\" onclick=\"list_sort('from'); return false\">Sender</a><img src=\"theme/" + userSettings.theme + "/icons/blank.png\" id=\"sort_from_dir\" /></th>"; // Sender
-	tableContents += "<th><a href=\"#sort-subject\" onclick=\"list_sort('subject'); return false\">Subject</a><img src=\"theme/" + userSettings.theme + "/icons/blank.png\" id=\"sort_subject_dir\" /></th>"; // Subject
+	tableContents += "<th><a href=\"#sort-from\" onclick=\"list_sort('from'); return false\">Sender</a><img src=\"themes/" + userSettings.theme + "/icons/blank.png\" id=\"sort_from_dir\" /></th>"; // Sender
+	tableContents += "<th><a href=\"#sort-subject\" onclick=\"list_sort('subject'); return false\">Subject</a><img src=\"themes/" + userSettings.theme + "/icons/blank.png\" id=\"sort_subject_dir\" /></th>"; // Subject
 	if ( userSettings['list_showsize'] ) {
-		tableContents += "<th><a href=\"#sort-size\" onclick=\"list_sort('size'); return false\">Size</a><img src=\"theme/" + userSettings.theme + "/icons/blank.png\" id=\"sort_size_dir\" /></th>"; // Size
+		tableContents += "<th><a href=\"#sort-size\" onclick=\"list_sort('size'); return false\">Size</a><img src=\"themes/" + userSettings.theme + "/icons/blank.png\" id=\"sort_size_dir\" /></th>"; // Size
 	}
-	tableContents += "<th><a href=\"#sort-date\" onclick=\"list_sort('date'); return false\">Date</a><img src=\"theme/" + userSettings.theme + "/icons/blank.png\" id=\"sort_date_dir\" /></th>"; // Date
+	tableContents += "<th><a href=\"#sort-date\" onclick=\"list_sort('date'); return false\">Date</a><img src=\"themes/" + userSettings.theme + "/icons/blank.png\" id=\"sort_date_dir\" /></th>"; // Date
 	tableContents += "</tr>";
 
 	if ( messages.length == 0 ) {
@@ -1886,10 +1886,10 @@ function list_showCB( responseText ) {
 		thisRow += "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" + thisMsg.uid + "\" id=\"s-" + thisMsg.uid + "\" value=\"" + thisMsg.uid + "\" onclick=\"list_messageCheckboxClicked();\" /></td>";
 
 		thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'seen', 'toggle'); return false\">";
-		thisRow += "<img src=\"theme/" + userSettings.theme + "/icons/seentoggle.png\" /></a></td>";
+		thisRow += "<img src=\"themes/" + userSettings.theme + "/icons/seentoggle.png\" /></a></td>";
 
 		if ( userSettings['list_showflagged'] ) {
-			var flagImage = thisMsg.flagged ? "theme/" + userSettings.theme + "/icons/flagged.png" : "theme/" + userSettings.theme + "/icons/unflagged.png";
+			var flagImage = thisMsg.flagged ? "themes/" + userSettings.theme + "/icons/flagged.png" : "themes/" + userSettings.theme + "/icons/unflagged.png";
 			thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle'); return false\">";
 			thisRow += "<img src=\"" + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" /></a></td>";
 		}
@@ -1934,7 +1934,7 @@ function list_showCB( responseText ) {
 	}
 
 	tableContents += "</table>";
-	tableContents += "<div class=\"footer-bar\"><img src=\"theme/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" id=\"bottom-corner\" />" + pageSwitchBar + "</div>";
+	tableContents += "<div class=\"footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" id=\"bottom-corner\" />" + pageSwitchBar + "</div>";
 
 	tableContents += "<div id=\"move-handle\" class=\"move-handle\"></div>";
 
@@ -1944,11 +1944,11 @@ function list_showCB( responseText ) {
 	if ( listCurrentSort.substr( listCurrentSort.length - 2, 2 ) == "_r" ) {
 		// Reverse.
 		var newImg = $('sort_' + listCurrentSort.substr( 0, listCurrentSort.length - 2 ) + '_dir');
-		if ( newImg ) newImg.src = 'theme/' + userSettings.theme + '/icons/sortup.png';
+		if ( newImg ) newImg.src = 'themes/' + userSettings.theme + '/icons/sortup.png';
 	} else {
 		// Forward.
 		var newImg = $('sort_' + listCurrentSort + '_dir');
-		if ( newImg ) newImg.src = 'theme/' + userSettings.theme + '/icons/sortdown.png';
+		if ( newImg ) newImg.src = 'themes/' + userSettings.theme + '/icons/sortdown.png';
 	}
 
 	// Prepare the move handle, but don't make it a drag here.
