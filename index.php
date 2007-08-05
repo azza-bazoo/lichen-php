@@ -124,7 +124,7 @@ if (  ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 // Draw toolbars
 
 	echo <<<ENDBAR
-<div id="loading" style="display: none" class="loading"><img src="theme/icons/spinner.gif" /> Loading ...</div>
+<div id="loading" style="display: none" class="loading">Loading ...</div>
 <div id="flash" style="display: none" class="flash"></div>
 <script type="text/javascript" src="lichen.js"></script>
 <ul id="corner-bar" class="toolbar">
@@ -139,7 +139,7 @@ ENDBAR;
 
 	// Caution: HTML hacks in the search form.
 	echo <<<ENDSEARCH
-<li id="btn-search"><form action="$LICHEN_URL" onsubmit="doQuickSearch();return false" style="display: inline; margin: 0;"><label for="qsearch"><img src="theme/icons/mail_find.png" alt="" title="Search messages" /></label> <input type="text" name="qsearch" id="qsearch" style="display:inline;vertical-align:middle" /> <input type="submit" value="Go" style="display:inline;vertical-align:middle" /></form></li>
+<li id="btn-search"><form action="$LICHEN_URL" onsubmit="doQuickSearch();return false" style="display: inline; margin: 0;"><label for="qsearch"><img src="theme/{$USER_SETTINGS['theme']}/icons/mail_find.png" alt="" title="Search messages" /></label> <input type="text" name="qsearch" id="qsearch" style="display:inline;vertical-align:middle" /> <input type="submit" value="Go" style="display:inline;vertical-align:middle" /></form></li>
 ENDSEARCH;
 
 	echo "</ul><ul id=\"comp-bar\" class=\"toolbar\">";
@@ -150,8 +150,7 @@ ENDSEARCH;
 
 	echo "</ul><ul id=\"msg-bar\" class=\"toolbar\">";
 
-	// TODO: label should be "back to $currentMailbox". Implemented on the client side.
-	drawToolbarButton( "back to list", "back", "#inbox", "back", "if_returnToList(lastShownUID)" );
+//	drawToolbarButton( "back to list", "back", "#inbox", "back", "if_returnToList(lastShownUID)" );
 
 	drawToolbarButton( "reply", "mail_reply", "#compose", "reply", "comp_showForm('reply',lastShownUID)" );
 	drawToolbarButton( "reply all", "mail_replyall", "#compose", "replyall", "comp_showForm('replyall',lastShownUID)" );
@@ -198,14 +197,20 @@ ENDSEARCH;
 
 // Print HTML for the page header.
 function printPageHeader() {
+	if ( isset( $USER_SETTINGS['theme'] ) ) {
+		$themePath = $USER_SETTINGS['theme'];
+	} else {
+		$themePath = "theme/default";
+	}
+
 	echo <<<ENDHEAD
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 <title>Lichen Webmail</title>
 <script type="text/javascript" src="mootools.v1.11.js"></script>
-<link rel="StyleSheet" type="text/css" href="theme/default.css" />
-<link rel="StyleSheet" type="text/css" href="theme/layout.css" />
+<link rel="StyleSheet" type="text/css" href="$themePath/default.css" />
+<link rel="StyleSheet" type="text/css" href="$themePath/layout.css" />
 </head><body>
 ENDHEAD;
 }
@@ -214,6 +219,8 @@ ENDHEAD;
 // Output the code (with LI, A, IMG tags) for a toolbar button,
 // passing the label through gettext for l10n.
 function drawToolbarButton( $buttonLabel, $icon, $anchorTarget, $id, $clickHandler ) {
+	global $USER_SETTINGS;
+
 	echo "<li id=\"btn-$id\">";
 	echo "<a href=\"$anchorTarget\"";
 	if ( $clickHandler ) {
@@ -221,7 +228,7 @@ function drawToolbarButton( $buttonLabel, $icon, $anchorTarget, $id, $clickHandl
 		echo " onclick=\"$clickHandler;return false\"";
 	}
 	echo ">";
-	echo "<img src=\"theme/icons/${icon}.png\" alt=\"\" /> ";
+	echo "<img src=\"theme/", $USER_SETTINGS['theme'], "/icons/", $icon, ".png\" alt=\"\" /> ";
 	echo _( $buttonLabel );
 	echo "</a></li>\n";
 }

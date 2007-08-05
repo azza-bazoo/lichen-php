@@ -62,8 +62,9 @@ function getUserSettings() {
 		$newSettings = array(
 			"BUILTINVER" => 2, // Increment for each change to this array.
 			"timezone" => "UTC",
+			"theme" => "default",
 			"list_pagesize" => 20,
-			"comp_forwardattdef" => true,
+			"forward_as_attach" => true,
 			"list_showpreviews" => true,
 			"identities" =>
 				array(
@@ -164,7 +165,7 @@ $SETTINGS_PANEL = array(
 	_("Composer") =>
 		array(
 			_("Forward as attachment by default") =>
-				array( "type" => "boolean", "key" => "comp_forwardattdef" ),
+				array( "type" => "boolean", "key" => "forward_as_attach" ),
 		),
 	_("Message Display") =>
 		array(

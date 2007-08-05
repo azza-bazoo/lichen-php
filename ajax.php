@@ -598,7 +598,7 @@ function request_createComposer() {
 	if ( $action == "forward_default" ) {
 		// Determine the default forward mode from the configuration, and
 		// then allow the user to override it later.
-		if ( $USER_SETTINGS['comp_forwardattdef'] ) {
+		if ( $USER_SETTINGS['forward_as_attach'] ) {
 			$action = "forwardasattach";
 		} else {
 			$action = "forwardinline";
