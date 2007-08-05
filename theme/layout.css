@@ -1,0 +1,49 @@
+/* Lichen 0.3 - http://lichen-mail.org/
+   Interface layout stylesheet
+
+Take care when editing this file: it contains positioning rules for
+interface elements. If you only want to change Lichen's appearance
+without moving things around, edit default.css instead.
+
+Distributed under the GNU General Public License
+(see license.html for details) */
+
+/* Display panels - message list, message display, options, and compose */
+
+#msg-wrapper, #comp-wrapper, #opts-wrapper, #addr-wrapper, #msg-bar, #comp-bar, #opts-bar { display: none; }
+
+#list-wrapper, #msg-wrapper, #comp-wrapper, #opts-wrapper { position: absolute; top: 47px; left: 118px; }
+
+/* List of mailboxes */
+
+#mailboxes { position: absolute; top: 2px; left: 2px; width: 114px; margin: 0; padding-top: 48px; padding-left: 0; padding-right: 0; }
+#mailboxes li { display: block; }
+
+/* Toolbars */
+
+.toolbar { position: absolute; margin: 0; top: 12px; left: 118px; }
+.toolbar li { display: inline; }
+
+#corner-bar { right: 10px; text-align: right; }
+#btn-logout { margin-right: 5px; }
+
+/* Mailbox message listings */
+
+#list-wrapper table { width: 100%; }
+
+.subject, .sender, .date { white-space: nowrap; overflow: hidden; }
+.subject, .sender { margin-right: 10px; cursor: pointer; }
+
+/* Message listings version 2 */
+
+.msg-row { position: absolute; left: 118px; }
+
+/* Login screen */
+
+form.login { position: absolute; top: 120px; left: 0; width: 700px; height: 380px; }
+
+.input-block { position: absolute; top: 172px; left: 260px; width: 320px; }
+
+/* Loading box. */
+#loading { position: absolute; top: 5px; right: 5px; z-index: 1000; }
+#flash { position: absolute; top: 5px; right: 5px; z-index: 1000;
