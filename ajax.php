@@ -185,7 +185,9 @@ function request_moveMessage() {
 			if ( $message == "" ) continue;
 
 			if ( $destinationBox == "LICHENDELETE" ) {
-				imapCheckMailboxExistence( $SPECIAL_FOLDERS['trash'] );
+				if (! imapCheckMailboxExistence( $SPECIAL_FOLDERS['trash'] ) ) {
+					die( remoteRequestFailure( 'MOVE', _('Unable to create trash mailbox. Messages not deleted.') ) );
+				}
 				// TODO: Move to trash, not delete... but there needs to be some form of final deletion...
 				$result = imap_delete( $mbox, $message, CP_UID );
 			} else {
@@ -1074,7 +1076,9 @@ function request_sendMessage() {
 	if ( $draftMode ) {
 		// In draft mode? Just save the message.
 
-		imapCheckMailboxExistence( $SPECIAL_FOLDERS['drafts'] );
+		if ( !imapCheckMailboxExistence( $SPECIAL_FOLDERS['drafts'] ) ) {
+			die( remoteRequestFailure( 'SENT', _("Unable to create draft folder - mail not sent: ") . imap_last_error() ) );
+		}
 
 		// Stream the message to the IMAP server, so that emails of any size can be saved.
 		$res = streamSaveMessage( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
@@ -1106,7 +1110,9 @@ function request_sendMessage() {
 	} else {
 		// Time to send the message.
 		// Save it into Sent first.
-		imapCheckMailboxExistence( $SPECIAL_FOLDERS['sent'] );
+		if ( !imapCheckMailboxExistence( $SPECIAL_FOLDERS['sent'] ) ) {
+			die( remoteRequestFailure( 'SENT', _("Unable to create sent folder - mail not sent: ") . imap_last_error() ) );
+		}
 		$res = streamSaveMessage( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
 			$SPECIAL_FOLDERS['sent'], $rawMessage, $messageLength, "");
 		if ( $res != null ) {

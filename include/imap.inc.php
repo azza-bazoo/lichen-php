@@ -125,8 +125,13 @@ function imapCheckMailboxExistence( $boxname ) {
 	$exists = @imap_status( $mbox, $IMAP_CONNECT . $boxname );
 
 	if ( $exists == null ) {
-		imap_createmailbox( $mbox, $IMAP_CONNECT . $boxname );
+		$result = imap_createmailbox( $mbox, $IMAP_CONNECT . $boxname );
+		if ( $result == false ) {
+			return false;
+		}
 	}
+
+	return true;
 }
 
 // Adjust a flag on a given message.
