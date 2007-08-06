@@ -1217,9 +1217,9 @@ function request_identityEditor() {
 		case "delete":
 			// Delete an identity.
 			$delIndex = -1;
-			foreach ( $USER_SETTINGS['identities'] as $index => $identity ) {
-				if ( $identity['address'] == $workingid ) {
-					$delIndex = $index;
+			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
+				if ( $USER_SETTINGS['identities'][$i]['address'] == $workingid ) {
+					$delIndex = $i;
 					break;
 				}
 			}
@@ -1230,10 +1230,10 @@ function request_identityEditor() {
 		case "edit";
 			// Edit an identity.
 			// Find oldid, and then edit.
-			foreach ( $USER_SETTINGS['identities'] as $editIndex => $identity ) {
-				if ( $identity['address'] == $workingid ) {
-					$USER_SETTINGS['identities'][$editIndex]['address'] = $idemail;
-					$USER_SETTINGS['identities'][$editIndex]['name'] = $idname;
+			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
+				if ( $USER_SETTINGS['identities'][$i]['address'] == $workingid ) {
+					$USER_SETTINGS['identities'][$i]['address'] = $idemail;
+					$USER_SETTINGS['identities'][$i]['name'] = $idname;
 					break;
 				}
 			}
