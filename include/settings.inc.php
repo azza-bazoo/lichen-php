@@ -96,7 +96,12 @@ function saveUserSettings( $settings ) {
 
 	$userDataDir = getUserDirectory();
 
-	$result = file_put_contents( "{$userDataDir}/lichenrc", json_encode_real( $settings ) );
+	$file = fopen( "{$userDataDir}/lichenrc", "w" );
+	$result = false;
+	if ( $file !== false ) {
+		$result = fwrite( $file, json_encode_real( $settings ) );
+		fclose( $file );
+	}
 
 	if ($result === false) {
 		return false;
