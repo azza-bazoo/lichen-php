@@ -16,7 +16,7 @@ Distributed under the GNU General Public License
 
 /* List of mailboxes */
 
-#mailboxes { position: absolute; top: 2px; left: 2px; width: 114px; margin: 0; padding-top: 48px; padding-left: 0; padding-right: 0; }
+#mailboxes { position: absolute; top: 2px; left: 2px; width: 114px; margin: 0; padding-top: 59px; padding-left: 0; padding-right: 0; }
 #mailboxes li { display: block; }
 
 /* Toolbars */
@@ -32,7 +32,6 @@ Distributed under the GNU General Public License
 #list-wrapper table { width: 100%; }
 
 .subject, .sender, .date { white-space: nowrap; overflow: hidden; }
-.subject, .sender { margin-right: 10px; cursor: pointer; }
 
 /* Message listings version 2 */
 
@@ -44,6 +43,6 @@ form.login { position: absolute; top: 120px; left: 0; width: 700px; height: 380p
 
 .input-block { position: absolute; top: 172px; left: 260px; width: 320px; }
 
-/* Loading box. */
-#loading { position: absolute; top: 5px; right: 5px; z-index: 1000; }
-#flash { position: absolute; top: 5px; right: 5px; z-index: 1000;
+/* Notification messages */
+
+#flash { position: absolute; top: 5px; right: 5px; z-index: 1000; }

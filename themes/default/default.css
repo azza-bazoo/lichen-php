@@ -13,14 +13,18 @@ img { border: 0; }
 /* List of mailboxes */
 
 #mailboxes { background: url('lichen.png') no-repeat; }
-#mailboxes li { font-size: 11px; }
+#mailboxes li { font-size: 11px; margin-bottom: 2px; }
+
+#mb-header span { font-weight: bold; }
+#mb-header { padding-bottom: 8px; }
+
+.mb-click { display: block; line-height: 19px; height: 19px; width: 110px; text-decoration: none; color: #000040; }
+.mb-click:hover { background: #0000cc; color: #ffffff; }
+.mb-active { font-weight: bold; }
 
 /* Mailbox message listings */
 
-/* #list-wrapper { background: #ffffbf; } */
-
 #list-wrapper table { border-collapse: collapse; border-top: solid 1px #cccccc; }
-/* border-left: solid 5px #ffffbf; */
 
 th { font-size: smaller; }
 td { border-bottom: solid 1px #cccccc; padding-bottom: 3px; padding-top: 3px; padding-left: 0; padding-right: 0; font-size: smaller; }
@@ -32,7 +36,8 @@ tr.even td { background: #ffffff; }
 .new { font-weight: bold; }
 
 .date { width: 125px; }
-.sender { width: 200px; }
+.sender { width: 200px; margin-left: 6px; }
+.subject, .sender { margin-right: 10px; cursor: pointer; }
 .messagePreview, .senderAddress { margin-left: 0.6em; font-weight: normal; color: #999999; }
 
 /* Header and footer control bars */
@@ -52,10 +57,10 @@ a.list-return { font-weight: bold; }
 
 form.login { background: url('login.jpg') no-repeat; font-size: smaller; }
 
-.input-block input { width: 310px; }
+.input-block input { width: 315px; }
 .login-notice { font-weight: bold; background: #ffffcc; padding: 5px; border: solid 1px black; }
 
-.login-submit { text-align: right; margin-right: 10px; }
+.login-submit { text-align: right; }
 .login-submit input { width: 110px; }
 
 /* Toolbars */
@@ -66,20 +71,18 @@ form.login { background: url('login.jpg') no-repeat; font-size: smaller; }
 
 /* Message display */
 
-.plain-message, .html-message { width: 60em; border-top: solid 1px black; padding-top: 12px; font-size: smaller; }
+.plain-message, .html-message { width: 50em; border-top: solid 1px black; padding: 14px 0 14px 0; font-size: smaller; }
 .plain-message-monospace { font-family: monospace; }
 
-.msg-head-subject { font-size: 17px; font-weight: normal; margin: 0; }
+.msg-head-subject { font-size: 17px; font-weight: normal; margin: 12px 0 0 0; }
 .msg-head-line2 { font-size: 11px; margin: 0; }
 .msg-head-date, .msg-head-sender { font-weight: bold; }
 
-/* Moving messages handle. */
-div.move-handle { cursor: move; background-color: #78BA91; z-index: 1000; }
+/* Options panel */
 
-/* Options screen - basic styles just to make it usable. */
 #opts-wrapper { background-color: #FFFFFF; border: 1px solid black; height: 80%; overflow: auto; }
 
-/* The loading and flash area - their appearance. */
-.loading { background-color: #ffffcc; }
+/* Notification messages */
+
 .flash { background-color: #ffffcc; padding: 5px; border: solid 1px black; text-align: right }
 .flash-submessage { font-size: smaller; color: #C0C0C0; }

@@ -56,8 +56,8 @@ if ( isset( $_REQUEST['logout'] ) ) {
 //------------------------------------------------------------------------------
 // Check login details
 
-if (  ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
-       	isset( $_POST['pass'] ) && !empty( $_POST['pass'] ) )
+if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
+	isset( $_POST['pass'] ) && !empty( $_POST['pass'] ) )
 	|| ( isset( $_SESSION['user'] ) && isset( $_SESSION['pass'] ) ) ) {
 
 	if ( !isset( $_SESSION['user'] ) && !isset( $_SESSION['pass'] ) ) {
@@ -116,7 +116,9 @@ if (  ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 	} else {
 		echo $settings, ";";
 	}
-	echo "var serverUser = '" . addslashes( $_SESSION['user'] ) . "';";
+
+	// TODO: this shouldn't be needed or should be cleaned up
+	echo "var serverUser = \"" . addslashes( $_SESSION['user'] ) . "\";";
 	echo "</script>";
 
 
@@ -124,7 +126,6 @@ if (  ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 // Draw toolbars
 
 	echo <<<ENDBAR
-<div id="loading" style="display: none" class="loading">Loading ...</div>
 <div id="flash" style="display: none" class="flash"></div>
 <script type="text/javascript" src="lichen.js"></script>
 <ul id="corner-bar" class="toolbar">
@@ -168,10 +169,10 @@ ENDSEARCH;
 	echo "</ul>\n";
 
 	echo "<ul id=\"mailboxes\">\n";
-	echo "<li>", _("Loading..."), "</li>\n";
+	echo "<li>", _("Loading ..."), "</li>\n";
 	echo "</ul>\n";
 
-	echo "<div id=\"list-wrapper\"></div>";
+	echo "<div id=\"list-wrapper\">", _("Loading ..."), "</div>";
 	echo "<div id=\"msg-wrapper\"></div>";
 	echo "<div id=\"opts-wrapper\"></div>";
 	echo "<div id=\"comp-wrapper\"></div>";

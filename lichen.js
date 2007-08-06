@@ -25,7 +25,7 @@ var IMAPServerConnector = new Class({
 	},
 	messageList: function( mailbox, search, page, sort, validity, cacheonly ) {
 		if ( !cacheonly ) {
-			// Only display the loading thingy if this is not just for the cache.
+			// For user-initiated requests, show loading feedback
 			if_remoteRequestStart();
 		}
 
@@ -552,13 +552,12 @@ function toggleDisplay( itemID ) {
 	}
 }
 
-// Remote request started: ie, display some sort of loading feedback.
+// Remote request started; display some sort of loading feedback.
 // Keep a count of the remote requests.
 function if_remoteRequestStart() {
 	remoteRequestCount += 1;
 
-	$('loading').style.display = 'block';
-
+//	$('loading').style.display = 'block';
 }
 
 
@@ -569,7 +568,7 @@ function if_remoteRequestEnd() {
 		remoteRequestCount -= 1;
 	}
 	if (remoteRequestCount == 0) {
-		$('loading').style.display = 'none';
+//		$('loading').style.display = 'none';
 	}
 }
 
@@ -1568,26 +1567,31 @@ function list_checkCount() {
 
 
 function list_buildMailboxList( mailboxes ) {
-	var mailboxListContainer = $('mailboxes');
 
-	mailboxListContainer.empty();
+	$('mailboxes').empty();
 
-	var containerContents = "";
-	var i = 0;
-	var j = 0;
-	for ( i = 0; i < mailboxes.length; i++ ) {
-		containerContents += "<li id=\"mb-" + mailboxes[i].fullboxname + "\">";
+	var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"#manage-mailboxes\" onclick=\"MailboxManager.showManager();return false\">edit</a>]</li>";
+
+	for ( var i = 0; i < mailboxes.length; i++ ) {
+
+		containerContents += "<li id=\"mb-" + mailboxes[i].fullboxname;
+		if ( listCurrentMailbox == mailboxes[i].mailbox ) {
+			containerContents += "\" class=\"mb-active";
+		}
+		containerContents += "\">";
+
 		// This is a really bad way to indent.
-		for ( j = 0; j < mailboxes[i].folderdepth; j++ ) {
+		for ( var j = 0; j < mailboxes[i].folderdepth; j++ ) {
 			containerContents += "&nbsp;&nbsp;";
 		}
+
 		if ( mailboxes[i].selectable ) {
-			containerContents += "<a href=\"#\" onclick=\"return if_selectmailbox('" + mailboxes[i].fullboxname + "')\" >";
+			containerContents += "<a href=\"#\" onclick=\"return if_selectmailbox('" + mailboxes[i].fullboxname + "')\" class=\"mb-click\">";
 		}
-		containerContents += mailboxes[i].mailbox;
-		if ( mailboxes[i].selectable ) {
-			containerContents += "</a>";
-		}
+
+		containerContents += "<span class=\"mailbox\">" + mailboxes[i].mailbox + "</strong> ";
+
+
 		containerContents += "<span id=\"" + mailboxes[i].fullboxname + "_unread\">";
 		if (mailboxes[i].unseen > 0 || userSettings['boxlist_showtotal']) {
 			containerContents += "(" + mailboxes[i].unseen;
@@ -1595,52 +1599,17 @@ function list_buildMailboxList( mailboxes ) {
 			containerContents += ")";
 		}
 		containerContents += "</span>";
+
+		if ( mailboxes[i].selectable ) {
+			containerContents += "</a>";
+		}
 		containerContents += "</li>";
 	}
 
-	containerContents += "<li id=\"mb-LICHENDELETE\">Delete</li>";
-
 	containerContents += "</ul>";
-	containerContents += "<a href=\"#\" onclick=\"MailboxManager.showManager(); return false\">Mailbox Manager</a>";
 
-	mailboxListContainer.setHTML( containerContents );
+	$('mailboxes').setHTML( containerContents );
 	mailboxCount = mailboxes.length;
-
-	// Make them all drop targets, and draggable.
-	var mailboxDroptargets = $A( $('mailboxes').getElementsByTagName('li') );
-
-	mailboxDroptargets.each(function(drop){
-		$(drop).addEvents({
-			'over': function(el, obj){
-				this.setStyle('background-color', '#78ba91');
-				this.setStyle('font-size', 'larger');
-			},
-			'leave': function(el, obj){
-				this.setStyle('background-color', '#FFFFFF');
-				this.setStyle('font-size', '11px'); // TODO: Don't hardcode
-			},
-			'drop': function(el, obj){
-				// On drop, move the selected messages, and then
-				// reset the drag handler.
-				this.setStyle('background-color', '#FFFFFF');
-				this.setStyle('font-size', '11px'); // TODO: Don't hardcode
-
-				// Reset the element back to where it started.
-				el.setStyle('top', el.originalTop);
-				el.setStyle('left', el.originalLeft);
-
-				var destboxName = this.id;
-				destboxName = destboxName.substr( 3 );
-				// The user dropped the move handle, they want messages
-				// moved.
-				if_moveMessages( destboxName );
-			}
-		});
-	});
-
-	// Setup the move handler with the targets.
-	// This checks to see if both exist and then link them.
-	if_setupMoveHandle();
 }
 
 
@@ -1661,7 +1630,7 @@ function list_countCB( mailboxes ) {
 	var i = 0;
 
 	for (i = 0; i < msgCounts.length; i++) {
-		if (listCurrentMailbox == msgCounts[i].mailbox) {
+		if ( listCurrentMailbox == msgCounts[i].mailbox ) {
 			// Do we need to update the list?
 			if ( lastUIDconst != "" && lastUIDconst != msgCounts[i].uidConst ) {
 				list_show();
@@ -1673,13 +1642,16 @@ function list_countCB( mailboxes ) {
 			lastUIDconst = msgCounts[i].uidConst;
 			msgCount = msgCounts[i].messages;
 
+			// Update the highlight in the mailbox list, and the page title
+			$('mb-'+listCurrentMailbox).addClass('mb-active');
 			document.title = listCurrentMailbox +' ('+msgCounts[i].unseen+' unread, '+msgCounts[i].messages+' total)';
 		}
+
 		var countbox = msgCounts[i].fullboxname + "_unread";
 		var countresult = "";
 		// If non-zero, update the unread messages.
 		if ( msgCounts[i].unseen > 0 || userSettings['boxlist_showtotal'] ) {
-			countresult = " (" + msgCounts[i].unseen;
+			countresult = "(" + msgCounts[i].unseen;
 			if ( userSettings['boxlist_showtotal'] ) countresult += "/" + msgCounts[i].messages;
 			countresult += ")";
 		}
@@ -1695,6 +1667,7 @@ function list_countCB( mailboxes ) {
 		}
 	}
 }
+
 
 function list_twiddleFlag( uid, flag, state ) {
 	var postbody = "request=setFlag";
@@ -1714,6 +1687,8 @@ function list_twiddleFlag( uid, flag, state ) {
 		}
 		} ).request();
 }
+
+
 function list_twiddleFlagCB( responseText ) {
 	var result = if_checkRemoteResult( responseText );
 	if (!result) return;
@@ -1731,14 +1706,16 @@ function list_twiddleFlagCB( responseText ) {
 				}
 			}
 		}
-	} else {
+	}
+
+	if ( result.flag == 'flagged' ) {
 		for ( var i = 0; i < uidsAffected.length; i++ ) {
 			var flagIcon = $( result.flag + '_' + uidsAffected[i] );
 			if ( flagIcon ) {
 				if ( result.state ) {
-					flagIcon.src = 'themes/' + userSettings.theme + '/icons/' + result.flag + '.png';
+					flagIcon.src = 'themes/' + userSettings.theme + '/icons/flag.png';
 				} else {
-					flagIcon.src = 'themes/' + userSettings.theme + '/icons/un' + result.flag + '.png';
+					flagIcon.src = 'themes/' + userSettings.theme + '/icons/flag_off.png';
 				}
 			}
 		}
@@ -1756,6 +1733,9 @@ function list_twiddleFlagCB( responseText ) {
 function if_selectmailbox( mailbox ) {
 	lastUIDconst = "";
 	msgCount = 0;
+
+	// Remove this mailbox's selection highlight in the listing
+	$('mb-'+listCurrentMailbox).removeClass('mb-active');
 
 	listCurrentPage = 0;
 	listCurrentSearch = "";
@@ -1841,9 +1821,7 @@ function list_showCB( responseText ) {
 	}
 
 	tableContents += "<table><tr>";
-	tableContents += "<th></th>"; // Blank space for the move handle
 	tableContents += "<th></th>"; // Message checkbox
-	tableContents += "<th></th>"; // Toggle seen flag button
 	tableContents += "<th></th>"; // Toggle flagged button
 
 	tableContents += "<th><a href=\"#sort-from\" onclick=\"list_sort('from');return false\">sender</a></th>";
@@ -1878,15 +1856,10 @@ function list_showCB( responseText ) {
 
 		thisRow += "\">";
 
-		thisRow += "<td width=\"20px\"></td>";
-
 		thisRow += "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" + thisMsg.uid + "\" id=\"s-" + thisMsg.uid + "\" value=\"" + thisMsg.uid + "\" onclick=\"list_messageCheckboxClicked();\" /></td>";
 
-		thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'seen', 'toggle'); return false\">";
-		thisRow += "<img src=\"themes/" + userSettings.theme + "/icons/seentoggle.png\" /></a></td>";
-
-		var flagImage = thisMsg.flagged ? "themes/" + userSettings.theme + "/icons/flagged.png" : "themes/" + userSettings.theme + "/icons/unflagged.png";
-		thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle'); return false\">";
+		var flagImage = thisMsg.flagged ? "themes/" + userSettings.theme + "/icons/flag.png" : "themes/" + userSettings.theme + "/icons/flag_off.png";
+		thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle');return false\" title=\"Flag this message\">";
 		thisRow += "<img src=\"" + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" /></a></td>";
 
 		if ( thisMsg.fromName == "" ) {
@@ -1931,8 +1904,6 @@ function list_showCB( responseText ) {
 	tableContents += "</table>";
 	tableContents += "<div class=\"footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" id=\"bottom-corner\" />" + pageSwitchBar + "</div>";
 
-	tableContents += "<div id=\"move-handle\" class=\"move-handle\"></div>";
-
 	$('list-wrapper').setHTML( tableContents );
 
 	// Set the appropriate sort icon based on the current sort.
@@ -1945,16 +1916,6 @@ function list_showCB( responseText ) {
 		var newImg = $('sort_' + listCurrentSort + '_dir');
 		if ( newImg ) newImg.src = 'themes/' + userSettings.theme + '/icons/sortdown.png';
 	}
-
-	// Prepare the move handle, but don't make it a drag here.
-	var moveHandle = $('move-handle');
-	moveHandle.setStyle('position', 'absolute');
-	moveHandle.setStyle('top', 0);
-	moveHandle.setStyle('left', 0);
-
-	// Instead, ask this function to make it a draggable: this ensures that
-	// the mailbox drop targets exist.
-	if_setupMoveHandle();
 
 	// Update the list counts.
 	list_fetchCount();
@@ -1979,8 +1940,8 @@ function list_createPageBar( resultObj ) {
 	newPageBar += "<a href='#' onclick='list_selectMessages(\"invert\"); return false'>invert</a>";
 	newPageBar += "&nbsp;<select onchange=\"list_withSelected(this)\" style=\"font-size: inherit;\">";
 	newPageBar += "<option value=\"noop\">-- with selected --</option>";
-	newPageBar += "<option value=\"markseen\">mark as seen</option>";
-	newPageBar += "<option value=\"markunseen\">mark as unseen</option>";
+	newPageBar += "<option value=\"markseen\">mark as read</option>";
+	newPageBar += "<option value=\"markunseen\">mark as unread</option>";
 	newPageBar += "<option value=\"flag\">flag messages</option>";
 	newPageBar += "<option value=\"unflag\">unflag messages</option>";
 	newPageBar += "<option value=\"noop\">-- Move to folder:</option>";
@@ -2042,22 +2003,6 @@ function list_createPageBar( resultObj ) {
 }
 
 
-// When creating the drop targets (the mailboxes) or the move handle (in the message list)
-// we can't rely on either being present. Thus, both the functions that create them
-// call this function - if both are now present, the move handle is made draggable.
-function if_setupMoveHandle() {
-	var mailboxDroptargets = $A( $('mailboxes').getElementsByTagName('li') );
-	var moveHandle = $('move-handle');
-
-	if ( mailboxDroptargets.length > 1 && moveHandle ) {
-		new Drag.Move( moveHandle, { droppables: mailboxDroptargets } );
-		moveHandle.addEvent('emptydrop', function () {
-			this.setStyle('left', this.originalLeft);
-			this.setStyle('top', this.originalTop);
-		});
-	}
-}
-
 function list_getSelectedMessages() {
 	var selectedMessages = Array();
 
@@ -2088,9 +2033,6 @@ function list_selectMessages( mode ) {
 				break;
 		}
 	}
-
-	// And move the move handle.
-	list_messageCheckboxClicked();
 }
 
 function list_withSelected( sourceBox, textAction ) {
@@ -2138,44 +2080,10 @@ function list_withSelected( sourceBox, textAction ) {
 }
 
 
-// A message checkbox was clicked - move the "move-handle" div to encompass them visually.
+// onclick handler for the checkbox next to "sender" in a message list
+// Currently does nothing but will later highlight active rows, etc.
 function list_messageCheckboxClicked() {
-	var inputElements = $A( $('list-wrapper').getElementsByTagName('input') );
-
-	var firstCheckbox = null;
-	var lastCheckbox = null;
-
-	// Search for the first and last selected checkbox.
-	for ( var i = 0; i < inputElements.length; i++ ) {
-		if ( inputElements[i].checked ) {
-			lastCheckbox = $(inputElements[i]);
-
-			if ( firstCheckbox == null ) {
-				firstCheckbox = $(inputElements[i]);
-			}
-		}
-	}
-
-	if ( firstCheckbox != null ) {
-		// Shift the movehandle div so that it's in the column
-		// we left in the table, and starts at the first selected checkbox,
-		// and finishes at the last selected checkbox.
-		var moveHandle = $('move-handle');
-		var listContainer = $('list-wrapper');
-		moveHandle.setStyle('top', $(firstCheckbox.offsetParent).getTop() - listContainer.getTop());
-		moveHandle.setStyle('left', 0);
-		moveHandle.setStyle('width', 20);
-		moveHandle.setStyle('height', $(lastCheckbox.offsetParent).getTop() - $(firstCheckbox.offsetParent).getTop() +
-				$(lastCheckbox.offsetParent).getStyle('height').toInt());
-
-		moveHandle.originalTop = moveHandle.getStyle('top');
-		moveHandle.originalLeft = moveHandle.getStyle('left');
-	} else {
-		// Nothing selected. Hide the drag box.
-		var moveHandle = $('move-handle');
-		moveHandle.setStyle('width', 0);
-		moveHandle.setStyle('height', 0);
-	}
+	return false;
 }
 
 function if_moveMessages( target ) {
