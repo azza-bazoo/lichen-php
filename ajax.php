@@ -1240,11 +1240,11 @@ function request_identityEditor() {
 			break;
 		case "setdefault";
 			// Find it and then make it default. Everything else becomes not-default.
-			foreach ( $USER_SETTINGS['identities'] as $editIndex => $identity ) {
-				if ( $identity['address'] == $workingid ) {
-					$USER_SETTINGS['identities'][$editIndex]['isdefault'] = true;
+			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
+				if ( $USER_SETTINGS['identities'][$i]['address'] == $workingid ) {
+					$USER_SETTINGS['identities'][$i]['isdefault'] = true;
 				} else {
-					$USER_SETTINGS['identities'][$editIndex]['isdefault'] = false;
+					$USER_SETTINGS['identities'][$i]['isdefault'] = false;
 				}
 			}
 			break;
