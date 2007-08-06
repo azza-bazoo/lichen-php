@@ -139,8 +139,8 @@ $SETTINGS_PANEL = array(
 			),
 	_("Message List") =>
 		array(
-			_("Show Flagged column") =>
-				array( "type" => "boolean", "key" => "list_showflagged" ),
+//			_("Show Flagged column") =>
+//				array( "type" => "boolean", "key" => "list_showflagged" ),
 			_("Show Message Previews") =>
 				array( "type" => "boolean", "key" => "list_showpreviews" ),
 			_("Show Message Size") =>
@@ -404,5 +404,132 @@ function parseUserSettings( $inputSettings ) {
 
 	return $settingErrors;
 }
+
+
+// Returns a string containing a select box of timezones; this list omits
+// the extensive duplication in the zoneinfo database.
+// The list was manually generated on an unexciting summer's day ...
+function drawTimeZoneSelect( $selected ) {
+
+	$timezones = array(
+		"Pacific/Midway" => "[UTC -11:00] Midway, Pago Pago, Samoa",
+		"America/Adak" => "[UTC -10:00] Adak, Atka",
+		"Pacific/Honolulu" => "[UTC -10:00] Honolulu, Johnston",
+		"Pacific/Tahiti" => "[UTC -10:00] Tahiti",
+		"Pacific/Marquesas" => "[UTC -10:30] Marquesas",
+		"America/Anchorage" => "[UTC -9:00] Anchorage, Juneau, Nome",
+		"America/Los_Angeles" => "[UTC -8:00] Los Angeles, San Francisco, Tijuana, Vancouver",
+		"America/Boise" => "[UTC -7:00] Denver, Edmonton, Phoenix",
+		"America/Chicago" => "[UTC -6:00] Chicago, Dallas, Guatemala, Mexico City, Winnipeg",
+		"Pacific/Galapagos" => "[UTC -6:00] Galapagos Islands",
+		"America/Bogota" => "[UTC -5:00] Bogota",
+		"America/New_York" => "[UTC -5:00] New York City, Detroit, Montreal, Jamaica, Panama",
+		"America/Eirunepe" => "[UTC -5:00] Eirunepe, Porto Acre, Rio Branco, Acre",
+		"America/Guayaquil" => "[UTC -5:00] Guayaquil",
+		"America/Havana" => "[UTC -5:00] Havana",
+		"America/Lima" => "[UTC -5:00] Lima",
+		"America/St_Johns" => "[UTC -4:30] St Johns, Newfoundland",
+		"America/Santo_Domingo" => "[UTC -4:00] Halifax, Santo Domingo, Barbados, Puerto Rico",
+		"America/Asuncion" => "[UTC -4:00] Asuncion",
+		"America/Boa_Vista" => "[UTC -4:00] Boa Vista, Cuiaba, Manaus, Porto Velho",
+		"America/Caracas" => "[UTC -4:00] Caracas, La Paz, Guyana",
+		"America/Santiago" => "[UTC -4:00] Santiago",
+		"Atlantic/Stanley" => "[UTC -4:00] Stanley",
+		"America/Sao_Paulo" => "[UTC -3:00] Sao Paulo, Bel&eacute;m, Fortaleza, Macei&oacute;, Recife",
+		"America/Buenos_Aires" => "[UTC -3:00] Buenos Aires, C&oacute;rdoba, Montevideo, Paramaribo",
+		"America/Godthab" => "[UTC -3:00] Godthab",
+		"America/Miquelon" => "[UTC -3:00] Miquelon",
+		"America/Paramaribo" => "[UTC -3:00] Paramaribo",
+		"Atlantic/South_Georgia" => "[UTC -2:00] South Georgia, Noronha Archipelago",
+		"America/Scoresbysund" => "[UTC -1:00] Scoresbysund",
+		"Atlantic/Azores" => "[UTC -1:00] Azores",
+		"Atlantic/Cape_Verde" => "[UTC -1:00] Cape Verde",
+		"Europe/London" => "[UTC] London, Abidjan, Dublin, Lisboa, Reykjavik",
+		"Africa/Casablanca" => "[UTC] Casablanca, El Aaiun, Canary, Faeroe, Madeira",
+		"Europe/Paris" => "[UTC +1:00] Paris, Berlin, Madrid, Belgrade, Stockholm, Warsaw",
+		"Africa/Kinshasa" => "[UTC +1:00] Brazzaville, Kinshasa, Lagos",
+		"Atlantic/Jan_Mayen" => "[UTC +1:00] Jan Mayen",
+		"Africa/Harare" => "[UTC +2:00] Gaborone, Kigali, Lubumbashi, Lusaka, Maputo",
+		"Africa/Cairo" => "[UTC +2:00] Cairo, Beirut, Istanbul, Athens, Helsinki, Minsk",
+		"Africa/Johannesburg" => "[UTC +2:00] Johannesburg, Maseru, Mbabane",
+		"Asia/Jerusalem" => "[UTC +2:00] Jerusalem, Tel Aviv",
+		"Africa/Addis_Ababa" => "[UTC +3:00] Addis Ababa, Dar es Salaam, Mogadishu, Nairobi",
+		"Asia/Riyadh" => "[UTC +3:00] Baghdad, Doha, Riyadh",
+		"Europe/Moscow" => "[UTC +3:00] Moscow",
+		"Asia/Tehran" => "[UTC +3:30] Tehran",
+		"Asia/Aqtau" => "[UTC +4:00] Aqtau",
+		"Asia/Baku" => "[UTC +4:00] Baku",
+		"Asia/Dubai" => "[UTC +4:00] Dubai, Muscat",
+		"Asia/Tbilisi" => "[UTC +4:00] Tbilisi",
+		"Asia/Yerevan" => "[UTC +4:00] Yerevan",
+		"Europe/Samara" => "[UTC +4:00] Samara",
+		"Indian/Mauritius" => "[UTC +4:00] Mauritius, R&eacute;union, Seychelles",
+		"Asia/Kabul" => "[UTC +4:30] Kabul",
+		"Asia/Aqtobe" => "[UTC +5:00] Aqtobe",
+		"Asia/Ashgabat" => "[UTC +5:00] Ashgabat, Ashkhabad, Samarkand",
+		"Asia/Bishkek" => "[UTC +5:00] Bishkek",
+		"Asia/Karachi" => "[UTC +5:00] Karachi, Tashkent, Maldives, Kerguelen, Dushanbe",
+		"Asia/Yekaterinburg" => "[UTC +5:00] Yekaterinburg",
+		"Asia/Calcutta" => "[UTC +5:30] Calcutta",
+		"Asia/Katmandu" => "[UTC +5:45] Katmandu",
+		"Asia/Almaty" => "[UTC +6:00] Almaty",
+		"Asia/Dacca" => "[UTC +6:00] Dhaka, Colombo, Chagos, Thimphu",
+		"Asia/Novosibirsk" => "[UTC +6:00] Novosibirsk",
+		"Asia/Omsk" => "[UTC +6:00] Omsk",
+		"Asia/Rangoon" => "[UTC +6:30] Rangoon, Cocos Islands",
+		"Asia/Bangkok" => "[UTC +7:00] Bangkok, Phnom Penh, Saigon, Vientiane",
+		"Asia/Jakarta" => "[UTC +7:00] Jakarta, Pontianak",
+		"Asia/Krasnoyarsk" => "[UTC +7:00] Krasnoyarsk",
+		"Asia/Shanghai" => "[UTC +8:00] Beijing, Shanghai, Taipei, Hong Kong",
+		"Asia/Irkutsk" => "[UTC +8:00] Irkutsk",
+		"Asia/Kuala_Lumpur" => "[UTC +8:00] Kuala Lumpur, Manila, Singapore, Makassar",
+		"Asia/Ulaanbaatar" => "[UTC +8:00] Ulaanbaatar",
+		"Australia/Perth" => "[UTC +8:00] Perth",
+		"Asia/Jayapura" => "[UTC +9:00] Dili, Jayapura, Choibalsan, Palau",
+		"Asia/Seoul" => "[UTC +9:00] Pyongyang, Seoul",
+		"Asia/Tokyo" => "[UTC +9:00] Tokyo",
+		"Asia/Yakutsk" => "[UTC +9:00] Yakutsk",
+		"Australia/Adelaide" => "[UTC +9:30] Adelaide",
+		"Australia/Darwin" => "[UTC +9:30] Darwin",
+		"Asia/Sakhalin" => "[UTC +10:00] Sakhalin",
+		"Asia/Vladivostok" => "[UTC +10:00] Vladivostok",
+		"Australia/Brisbane" => "[UTC +10:00] Brisbane",
+		"Australia/Sydney" => "[UTC +10:00] Sydney, Melbourne, Canberra",
+		"Australia/Hobart" => "[UTC +10:00] Hobart",
+		"Pacific/Guam" => "[UTC +10:00] Guam, Saipan, Port Moresby, Chuuk",
+		"Australia/Lord_Howe" => "[UTC +10:30] Lord Howe Island",
+		"Asia/Magadan" => "[UTC +11:00] Magadan",
+		"Pacific/Efate" => "[UTC +11:00] Vanuatu, Guadalcanal, Noumea, Ponape",
+		"Pacific/Norfolk" => "[UTC +11:30] Norfolk Island",
+		"Asia/Anadyr" => "[UTC +12:00] Anadyr",
+		"Asia/Kamchatka" => "[UTC +12:00] Kamchatka",
+		"Pacific/Auckland" => "[UTC +12:00] Auckland",
+		"Pacific/Fiji" => "[UTC +12:00] Fiji, Majuro, Nauru",
+		"Pacific/Chatham" => "[UTC +12:45] Chatham",
+		"Pacific/Enderbury" => "[UTC +13:00] Enderbury, Tongatapu",
+		"Pacific/Kiritimati" => "[UTC +14:00] Kiritimati" );
+
+	if ( $selected == "UTC" ) {
+		// This timezone has no daylight saving and is the same as UTC;
+		// seeing "Casablanca" will hopefully prompt users in other
+		// places to set their timezone correctly.
+		$selected = "Africa/Casablanca";
+	}
+
+	$outputString = "<select name=\"timezone\" id=\"timezone\">\n";
+
+	foreach ( $timezones as $zoneName => $displayName ) {
+		if ( $selected == $zoneName ) {
+			$outputString .= "<option value=\"" . $zoneName . "\" selected=\"selected\">" . $displayName . "</option>\n";
+		} else {
+			$outputString .= "<option value=\"" . $zoneName . "\">" . $displayName . "</option>\n";
+		}
+	}
+
+	$outputString .= "</select>\n";
+	return $outputString;
+
+}
+
 
 ?>

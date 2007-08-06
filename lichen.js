@@ -1158,7 +1158,7 @@ var OptionsEditorClass = new Class({
 		var idemail = $('identity-email').value;
 
 		if ( idname == "" || idemail == "" ) {
-			Flash.flashMessage( "Can't add an identity with a blank name or blank email." );
+			Flash.flashMessage( "Can't add an identity with a blank name or blank e-mail." );
 			return false;
 		}
 
@@ -1220,7 +1220,7 @@ var OptionsEditorClass = new Class({
 		var idemail = $('identity-email').value;
 
 		if ( idname == "" || idemail == "" ) {
-			Flash.flashMessage( "Can't edit an identity to have a blank name or blank email." );
+			Flash.flashMessage( "Can't edit an identity to have a blank name or blank e-mail." );
 			return false;
 		}
 
@@ -1767,10 +1767,10 @@ function if_selectmailbox( mailbox ) {
 
 function list_sort( sort ) {
 	// Clear the old sort image.
-	var oldImg = $('sort_' + listCurrentSort + '_dir');
-	if ( oldImg ) {
-		oldImg.src = 'themes/' + userSettings.theme + 'icons/blank.png';
-	}
+//	var oldImg = $('sort_' + listCurrentSort + '_dir');
+//	if ( oldImg ) {
+//		oldImg.src = 'themes/' + userSettings.theme + 'icons/blank.png';
+//	}
 
 	if ( sort == listCurrentSort ) {
 		// Already sorting by this, reverse direction.
@@ -1840,21 +1840,18 @@ function list_showCB( responseText ) {
 			"<a href=\"#clearsearch\" onclick=\"doQuickSearch(null, true); return false\">Clear Search</a></div>";
 	}
 
-	tableContents += "<table>";
-
-	tableContents += "<tr>";
+	tableContents += "<table><tr>";
 	tableContents += "<th></th>"; // Blank space for the move handle
 	tableContents += "<th></th>"; // Message checkbox
 	tableContents += "<th></th>"; // Toggle seen flag button
-	if ( userSettings['list_showflagged'] ) {
-		tableContents += "<th></th>"; // Toggle flagged button
+	tableContents += "<th></th>"; // Toggle flagged button
+
+	tableContents += "<th><a href=\"#sort-from\" onclick=\"list_sort('from');return false\">sender</a></th>";
+	tableContents += "<th><a href=\"#sort-subject\" onclick=\"list_sort('subject');return false\">subject</a></th>";
+	if ( userSettings.list_showsize ) {
+		tableContents += "<th><a href=\"#sort-size\" onclick=\"list_sort('size');return false\">size</a></th>";
 	}
-	tableContents += "<th><a href=\"#sort-from\" onclick=\"list_sort('from'); return false\">Sender</a><img src=\"themes/" + userSettings.theme + "/icons/blank.png\" id=\"sort_from_dir\" /></th>"; // Sender
-	tableContents += "<th><a href=\"#sort-subject\" onclick=\"list_sort('subject'); return false\">Subject</a><img src=\"themes/" + userSettings.theme + "/icons/blank.png\" id=\"sort_subject_dir\" /></th>"; // Subject
-	if ( userSettings['list_showsize'] ) {
-		tableContents += "<th><a href=\"#sort-size\" onclick=\"list_sort('size'); return false\">Size</a><img src=\"themes/" + userSettings.theme + "/icons/blank.png\" id=\"sort_size_dir\" /></th>"; // Size
-	}
-	tableContents += "<th><a href=\"#sort-date\" onclick=\"list_sort('date'); return false\">Date</a><img src=\"themes/" + userSettings.theme + "/icons/blank.png\" id=\"sort_date_dir\" /></th>"; // Date
+	tableContents += "<th><a href=\"#sort-date\" onclick=\"list_sort('date');return false\">Date</a></th>";
 	tableContents += "</tr>";
 
 	if ( messages.length == 0 ) {
@@ -1888,11 +1885,9 @@ function list_showCB( responseText ) {
 		thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'seen', 'toggle'); return false\">";
 		thisRow += "<img src=\"themes/" + userSettings.theme + "/icons/seentoggle.png\" /></a></td>";
 
-		if ( userSettings['list_showflagged'] ) {
-			var flagImage = thisMsg.flagged ? "themes/" + userSettings.theme + "/icons/flagged.png" : "themes/" + userSettings.theme + "/icons/unflagged.png";
-			thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle'); return false\">";
-			thisRow += "<img src=\"" + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" /></a></td>";
-		}
+		var flagImage = thisMsg.flagged ? "themes/" + userSettings.theme + "/icons/flagged.png" : "themes/" + userSettings.theme + "/icons/unflagged.png";
+		thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle'); return false\">";
+		thisRow += "<img src=\"" + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" /></a></td>";
 
 		if ( thisMsg.fromName == "" ) {
 			thisRow += "<td><div class=\"sender\" onclick=\"showMsg('"+listCurrentMailbox+"','"+thisMsg.uid+"',0)\"";
