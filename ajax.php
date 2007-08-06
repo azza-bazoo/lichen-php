@@ -770,6 +770,10 @@ function request_createComposer() {
 		case 'draft':
 			echo htmlentities( implode( "", $msgArray['text/plain'] ) );
 			break;
+		case 'mailto':
+			if ( isset( $mailtoDetails['body'] ) ) {
+				echo htmlentities( $mailtoDetails['body'] );
+			}
 	}
 	echo "</textarea>";
 
