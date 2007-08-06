@@ -158,6 +158,41 @@ function decodeText( $string, $charset, $transferEncoding ) {
 	return $string;
 }
 
+/* Following two functions copied from http://php.net/html_entity_decode
+ * They are from the comments. This is to work around a PHP4 issue with html_entity_decode.
+ * When we go PHP5 only, this can be removed. */
+if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
+	function html_entity_decode_utf8($string)
+	{
+		static $trans_tbl;
+   
+		// replace numeric entities
+		$string = preg_replace('~&#x([0-9a-f]+);~ei', 'code2utf(hexdec("\\1"))', $string);
+		$string = preg_replace('~&#([0-9]+);~e', 'code2utf(\\1)', $string);
+
+		// replace literal entities
+		if (!isset($trans_tbl))
+		{
+			$trans_tbl = array();
+	       
+			foreach (get_html_translation_table(HTML_ENTITIES) as $val=>$key)
+				$trans_tbl[$key] = utf8_encode($val);
+		}
+   
+		return strtr($string, $trans_tbl);
+	}
+
+	// Returns the utf string corresponding to the unicode value (from php.net, courtesy - romans@void.lv)
+	function code2utf($num)
+	{
+		if ($num < 128) return chr($num);
+		if ($num < 2048) return chr(($num >> 6) + 192) . chr(($num & 63) + 128);
+		if ($num < 65536) return chr(($num >> 12) + 224) . chr((($num >> 6) & 63) + 128) . chr(($num & 63) + 128);
+		if ($num < 2097152) return chr(($num >> 18) + 240) . chr((($num >> 12) & 63) + 128) . chr((($num >> 6) & 63) + 128) . chr(($num & 63) + 128);
+		return '';
+	}
+}
+
 
 // Add (or strip) HTML markup within a message to allow it to be displayed.
 // If the message is plain text, this includes things like adding <br />
@@ -213,7 +248,11 @@ function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags 
 
 	} else {
 		// Assume we're dealing with plain text.
-		$string = html_entity_decode( $string, ENT_COMPAT, 'UTF-8' ); // For mailers (ie Slashdot) that have entities in text email.
+		if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
+			$string = html_entity_decode_utf8( $string );
+		} else {
+			$string = html_entity_decode( $string, ENT_COMPAT, 'UTF-8' ); // For mailers (ie Slashdot) that have entities in text email.
+		}
 
 		// Now reinsert the entities, keeping in mind the charset.
 		$string = htmlspecialchars( $string, ENT_COMPAT, 'UTF-8' );
