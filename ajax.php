@@ -1208,11 +1208,11 @@ function request_identityEditor() {
 	switch ( $action ) {
 		case "add":
 			// Add a new identity.
-			$USER_SETTINGS['identities'][] = array(
+			array_push( $USER_SETTINGS['identities'], array(
 				"name" => $idname,
 				"address" => $idemail,
 				"isdefault" => false
-			);
+			) );
 			break;
 		case "delete":
 			// Delete an identity.
