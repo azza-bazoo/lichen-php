@@ -167,7 +167,7 @@ function decodeText( $string, $charset, $transferEncoding ) {
 // It should be passed a reference to an array.
 // The idea is that the "remote images" replacement should be able to set a flag saying
 // that there are remote images in the message.
-function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags = null ) {
+function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags ) {
 
 	if ( $contentType == "text/html" ) {
 		// TODO: convert mailto: links to composer links

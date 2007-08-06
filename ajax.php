@@ -386,14 +386,14 @@ function request_drawMessage() {
 		// Display HTML in preference.
 		foreach ( $msgArray['text/html'] as $htmlPart ) {
 			echo "<div class=\"html-message\">";
-			echo processMsgMarkup( $htmlPart, 'text/html', $mailbox, $msgUid );
+			echo processMsgMarkup( $htmlPart, 'text/html', $mailbox, $msgUid, null );
 			echo "</div>";
 		}
 	} else {
 		// Display text.
 		foreach ( $msgArray['text/plain'] as $textPart ) {
 			echo "<div class=\"plain-message\">";
-			echo processMsgMarkup( $textPart, 'text/plain', $mailbox, $msgUid );
+			echo processMsgMarkup( $textPart, 'text/plain', $mailbox, $msgUid, null );
 			echo "</div>";
 		}
 	}
@@ -499,7 +499,7 @@ function request_getMessage() {
 		$msgData = array_merge( $msgData, $msgExtraFlags );
 	}
 	foreach ( $msgArray['text/plain'] as $textPart ) {
-		$msgData['textplain'][] = processMsgMarkup( $textPart, 'text/plain', $mailbox, $msgUid );
+		$msgData['textplain'][] = processMsgMarkup( $textPart, 'text/plain', $mailbox, $msgUid, null );
 	}
 
 	if ( count( $msgData['texthtml'] ) > 0 ) {
