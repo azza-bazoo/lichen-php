@@ -1082,7 +1082,9 @@ var MailboxManagerClass = new Class({
 				break;
 		}
 
-		this.mailboxCache = result.mailboxes;
+		if ( result.mailboxes ) {
+			this.mailboxCache = result.mailboxes;
+		}
 	}
 });
 
