@@ -1580,13 +1580,13 @@ function list_buildMailboxList( mailboxes ) {
 		}
 		containerContents += "\">";
 
+		if ( mailboxes[i].selectable ) {
+			containerContents += "<a href=\"#\" onclick=\"return if_selectmailbox('" + mailboxes[i].fullboxname + "')\" class=\"mb-click\">";
+		}
+		
 		// This is a really bad way to indent.
 		for ( var j = 0; j < mailboxes[i].folderdepth; j++ ) {
 			containerContents += "&nbsp;&nbsp;";
-		}
-
-		if ( mailboxes[i].selectable ) {
-			containerContents += "<a href=\"#\" onclick=\"return if_selectmailbox('" + mailboxes[i].fullboxname + "')\" class=\"mb-click\">";
 		}
 
 		containerContents += "<span class=\"mailbox\">" + mailboxes[i].mailbox + "</strong> ";
@@ -1628,9 +1628,9 @@ function list_countCB( mailboxes ) {
 		return;
 	}
 	var i = 0;
-
+	
 	for (i = 0; i < msgCounts.length; i++) {
-		if ( listCurrentMailbox == msgCounts[i].mailbox ) {
+		if ( listCurrentMailbox == msgCounts[i].fullboxname ) {
 			// Do we need to update the list?
 			if ( lastUIDconst != "" && lastUIDconst != msgCounts[i].uidConst ) {
 				list_show();
@@ -1641,10 +1641,10 @@ function list_countCB( mailboxes ) {
 			}
 			lastUIDconst = msgCounts[i].uidConst;
 			msgCount = msgCounts[i].messages;
-
+			
 			// Update the highlight in the mailbox list, and the page title
 			$('mb-'+listCurrentMailbox).addClass('mb-active');
-			document.title = listCurrentMailbox +' ('+msgCounts[i].unseen+' unread, '+msgCounts[i].messages+' total)';
+			document.title = msgCounts[i].mailbox +' ('+msgCounts[i].unseen+' unread, '+msgCounts[i].messages+' total)';
 		}
 
 		var countbox = msgCounts[i].fullboxname + "_unread";

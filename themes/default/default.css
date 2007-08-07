@@ -13,7 +13,7 @@ img { border: 0; }
 /* List of mailboxes */
 
 #mailboxes { background: url('lichen.png') no-repeat; }
-#mailboxes li { font-size: 11px; margin-bottom: 2px; }
+#mailboxes li { font-size: 11px; }
 
 #mb-header span { font-weight: bold; }
 #mb-header { padding-bottom: 8px; }
