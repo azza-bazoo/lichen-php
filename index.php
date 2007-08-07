@@ -125,11 +125,25 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 //------------------------------------------------------------------------------
 // Draw toolbars
 
-	echo <<<ENDBAR
-<div id="flash" style="display: none" class="flash"></div>
-<script type="text/javascript" src="lichen.js"></script>
-<ul id="corner-bar" class="toolbar">
-ENDBAR;
+	echo <<<ENDJS
+<!-- <script type="text/javascript" src="js/lichen.r21.js"></script> -->
+<script type="text/javascript" src="js/initialisation.js"></script>
+<script type="text/javascript" src="js/interface-feedback.js"></script>
+<script type="text/javascript" src="js/interface-helpers.js"></script>
+<script type="text/javascript" src="js/mailbox-manager.js"></script>
+<script type="text/javascript" src="js/mailboxes-list.js"></script>
+<script type="text/javascript" src="js/mailbox-data.js"></script>
+<script type="text/javascript" src="js/cache.js"></script>
+<script type="text/javascript" src="js/server-connector.js"></script>
+<script type="text/javascript" src="js/message-listings.js"></script>
+<script type="text/javascript" src="js/message-display.js"></script>
+<script type="text/javascript" src="js/message-actions.js"></script>
+<script type="text/javascript" src="js/composer.js"></script>
+<script type="text/javascript" src="js/attachment-uploads.js"></script>
+<script type="text/javascript" src="js/settings.js"></script>
+ENDJS;
+
+	echo "<ul id=\"corner-bar\" class=\"toolbar\">";
 
 	drawToolbarButton( "settings", "configure", "#settings", "settings", "OptionsEditor.showEditor()" );
 	drawToolbarButton( "log out", "exit", $LICHEN_URL."?logout", "logout", "" );
@@ -177,6 +191,7 @@ ENDSEARCH;
 	echo "<div id=\"opts-wrapper\"></div>";
 	echo "<div id=\"comp-wrapper\"></div>";
 	echo "<div id=\"addr-wrapper\"></div>";
+	echo "<div id=\"notification\"></div>";
 
 	$imapErrors = imap_errors();
 	imap_close($mbox);

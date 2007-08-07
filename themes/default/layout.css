@@ -10,7 +10,7 @@ Distributed under the GNU General Public License
 
 /* Display panels - message list, message display, options, and compose */
 
-#msg-wrapper, #comp-wrapper, #opts-wrapper, #addr-wrapper, #msg-bar, #comp-bar, #opts-bar { display: none; }
+#msg-wrapper, #comp-wrapper, #opts-wrapper, #addr-wrapper, #notification, #msg-bar, #comp-bar, #opts-bar { display: none; }
 
 #list-wrapper, #msg-wrapper, #comp-wrapper, #opts-wrapper { position: absolute; top: 47px; left: 118px; }
 
