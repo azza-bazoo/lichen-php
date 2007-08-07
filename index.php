@@ -126,6 +126,7 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 // Draw toolbars
 
 	echo <<<ENDJS
+<script type="text/javascript" src="js/mootools.v1.11.js"></script>
 <!-- <script type="text/javascript" src="js/lichen.r21.js"></script> -->
 <script type="text/javascript" src="js/initialisation.js"></script>
 <script type="text/javascript" src="js/interface-feedback.js"></script>
@@ -226,7 +227,6 @@ function printPageHeader() {
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 <title>Lichen Webmail</title>
-<script type="text/javascript" src="mootools.v1.11.js"></script>
 <link rel="StyleSheet" type="text/css" href="$themePath/default.css" />
 <link rel="StyleSheet" type="text/css" href="$themePath/layout.css" />
 </head><body>
