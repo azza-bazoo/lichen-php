@@ -533,14 +533,14 @@ function request_getMessage() {
 			break;
 		case 'all':
 			// Don't prune anything, and add the message source.
-		case 'source':
-			// HACK ALERT... this should be cleaner, and also be able
-			// to handle large messages.
-			// TODO: This also screws up if the charset is strange in the email.
-			$msgData['source']  = imap_fetchheader( $mbox, $_POST['msg'], FT_UID );
-			$msgData['source'] .= imap_body( $mbox, $_POST['msg'], FT_UID );
-			$msgData['source']  = htmlentities( $msgData['source'] );
-			break;
+// 		case 'source':
+// 			// HACK ALERT... this should be cleaner, and also be able
+// 			// to handle large messages.
+// 			// TODO: This also screws up if the charset is strange in the email.
+// 			$msgData['source']  = imap_fetchheader( $mbox, $_POST['msg'], FT_UID );
+// 			$msgData['source'] .= imap_body( $mbox, $_POST['msg'], FT_UID );
+// 			$msgData['source']  = htmlentities( $msgData['source'] );
+// 			break;
 		default:
 			// If HTML data exists, prune off the text version.
 			// Other than that, don't touch it.

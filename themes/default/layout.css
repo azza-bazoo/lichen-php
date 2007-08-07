@@ -29,7 +29,7 @@ Distributed under the GNU General Public License
 
 /* Mailbox message listings */
 
-#list-wrapper table { width: 100%; }
+#list-wrapper table { clear: both; table-layout: fixed; width: 100%; }
 
 .subject, .sender, .date { white-space: nowrap; overflow: hidden; }
 

@@ -159,7 +159,7 @@ ENDSEARCH;
 	drawToolbarButton( "edit as draft", "editcopy", "#compose", "draft", "comp_showForm('draft',lastShownUID)" );
 
 	// TODO: anchor target here should be to message.php
-	drawToolbarButton( "change view", "view_text", "#inbox", "view", "if_newWin('message.php?source&mailbox='+listCurrentMailbox+'&uid='+encodeURIComponent(lastShownUID))" );
+//	drawToolbarButton( "change view", "view_text", "#inbox", "view", "if_newWin('message.php?source&amp;mailbox='+listCurrentMailbox+'&amp;uid='+encodeURIComponent(lastShownUID))" );
 
 	echo "</ul><ul id=\"opts-bar\" class=\"toolbar\">";
 

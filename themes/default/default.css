@@ -35,9 +35,17 @@ tr.odd td { background: #f4f4ff; }
 tr.even td { background: #ffffff; }
 .new { font-weight: bold; }
 
-.date { width: 125px; }
+/* .date { width: 125px; }
 .sender { width: 200px; margin-left: 6px; }
-.subject, .sender { margin-right: 10px; cursor: pointer; }
+.subject { width: 400px; margin-right: 10px; } */
+.mcol-checkbox { width: 22px; }
+.mcol-flag { width: 26px; }
+.mcol-sender { width: 200px; }
+.mcol-date { width: 125px; }
+
+div.sender { width: 190px; }
+div.date { width: 115px; margin-left: 10px; }
+td.subject, td.sender { cursor: pointer; }
 .messagePreview, .senderAddress { margin-left: 0.6em; font-weight: normal; color: #999999; }
 
 /* Header and footer control bars */

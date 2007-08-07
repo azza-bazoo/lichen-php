@@ -20,9 +20,11 @@ var mailboxCache = Array(); // A hack.
 
 // Class that knows how to ask our PHP server components for data.
 var IMAPServerConnector = new Class({
+
 	initialize: function( dataStoreObject ) {
 		this.dataStore = dataStoreObject;
 	},
+
 	messageList: function( mailbox, search, page, sort, validity, cacheonly ) {
 		if ( !cacheonly ) {
 			// For user-initiated requests, show loading feedback
@@ -39,6 +41,7 @@ var IMAPServerConnector = new Class({
 			}
 			} ).request();
 	},
+
 	messageListCB: function( serverResponse ) {
 		// Parse the server's response.
 		var result = if_checkRemoteResult( serverResponse );
@@ -47,6 +50,7 @@ var IMAPServerConnector = new Class({
 		this.dataStore.fetchMessageListCB( result, result.data.mailbox, result.data.search,
 			result.data.thispage, result.data.sort, result.validity, result.cacheonly );
 	},
+
 	mailboxList: function( validity ) {
 		new Ajax( 'ajax.php', {
 			postBody: 'request=getMailboxList&validity='+encodeURIComponent(validity),
@@ -56,6 +60,7 @@ var IMAPServerConnector = new Class({
 			}
 			} ).request();
 	},
+
 	mailboxListCB: function( serverResponse ) {
 		// Parse the server's response.
 		var result = if_checkRemoteResult( serverResponse );
@@ -63,6 +68,7 @@ var IMAPServerConnector = new Class({
 
 		this.dataStore.fetchMailboxListCB( result );
 	},
+
 	messageBody: function( mailbox, uid, mode ) {
 		// TODO: Do we need a validity for this? Do messages really change?
 		if_remoteRequestStart();
@@ -76,6 +82,7 @@ var IMAPServerConnector = new Class({
 			}
 		} ).request();
 	},
+
 	messageBodyCB: function( serverResponse ) {
 		// Parse the server's response.
 		var result = if_checkRemoteResult( serverResponse );
@@ -84,6 +91,7 @@ var IMAPServerConnector = new Class({
 		this.dataStore.fetchMessageCB( result, result.data.mailbox, result.data.uid );
 	}
 });
+
 
 // TODO for cache classes:
 // - Limit their sizes based on preferences.
@@ -96,8 +104,10 @@ var GoogleCacheConnector = new Class({
 	// TODO: Write me!
 });
 
+
 // Very simple hash table storage of data.
 var HashCacheConnector = new Class({
+
 	initialize: function( dataStoreObject, username ) {
 		this.messagelists = {};
 		this.messagelistsvalidity = {};
@@ -107,6 +117,7 @@ var HashCacheConnector = new Class({
 
 		this.dataStore = dataStoreObject;
 	},
+
 	storeMessageList: function( mailbox, search, page, sort, messagelist, validity ) {
 		// Store the message list in the cache.
 		var cacheKey = mailbox + search + page + sort;
@@ -122,6 +133,7 @@ var HashCacheConnector = new Class({
 			return messagelist;
 		}
 	},
+
 	getMessageList: function( mailbox, search, page, sort, validity ) {
 		// Get the message list from the cache if it a) exists, and b)
 		// is still valid. Pass null for validity to force a miss.
@@ -135,6 +147,7 @@ var HashCacheConnector = new Class({
 			return null;
 		}
 	},
+
 	getMessageListValidity: function( mailbox, search, page, sort ) {
 		// TODO: Couple this with the function above, rather than calling it seperately.
 		var cacheKey = mailbox + search + page + sort;
@@ -145,6 +158,7 @@ var HashCacheConnector = new Class({
 			return null;
 		}
 	},
+
 	storeMessage: function( mailbox, uid, message, validity ) {
 		// Store a message into the cache.
 		// TODO: Use the validitity to determine when it's out of date.
@@ -169,6 +183,7 @@ var HashCacheConnector = new Class({
 		// Return the data from the cache.
 		return this.messages[cacheKey];
 	},
+
 	getMessage: function( mailbox, uid, mode, validity ) {
 		// Get the message from the cache if it a) exists, and b) is still valid.
 		// Pass null for validity to force a miss.
@@ -213,6 +228,7 @@ var HashCacheConnector = new Class({
 
 		return result;
 	},
+
 	storeMailboxList: function( mailboxList, validity ) {
 		// Store the mailbox list into the cache.
 		if ( validity && validity == this.mailboxlistvalidity ) {
@@ -223,6 +239,7 @@ var HashCacheConnector = new Class({
 			return mailboxList;
 		}
 	},
+
 	getMailboxList: function ( validity ) {
 		if ( validity && validity == this.mailboxlistvalidity ) {
 			return this.mailboxlist;
@@ -230,21 +247,24 @@ var HashCacheConnector = new Class({
 			return null;
 		}
 	},
+
 	getMailboxListValidity: function () {
 		return this.mailboxlistvalidity;
 	}
 });
 
 var MessagesDatastore = new Class({
-	initialize: function( online ) {
+
+	initialize: function( connectionState ) {
 		// Are we in "online" or "offline" mode?
-		this.online = online;
+		this.online = connectionState;
 
 		this.server = new IMAPServerConnector( this );
 		// We pass the username so that it can store different data per user, even if it's
 		// on the same browser profile. (Only basic security)
 		this.cache = new HashCacheConnector( this, serverUser );
 	},
+
 	fetchMessageList: function( mailbox, search, page, sort ) { // TODO: better function name
 
 		// TODO: Validity key is just the number of messages in the box... probably not a good key.
@@ -276,6 +296,7 @@ var MessagesDatastore = new Class({
 			Flash.flashMessage( "Not online, and that data is not cached." );
 		}
 	},
+
 	fetchMessageListCB: function ( metadata, mailbox, search, page, sort, validity, cacheonly ) {
 		// Callback from the data store: the data is ready.
 
@@ -293,6 +314,7 @@ var MessagesDatastore = new Class({
 			list_showCB( result );
 		}
 	},
+
 	fetchAdjacentMessages: function ( mailbox, search, page, sort, uid ) {
 		// From the message lists that should be cached on the client side, fetch the data about the previous and
 		// next messages - with respect to the given UID.
@@ -398,6 +420,7 @@ var MessagesDatastore = new Class({
 
 		return result;
 	},
+
 	fetchMailboxList: function( ) {
 		// Ask the data store for the data.
 		var validity = this.cache.getMailboxListValidity();
@@ -414,11 +437,13 @@ var MessagesDatastore = new Class({
 			Flash.flashMessage( "Unable to fetch mailbox list: not online and not cached." );
 		}
 	},
+
 	fetchMailboxListCB: function( mailboxList ) {
 		// Got the response from the server, check it and store as appropriate.
 		var result = this.cache.storeMailboxList( mailboxList.data, mailboxList.validity );
 		list_countCB( result );
 	},
+
 	fetchMessage: function( mailbox, uid, mode ) {
 		// Return from the cache if we can.
 		// mode is the type of data we want: the server only sends us what we want by default.
@@ -436,6 +461,7 @@ var MessagesDatastore = new Class({
 			}
 		}
 	},
+
 	fetchMessageCB: function( message, mailbox, uid ) {
 		// Cache this message.
 		var result = this.cache.storeMessage( mailbox, uid, message.data );
@@ -505,9 +531,14 @@ var Flash = new FlashArea('flash');
 // Interface initialisation, set mailbox autorefresh
 function if_init() {
 	//opts_get();
-	list_fetchCount(); // Fetch the mailbox list FIRST.
-	list_show();
+
+	// Load mailbox list
+	Messages.fetchMailboxList();
 	refreshTimer = setTimeout( list_checkCount, 5 * 60 * 1000 );
+
+	// Load default mailbox (inbox)
+	list_show();
+
 	// Workaround for a bug in KHTML
 	if ( window.khtml ) {
 		var tbWidth = (window.innerWidth-350) + 'px';
@@ -518,9 +549,6 @@ function if_init() {
 //		var _subjWidth = window.getWidth - 411;
 //		document.write("<style type=\"text/css\">td.subject { width: "+_subjWidth+"px; }</style>");
 	}
-	// Workaround for a bug in Konqueror
-//	var _subjWidth = window.getWidth - 411;
-//	document.write("<style type=\"text/css\">td.subject { width: "+_subjWidth+"px; }</style>");
 
 	if ( window.ie6 ) {
 		// PNG fix: http://homepage.ntlworld.com/bobosola/
@@ -752,9 +780,11 @@ function opts_saveCB( responseText ) {
 }
 
 var MailboxManagerClass = new Class({
+
 	initialize: function () {
 		this.mailboxCache = null;
 	},
+
 	showManager: function () {
 		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
@@ -765,6 +795,7 @@ var MailboxManagerClass = new Class({
 			}
 			} ).request();
 	},
+
 	showManagerCB: function ( responseText ) {
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
@@ -798,26 +829,25 @@ var MailboxManagerClass = new Class({
 		$('opts-wrapper').setHTML(managerHtml);
 		$('opts-wrapper').setStyle('display', 'block');
 	},
+
 	_makeButtons: function ( fullboxname, displayname, toplevel ) {
 		// Internal function to generate buttons to work with each mailbox.
-		// TODO: Assumes that it's instance is called "MailboxManager"
-		var buttonsHtml = "<a href=\"#\" onclick=\"MailboxManager.newChild('" + fullboxname + "'); return false\">";
-		buttonsHtml += "<img src=\"themes/" + userSettings.theme + "/icons/add.png\"></a>";
+		// TODO: Assumes that its instance is called "MailboxManager"
+		var buttonsHtml = "[<a href=\"#\" onclick=\"MailboxManager.newChild('" + fullboxname + "'); return false\">add</a>] ";
 		if ( !toplevel ) {
-			buttonsHtml += "<a href=\"#\" onclick=\"MailboxManager.renameInline('" + fullboxname + "', '" + displayname + "'); return false\">";
-			buttonsHtml += "<img src=\"themes/" + userSettings.theme + "/icons/edit.png\"></a>";
-			buttonsHtml += "<a href=\"#\" onclick=\"MailboxManager.changeParentInline('" + fullboxname + "', '" + displayname + "'); return false\">";
-			buttonsHtml += "<img src=\"themes/" + userSettings.theme + "/icons/changeparent.png\"></a>";
-			buttonsHtml += "<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('" + fullboxname + "', '" + displayname + "'); return false\">";
-			buttonsHtml += "<img src=\"themes/" + userSettings.theme + "/icons/remove.png\"></a>";
+			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.renameInline('" + fullboxname + "', '" + displayname + "'); return false\">edit</a>] ";
+			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.changeParentInline('" + fullboxname + "', '" + displayname + "'); return false\">move</a>] ";
+			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('" + fullboxname + "', '" + displayname + "'); return false\">delete</a>] ";
 		}
 
 		return buttonsHtml;
 	},
+
 	closeManager: function () {
 		$('opts-wrapper').setStyle('display', 'none');
 		list_checkCount();
 	},
+
 	renameInline: function ( fullboxname, boxname ) {
 		// Replace the area with the name with an input control with the name,
 		// plus a button to submit it.
@@ -838,6 +868,7 @@ var MailboxManagerClass = new Class({
 			buttonArea.setStyle( 'display', 'none' );
 		}
 	},
+
 	renameDone: function ( fullboxname, boxname ) {
 		// The inline rename is completed, tell the server.
 
@@ -866,6 +897,7 @@ var MailboxManagerClass = new Class({
 			}
 		}
 	},
+
 	mailboxDelete: function ( fullboxname, boxname ) {
 		if ( confirm("Are you sure you want to delete '" + boxname + "'? This action is irreversable.") ) {
 			if_remoteRequestStart();
@@ -878,6 +910,7 @@ var MailboxManagerClass = new Class({
 				} ).request();
 		}
 	},
+
 	newChild: function ( fullboxname ) {
 		// Append a new entry form to the area.
 		// plus a button to submit it.
@@ -901,6 +934,7 @@ var MailboxManagerClass = new Class({
 			}
 		}
 	},
+
 	newChildSubmit: function ( fullboxname ) {
 		// Ask the server to create the new mailbox.
 		var childMailbox = $('mbm-newchild-' + fullboxname);
@@ -917,6 +951,7 @@ var MailboxManagerClass = new Class({
 				} ).request();
 		}
 	},
+
 	newChildCancel: function ( fullboxname ) {
 		// Just remove the form.
 		var childArea = $('mbm-newchild-wrapper-' + fullboxname);
@@ -929,6 +964,7 @@ var MailboxManagerClass = new Class({
 			buttonArea.setStyle( 'display', 'block' );
 		}
 	},
+
 	changeParentInline: function ( fullboxname, boxname ) {
 		// Show a drop down allowing us to change the parent.
 
@@ -963,6 +999,7 @@ var MailboxManagerClass = new Class({
 			buttonArea.setStyle( 'display', 'none' );
 		}
 	},
+
 	changeParentSubmit: function ( fullboxname, boxname ) {
 		// Ask the server to create the new mailbox.
 		var newParentMailbox = $('mbm-changeparent-' + fullboxname);
@@ -979,6 +1016,7 @@ var MailboxManagerClass = new Class({
 				} ).request();
 		}
 	},
+
 	changeParentCancel: function ( fullboxname, boxname ) {
 		// Just remove the form.
 		var childArea = $('mbm-changeparent-wrapper-' + fullboxname);
@@ -991,6 +1029,7 @@ var MailboxManagerClass = new Class({
 			buttonArea.setStyle( 'display', 'block' );
 		}
 	},
+
 	serverActionCB: function ( responseText ) {
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
@@ -1050,10 +1089,12 @@ var MailboxManagerClass = new Class({
 var MailboxManager = new MailboxManagerClass();
 
 var OptionsEditorClass = new Class({
+
 	initialize: function ( wrapper ) {
 		this.openpanel = "";
 		this.wrapper = wrapper;
 	},
+
 	showEditor: function () {
 		clearTimeout( refreshTimer );
 		if_remoteRequestStart();
@@ -1065,6 +1106,7 @@ var OptionsEditorClass = new Class({
 			}
 			} ).request();
 	},
+
 	showEditorCB: function ( responseText ) {
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
@@ -1078,11 +1120,13 @@ var OptionsEditorClass = new Class({
 
 		this.openpanel = result.startPanel;
 	},
+
 	showPanel: function ( panelName ) {
 		toggleDisplay( 'settings_' + this.openpanel );
 		toggleDisplay( 'settings_' + panelName );
 		this.openpanel = panelName;
 	},
+
 	closePanel: function () {
 		if_hideWrappers();
 		if_hideToolbars();
@@ -1092,6 +1136,7 @@ var OptionsEditorClass = new Class({
 		$('list-wrapper').style.display = 'block';
 	//	opts_get();
 	},
+
 	generateQueryString: function( sourceForm ) {
 		var inputs = $A( $(sourceForm).getElementsByTagName('input') );
 		inputs.extend( $A( $(sourceForm).getElementsByTagName('select') ) );
@@ -1116,6 +1161,7 @@ var OptionsEditorClass = new Class({
 
 		return results.join("&");
 	},
+
 	saveOptions: function () {
 		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
@@ -1126,6 +1172,7 @@ var OptionsEditorClass = new Class({
 			}
 			} ).request();
 	},
+
 	saveOptionsCB: function ( responseText ) {
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
@@ -1139,6 +1186,7 @@ var OptionsEditorClass = new Class({
 		opts_getCB( result );
 		list_show();
 	},
+
 	identity_add: function () {
 		var editarea = $('identity-editor');
 
@@ -1152,6 +1200,7 @@ var OptionsEditorClass = new Class({
 
 		return false;
 	},
+
 	identity_add_done: function () {
 		var idname = $('identity-name').value;
 		var idemail = $('identity-email').value;
@@ -1172,6 +1221,7 @@ var OptionsEditorClass = new Class({
 
 		return false;
 	},
+
 	identity_setdefault: function () {
 		var identitylist = $('identities-list');
 
@@ -1193,6 +1243,7 @@ var OptionsEditorClass = new Class({
 
 		return false;
 	},
+
 	identity_edit: function () {
 		var editarea = $('identity-editor');
 		var identitylist = $('identities-list');
@@ -1214,6 +1265,7 @@ var OptionsEditorClass = new Class({
 
 		return false;
 	},
+
 	identity_edit_done: function ( oldemail ) {
 		var idname = $('identity-name').value;
 		var idemail = $('identity-email').value;
@@ -1235,10 +1287,12 @@ var OptionsEditorClass = new Class({
 
 		return false;
 	},
+
 	identity_cleareditor: function () {
 		$('identity-editor').empty();
 		return false;
 	},
+
 	identity_remove: function () {
 		var identitylist = $('identities-list');
 
@@ -1260,6 +1314,7 @@ var OptionsEditorClass = new Class({
 
 		return false;
 	},
+
 	identity_actionCB: function ( responseText ) {
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
@@ -1296,6 +1351,7 @@ var MessageDisplay = new Class({
 		this.displayMode = "";
 		this.displayModeUID = "";
 	},
+
 	showMessage: function( mailbox, uid, mode ) {
 		// Rather than having fetchMessage send us the mode back,
 		// cache it in our instance data. We have to mark which UID we were
@@ -1312,6 +1368,7 @@ var MessageDisplay = new Class({
 		// Go off and fetch the data.
 		Messages.fetchMessage( mailbox, uid, requestMode );
 	},
+
 	showMessageCB: function( message, mode ) {
 		// Got the data about the message. Render it and begin the display.
 		if ( $('mr-'+message.uid) ) {
@@ -1331,6 +1388,7 @@ var MessageDisplay = new Class({
 		$('msg-bar').style.display = 'block';
 		lastShownUID = message.uid;
 	},
+
 	_render: function( message, forceType ) {
 		// Find the next/previous messages.
 		var adjacentMessages = Messages.fetchAdjacentMessages( listCurrentMailbox, listCurrentSearch, listCurrentPage, listCurrentSort, message.uid );
@@ -1341,7 +1399,12 @@ var MessageDisplay = new Class({
 
 		messageNavBar += "<div class=\"header-right\">";
 		if ( adjacentMessages.previous ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + adjacentMessages.previous.uid + "')\">previous</a> | ";
+			messageNavBar += "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + adjacentMessages.previous.uid + "')\">previous";
+			if ( adjacentMessages.next ) {
+				messageNavBar += "</a> | ";
+			} else {
+				messageNavBar += "message</a>";
+			}
 		}
 		if ( adjacentMessages.next ) {
 			messageNavBar += "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + adjacentMessages.next.uid + "')\">next message</a>";
@@ -1366,7 +1429,7 @@ var MessageDisplay = new Class({
 			viewLinks.push( "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + message.uid + "', 'text')\">Text View</a>" );
 			viewLinks.push( "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + message.uid + "', 'monospace')\">Monospace View</a>" );
 		}
-		viewLinks.push( "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + message.uid + "', 'source')\">Source</a>" );
+		viewLinks.push( "<a href=\"#\" onclick=\"if_newWin('message.php?source&amp;mailbox='+listCurrentMailbox+'&amp;uid='+encodeURIComponent(lastShownUID))\">Source</a>" );
 
 		htmlFragment += viewLinks.join( " | " );
 		htmlFragment += "</div>";
@@ -1379,13 +1442,6 @@ var MessageDisplay = new Class({
 				htmlFragment += message.texthtml[i]; // This is sanitised on the server.
 				htmlFragment += "</div>";
 			}
-		} else if ( forceType == "source" ) {
-			// Display the message source.
-			htmlFragment += "<div class=\"plain-message-monospace\">";
-			htmlFragment += "<pre>";
-			htmlFragment += message.source;
-			htmlFragment += "</pre>";
-			htmlFragment += "</div>";
 		} else {
 			// Display the text parts.
 			for ( var i = 0; i < message.textplain.length; i++ ) {
@@ -1426,6 +1482,7 @@ var MessageDisplay = new Class({
 
 		return htmlFragment;
 	},
+
 	enableRemoteImages: function () {
 		// Remote images have the class "remoteimage", and are disabled by prepending a
 		// "_" to the url, breaking it. Strip this break.
@@ -1444,7 +1501,8 @@ var MessageDisplay = new Class({
 	}
 });
 
-// TODO: This is just a hack to make it work...
+
+// TODO: This is a hack to make it work for now ...
 var MessageDisplayer = new MessageDisplay( 'msg-wrapper' );
 function showMsg( mailbox, uid, mode ) {
 	MessageDisplayer.showMessage( mailbox, uid, mode );
@@ -1452,7 +1510,7 @@ function showMsg( mailbox, uid, mode ) {
 }
 
 // Show the form for a new message. If provided, prefill the
-// recipient(s) and subject fields, and quote the given message.
+// recipient(s) and subject fields, and/or quote a message.
 function comp_showForm( mode, quoteUID, mailto ) {
 	clearTimeout( refreshTimer );
 
@@ -1520,8 +1578,6 @@ function comp_sendCB( responseText, retto ) {
 		if ( $('comp-draftuid') ) {
 			$('comp-draftuid').value = result.draftUid;
 		}
-		// TODO: No alert. Really.
-		//alert("Draft saved at [insert timestamp here]");
 		Flash.flashMessage("Draft saved at [insert timestamp here]");
 	} else {
 		if (retto) {
@@ -1555,13 +1611,9 @@ function if_returnToMessage() {
 }
 
 
-function list_fetchCount() {
-	Messages.fetchMailboxList();
-}
-
-
+// Refresh the mailbox listing and set a timeout to do it again in five minutes
 function list_checkCount() {
-	list_fetchCount();
+	Messages.fetchMailboxList();
 	refreshTimer = setTimeout( list_checkCount, 5 * 60 * 1000 );
 }
 
@@ -1592,7 +1644,7 @@ function list_buildMailboxList( mailboxes ) {
 		containerContents += "<span class=\"mailbox\">" + mailboxes[i].mailbox + "</strong> ";
 
 
-		containerContents += "<span id=\"" + mailboxes[i].fullboxname + "_unread\">";
+		containerContents += "<span id=\"mb-unread-" + mailboxes[i].fullboxname + "\">";
 		if (mailboxes[i].unseen > 0 || userSettings['boxlist_showtotal']) {
 			containerContents += "(" + mailboxes[i].unseen;
 			if ( userSettings['boxlist_showtotal'] ) containerContents += "/" + mailboxes[i].messages;
@@ -1647,7 +1699,6 @@ function list_countCB( mailboxes ) {
 			document.title = msgCounts[i].mailbox +' ('+msgCounts[i].unseen+' unread, '+msgCounts[i].messages+' total)';
 		}
 
-		var countbox = msgCounts[i].fullboxname + "_unread";
 		var countresult = "";
 		// If non-zero, update the unread messages.
 		if ( msgCounts[i].unseen > 0 || userSettings['boxlist_showtotal'] ) {
@@ -1655,12 +1706,11 @@ function list_countCB( mailboxes ) {
 			if ( userSettings['boxlist_showtotal'] ) countresult += "/" + msgCounts[i].messages;
 			countresult += ")";
 		}
-		countContainer = $( countbox );
-		if ( countContainer ) {
-			countContainer.setHTML( countresult );
+
+		if ( $('mb-unread-'+msgCounts[i].fullboxname) ) {
+			$('mb-unread-'+msgCounts[i].fullboxname).setHTML( countresult );
 		} else {
-			// Doesn't exist - thus; renamed or new mailbox.
-			// Recreate the list.
+			// This mailbox is new or renamed; rebuild the list
 			list_buildMailboxList( msgCounts );
 			// Stop this function.
 			return;
@@ -1729,13 +1779,25 @@ function list_twiddleFlagCB( responseText ) {
 	//alert( "Set " + result.uid + " " + result.flag + " to " + result.state );
 }
 
+
 // Change mailboxes: reset tracking variables and draw a new list.
 function if_selectmailbox( mailbox ) {
 	lastUIDconst = "";
 	msgCount = 0;
 
-	// Remove this mailbox's selection highlight in the listing
+	// Remove the current mailbox's selection highlight in the listing
 	$('mb-'+listCurrentMailbox).removeClass('mb-active');
+
+	if ( $('list-wrapper').style.display == 'none' ) {
+		// If something other than a message list is being displayed,
+		// hide it and show the list instead.
+		// TODO: this flickers the old mailbox; instead, it should
+		// show loading feedback and display in the callback
+		if_hideWrappers();
+		if_hideToolbars();
+		$('list-wrapper').style.display = 'block';
+		$('list-bar').style.display = 'block';
+	}
 
 	listCurrentPage = 0;
 	listCurrentSearch = "";
@@ -1744,6 +1806,7 @@ function if_selectmailbox( mailbox ) {
 
 	return false;
 }
+
 
 function list_sort( sort ) {
 	// Clear the old sort image.
@@ -1797,7 +1860,6 @@ function list_show( mailbox, page ) {
 // Callback function to draw a message listing after
 // fetching a JSON string for the mailbox.
 function list_showCB( responseText ) {
-
 	//var result = if_checkRemoteResult( responseText );
 	//if ( !result ) { return false; }
 	result = responseText;
@@ -1820,17 +1882,23 @@ function list_showCB( responseText ) {
 			"<a href=\"#clearsearch\" onclick=\"doQuickSearch(null, true); return false\">Clear Search</a></div>";
 	}
 
-	tableContents += "<table><tr>";
-	tableContents += "<th></th>"; // Message checkbox
-	tableContents += "<th></th>"; // Toggle flagged button
+	if ( window.khtml ) {
+		tableContents += "<table style=\"width:" + (window.getWidth()-118) + "px\">";
+	} else {
+		tableContents += "<table>";
+	}
+
+	tableContents += "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" style=\"width:" + (window.getWidth()-411) + "\" /><col class=\"mcol-date\" /></colgroup>";
+
+	tableContents += "<thead><tr><th></th><th></th>";
 
 	tableContents += "<th><a href=\"#sort-from\" onclick=\"list_sort('from');return false\">sender</a></th>";
 	tableContents += "<th><a href=\"#sort-subject\" onclick=\"list_sort('subject');return false\">subject</a></th>";
 	if ( userSettings.list_showsize ) {
 		tableContents += "<th><a href=\"#sort-size\" onclick=\"list_sort('size');return false\">size</a></th>";
 	}
-	tableContents += "<th><a href=\"#sort-date\" onclick=\"list_sort('date');return false\">Date</a></th>";
-	tableContents += "</tr>";
+	tableContents += "<th><a href=\"#sort-date\" onclick=\"list_sort('date');return false\">date</a></th>";
+	tableContents += "</tr></thead><tbody>";
 
 	if ( messages.length == 0 ) {
 		tableContents += "<tr><td>No messages in this mailbox.</td></tr>";
@@ -1841,7 +1909,7 @@ function list_showCB( responseText ) {
 
 		var thisMsg = messages[i];
 		var uid = thisMsg.uid;
-//		var msgRow = createListRow( thisMsg );
+
 		var thisRow = "<tr id=\"mr-"+thisMsg.uid+"\" class=\"";
 
 		if ( i % 2 == 1 ) {
@@ -1860,65 +1928,59 @@ function list_showCB( responseText ) {
 
 		var flagImage = thisMsg.flagged ? "themes/" + userSettings.theme + "/icons/flag.png" : "themes/" + userSettings.theme + "/icons/flag_off.png";
 		thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle');return false\" title=\"Flag this message\">";
-		thisRow += "<img src=\"" + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" /></a></td>";
+		thisRow += "<img src=\"" + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" alt=\"\" /></a></td>";
 
+		thisRow += "<td class=\"sender\" onclick=\"showMsg('"
+			+ listCurrentMailbox + "','" + thisMsg.uid + "',0)\"";
 		if ( thisMsg.fromName == "" ) {
-			thisRow += "<td><div class=\"sender\" onclick=\"showMsg('"+listCurrentMailbox+"','"+thisMsg.uid+"',0)\"";
 			if ( thisMsg.fromAddr.length > 22 ) {
 				// Temporary hack to decide if tooltip is needed
 				thisRow += " title=\"" + thisMsg.fromAddr + "\"";
 			}
-			thisRow += ">" + thisMsg.fromAddr + "</div></td>";
+			thisRow += "><div class=\"sender\">" + thisMsg.fromAddr;
 		} else {
-			thisRow += "<td><div class=\"sender\" onclick=\"showMsg('"+listCurrentMailbox+"','"+thisMsg.uid+"',0)\" title=\"" + thisMsg.fromAddr + "\">" + thisMsg.fromName + "</div></td>";
+			thisRow += " title=\"" + thisMsg.fromAddr + "\"><div class=\"sender\">" + thisMsg.fromName;
+		}
+		thisRow += "</div></td>";
+
+		thisRow += "<td class=\"subject\" onclick=\"showMsg('"+listCurrentMailbox+"','"+thisMsg.uid+"',0)\">" + thisMsg.subject;
+
+		if ( userSettings.list_showpreviews ) {
+			thisRow += "<span class=\"messagePreview\">" + thisMsg.preview + "</span>";
 		}
 
-		thisRow += "<td><div class=\"subject\" onclick=\"showMsg('"+listCurrentMailbox+"','"+thisMsg.uid+"',0)\"";
-		if ( window.khtml ) {
-//			thisRow += " style=\"width:" + (window.innerWidth-480) + "px\"";
-		}
-		if ( window.ie6 ) {
-//			thisRow += " style=\"width:" + (document.body.clientWidth-470) + "px\"";
-		}
-		thisRow += ">" + thisMsg.subject + "<span class=\"messagePreview\">";
-		if ( userSettings['list_showpreviews'] ) {
-			thisRow += thisMsg.preview;
-		}
-		thisRow += "</span></div></td>";
+		thisRow += "</td>";
 
-		if ( userSettings['list_showsize'] ) {
+		if ( userSettings.list_showsize ) {
 			thisRow += "<td>" + thisMsg.size + "</td>";
 		}
 
-		thisRow += "<td><div class=\"date\">" + thisMsg.dateString + "</div></td>";
+		thisRow += "<td class=\"date\"><div class=\"date\">" + thisMsg.dateString + "</div></td>";
 
 		thisRow += "</tr>";
 
 		tableContents += thisRow;
 
-//		msgTable.adopt( msgRow );
-//		new Drag.Base(msgRow, {});
-
 	}
 
-	tableContents += "</table>";
+	tableContents += "</tbody></table>";
 	tableContents += "<div class=\"footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" id=\"bottom-corner\" />" + pageSwitchBar + "</div>";
 
 	$('list-wrapper').setHTML( tableContents );
 
 	// Set the appropriate sort icon based on the current sort.
-	if ( listCurrentSort.substr( listCurrentSort.length - 2, 2 ) == "_r" ) {
+//	if ( listCurrentSort.substr( listCurrentSort.length - 2, 2 ) == "_r" ) {
 		// Reverse.
-		var newImg = $('sort_' + listCurrentSort.substr( 0, listCurrentSort.length - 2 ) + '_dir');
-		if ( newImg ) newImg.src = 'themes/' + userSettings.theme + '/icons/sortup.png';
-	} else {
-		// Forward.
-		var newImg = $('sort_' + listCurrentSort + '_dir');
-		if ( newImg ) newImg.src = 'themes/' + userSettings.theme + '/icons/sortdown.png';
-	}
+//		var newImg = $('sort_' + listCurrentSort.substr( 0, listCurrentSort.length - 2 ) + '_dir');
+//		if ( newImg ) newImg.src = 'themes/' + userSettings.theme + '/icons/sortup.png';
+//	} else {
+//		// Forward.
+//		var newImg = $('sort_' + listCurrentSort + '_dir');
+//		if ( newImg ) newImg.src = 'themes/' + userSettings.theme + '/icons/sortdown.png';
+//	}
 
-	// Update the list counts.
-	list_fetchCount();
+	// Update the mailbox lists
+	Messages.fetchMailboxList();
 }
 
 
@@ -2017,6 +2079,7 @@ function list_getSelectedMessages() {
 	return selectedMessages;
 }
 
+
 function list_selectMessages( mode ) {
 	var inputElements = $A( $('list-wrapper').getElementsByTagName('input') );
 
@@ -2034,6 +2097,7 @@ function list_selectMessages( mode ) {
 		}
 	}
 }
+
 
 function list_withSelected( sourceBox, textAction ) {
 	var selectedMessages = list_getSelectedMessages();
@@ -2086,17 +2150,11 @@ function list_messageCheckboxClicked() {
 	return false;
 }
 
+
 function if_moveMessages( target ) {
 	var selectedMessages = list_getSelectedMessages();
 	var selectedCount = selectedMessages.length;
 	selectedMessages = selectedMessages.join(",");
-
-	if ( target == 'LICHENDELETE' ) {
-		// Confirm that the user really wants to do that.
-		// TODO: Config option to not to prompt.
-		// TODO: Does strange stuff to the drop, because it's not finished yet.
-		if ( !confirm( "Are you sure you want to delete " + selectedCount + " messages? This is permanent." ) ) return;
-	}
 
 	new Ajax( 'ajax.php', {
 		postBody: 'request=moveMessage&mailbox=' + encodeURIComponent(listCurrentMailbox) +

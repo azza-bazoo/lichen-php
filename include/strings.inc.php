@@ -158,14 +158,14 @@ function decodeText( $string, $charset, $transferEncoding ) {
 	return $string;
 }
 
-/* Following two functions copied from http://php.net/html_entity_decode
- * They are from the comments. This is to work around a PHP4 issue with html_entity_decode.
- * When we go PHP5 only, this can be removed. */
+
+/* These functions copied from http://php.net/html_entity_decode
+   -- a workaround for PHP4 issues with that function */
 if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
 	function html_entity_decode_utf8($string)
 	{
 		static $trans_tbl;
-   
+
 		// replace numeric entities
 		$string = preg_replace('~&#x([0-9a-f]+);~ei', 'code2utf(hexdec("\\1"))', $string);
 		$string = preg_replace('~&#([0-9]+);~e', 'code2utf(\\1)', $string);
@@ -174,11 +174,11 @@ if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
 		if (!isset($trans_tbl))
 		{
 			$trans_tbl = array();
-	       
+
 			foreach (get_html_translation_table(HTML_ENTITIES) as $val=>$key)
 				$trans_tbl[$key] = utf8_encode($val);
 		}
-   
+
 		return strtr($string, $trans_tbl);
 	}
 
@@ -198,6 +198,8 @@ if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
 // If the message is plain text, this includes things like adding <br />
 // for linebreaks and adding link tags where appropriate. If it's HTML,
 // this means filtering out untrusted code.
+//
+// TODO: this functionality should move to a different function
 // outMsgFlags is used to set flags that should be passed back to the client.
 // It should be passed a reference to an array.
 // The idea is that the "remote images" replacement should be able to set a flag saying
@@ -319,8 +321,30 @@ function convertToUTF8( $string, $charset ) {
 	return @iconv( $charset, 'UTF-8//TRANSLIT', $string );
 }
 
-// Callback function for preg_replace_callback, for converting the text in ordinary emails
-// into links.
+
+// Take a string containing a plain-text message, look for things that
+// seem to be links, and convert them into functional links.
+function convertLinks( $string ) {
+
+	// Regexp to deal with http[s] links on a single line
+	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)http([s]?)\:\/\/(.+?)\s/i', 'convertLinksCallback', $string );
+
+	// This version is meant to find links spanning multiple lines, delimited by < and >
+	$string = preg_replace_callback( '/(<|&lt;)http([s]{0,1})\:\/\/(.+?)(>|&gt;)/is', 'convertLinksCallback', $string );
+
+	// Simpler regexp to find www.foo without an http://
+	$string = preg_replace_callback( '/(?<!http\:\/\/)www\.(.+?)(>|\"|\s)/i', 'convertLinksCallback', $string );
+
+	// Convert e-mail addresses to composer links
+	$string = preg_replace( '/(\<|\>|\;|\s|\"|\,)([\w\d]+[\w\d\.\_\-\+]*\@[\w\d]+[\w\d\.\_\-]+)(\,|\>|\&|\"|\s)/',
+		"$1<a href=\"#compose\" onclick=\"comp_showForm('mailto',null,'$2');return false\">$2</a>$3", $string );
+
+	return $string;
+}
+
+
+// Callback function for regexps in convertLinks() above:
+// finds the
 function convertLinksCallback( $matches ) {
 	$fullUrl = $matches[0];
 	$originalText = $fullUrl;
@@ -352,50 +376,26 @@ function convertLinksCallback( $matches ) {
 		$fullUrl = "http://" . $fullUrl;
 	}
 
-	// Replace newlines with nothing in the URL, thereby
-	// recreating the original URL.
+	// Strip newlines from the URI
 	$fullUrl = str_replace( array( "\r", "\n", " " ), "", $fullUrl );
 
-	// Figure out what the "trailer" is.
-	// The regex that find the links will also return
-	// the whitespace at the end - be it a \n, or just a space.
-	// Find it and preserve it for later.
+	// Figure out what the "trailer" is, since the regexp that
+	// found the link also returns any whitespace at the end
 	$trimmedOriginal = trim( $originalText );
 	if ( strlen( $trimmedOriginal ) != strlen( $originalText ) ) {
 		$trailer .= substr( $originalText, strlen( $trimmedOriginal ) + 1 );
 		$originalText = $trimmedOriginal;
 	}
 
-	// If we have a leader and trailer, then make the original text be just
-	// those parts that were the URL.
+	// If we have a leader and trailer, omit them from the link text
 	if ( $trailer != "" ) {
 		$originalText = substr( $originalText, strlen( $leader ), -strlen( $trailer ) );
 	}
 
-	// Finally, generate our hyperlink.
-	return "{$leader}<a href=\"{$fullUrl}\" onclick=\"return if_newWin('{$fullUrl}');\">{$originalText}</a>{$trailer}";
+	// Return formatted string
+	return "$leader<a href=\"$fullUrl\" onclick=\"return if_newWin('$fullUrl')\">$originalText</a>$trailer";
 }
 
-// Take a string containing a plain-text message, look for things that
-// seem to be links, and convert them into functional links.
-function convertLinks( $string ) {
-
-	// Regex to find and deal with http/https links.
-	// The one below finds normal single line versions.
-	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)http([s]{0,1})\:\/\/(.+?)\s/i', 'convertLinksCallback', $string );
-
-	// This version is meant to find links spanning multiple lines, delimited by < and >.
-	$string = preg_replace_callback( '/(<|&lt;)http([s]{0,1})\:\/\/(.+?)(>|&gt;)/is', 'convertLinksCallback', $string );
-
-	// Equally basic regexp to find www.foo without an http://
-	$string = preg_replace_callback( '/(?<!http\:\/\/)www\.(.+?)(>|\"|\s)/i', 'convertLinksCallback', $string );
-
-	// Convert e-mail addresses to composer links.
-	$string = preg_replace( '/(\<|\>|\;|\s|\"|\,)([\w\d]+[\w\d\.\_\-\+]*\@[\w\d]+[\w\d\.\_\-]+)(\,|\>|\&|\"|\s)/',
-		"$1<a href=\"#compose\" onclick=\"comp_showForm('mailto',null,'$2');return false\">$2</a>$3", $string );
-
-	return $string;
-}
 
 // Takes the e-mail header Date: and converts it to the user's local
 // time zone, formatted according to their preferences.
