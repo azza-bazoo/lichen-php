@@ -402,7 +402,7 @@ function convertLinksCallback( $matches ) {
 // PHP 5.1 introduced much-improved timezone handling that we use if
 // available; otherwise, use the clunky putenv() trick and separate
 // zone database from PEAR's Date library.
-if ( version_compare( PHP_VERSION, '5.1.0', '>=' ) ) {
+if ( version_compare( PHP_VERSION, '5.2.0', '>=' ) ) {
 
 	function processDate( $headerString, $dateFormat='' ) {
 		global $DATE_FORMAT_OLD, $DATE_FORMAT_NEW;
@@ -429,8 +429,18 @@ if ( version_compare( PHP_VERSION, '5.1.0', '>=' ) ) {
 
 	include( "libs/TimeZone.php" );
 
+	// TODO: this works only on Linux
+	if ( isset( $_ENV['TZ'] ) ) {
+		$SYSTEM_TIMEZONE = $_ENV['TZ'];
+	} elseif ( file_exists( '/etc/timezone' ) && !is_link( '/etc/timezone' ) ) {
+		$SYSTEM_TIMEZONE = rtrim( file_get_contents( '/etc/timezone' ) );
+	} else {
+		$SYSTEM_TIMEZONE = 'UTC';
+	}
+
 	function processDate( $headerString, $dateFormat='' ) {
 		global $USER_SETTINGS, $DATE_FORMAT_OLD, $DATE_FORMAT_NEW;
+		global $SYSTEM_TIMEZONE;
 
 		if ( substr( $headerString, -3 ) == " UT" ) {
 			$headerString .= "C";
@@ -438,10 +448,7 @@ if ( version_compare( PHP_VERSION, '5.1.0', '>=' ) ) {
 
 		$timestamp = strtotime( $headerString );
 
-		// TODO: what if the $TZ variable isn't set?
-		if ( isset( $_ENV['TZ'] ) ) {
-			$timestamp = convertToOrFromUTC( $timestamp, $_ENV['TZ'], -1 );
-		}
+		$timestamp = convertToOrFromUTC( $timestamp, $SYSTEM_TIMEZONE, -1 );
 
 		$adjustedTime = convertToOrFromUTC( $timestamp, $USER_SETTINGS['timezone'], 1 );
 

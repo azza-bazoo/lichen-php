@@ -85,29 +85,26 @@ function request_getUserSettings() {
 // ------------------------------------------------------------------------
 //
 // Save the users settings.
+// (Not used in current version of settings panel implementation.)
 //
-// TODO: Is this even used? Not currently - the save settings panel just
-// returns a query blob to another callback. However, in the future the settings
-// thingy will be almost completely client side, and at that point this will
-// become relevant again.
-function request_saveUserSettings() {
-
-	if (!empty($_POST['settings'])) {
-		// JSON decode and save.
-		// (Yes, we json_encode it when saving... but this way, funky stuff
-		// shouldn't get saved...)
-		// TODO: Probably want to do more sanity checking on all this.
-		$settings = json_decode_real( $_POST['settings'] );
-
-		if (saveUserSettings( $settings )) {
-			echo remoteRequestSuccess();
-		} else {
-			echo remoteRequestFailure( 'SETTINGS', _('Failed to save settings.') );
-		}
-	} else {
-		echo remoteRequestFailure( 'SETTINGS', _('No settings sent from the client.') );
-	}
-}
+// function request_saveUserSettings() {
+//
+// 	if (!empty($_POST['settings'])) {
+// 		// JSON decode and save.
+// 		// (Yes, we json_encode it when saving... but this way, funky stuff
+// 		// shouldn't get saved...)
+// 		// TODO: Probably want to do more sanity checking on all this.
+// 		$settings = json_decode_assoc( $_POST['settings'] );
+//
+// 		if (saveUserSettings( $settings )) {
+// 			echo remoteRequestSuccess();
+// 		} else {
+// 			echo remoteRequestFailure( 'SETTINGS', _('Failed to save settings.') );
+// 		}
+// 	} else {
+// 		echo remoteRequestFailure( 'SETTINGS', _('No settings sent from the client.') );
+// 	}
+// }
 
 // ------------------------------------------------------------------------
 //
@@ -303,133 +300,133 @@ function request_mailboxAction() {
 // ------------------------------------------------------------------------
 //
 // Draw a message in full
+// (Not used in current message display implementation,
+//  but might be resurrected in future.)
+// function request_drawMessage() {
+// 	global $mbox, $DATE_FORMAT_LONG, $mailbox;
 //
-// TODO: Not currently in use, but will be resurected again in the future.
-function request_drawMessage() {
-	global $mbox, $DATE_FORMAT_LONG, $mailbox;
-
-	include( 'libs/HTMLPurifier.auto.php' );
-
-	// For the retrieveFullMessage function, we need the number,
-	// not the UID, of the message we're after.
-	$msgUid = $_POST['msg'];
-	$msgNo = imap_msgno( $mbox, $msgUid );
-
-	// TODO: Sanitise the UID input, and handle if the message doesn't occur!
-	// Fetch the structure and text parts of this message.
-	$msgArray = retrieveMessage( $msgNo, false );
-
-	if ( $msgArray == null ) {
-		// Unable to get that message.
-		die( remoteRequestFailure( 'MESSAGE', _("Unable to retrieve that message: non existant message.") ) );
-	}
-
-	// Fetch and parse its headers.
-	$headerObj = imap_headerinfo( $mbox, $msgNo );
-
-	$from = filterHeader( formatIMAPAddress( $headerObj->from ), false );
-
-	$subject = _("(no subject)");
-	if ( isset( $headerObj->subject ) ) {
-		// TODO: use filterHeader instead
-		$subject = filterHeader( $headerObj->subject, false );
-	}
-
-	$localDate = processDate( $headerObj->date, $DATE_FORMAT_LONG );
-
-	//-----------------------
-	// Figure out the UIDs of the next and previous messages.
-	$thisMessagePosition = array_search( $_POST['msg'], $_SESSION['boxcache'] );
-
-	$previousUID = null;
-	$previousData = null;
-	$nextUID = null;
-	$nextData = null;
-	$totalMessages = count( $_SESSION['boxcache'] );
-	if ( $thisMessagePosition === false ) {
-		// Not found.
-	} else {
-		if ( isset( $_SESSION['boxcache'][ $thisMessagePosition - 1 ] ) ) {
-			$previousUID = $_SESSION['boxcache'][ $thisMessagePosition - 1 ];
-			$previousData = fetchMessages( array( $previousUID ) );
-			$previousData = $previousData[0];
-		}
-		if ( isset( $_SESSION['boxcache'][ $thisMessagePosition + 1 ] ) ) {
-			$nextUID = $_SESSION['boxcache'][ $thisMessagePosition + 1 ];
-			$nextData = fetchMessages( array( $nextUID ) );
-			$nextData = $nextData[0];
-		}
-	}
-	//-----------------------
-
-	// Capture the output.
-	ob_start();
-
-	// Show the next/previous message links.
-	// TODO: When going "return to list" return to correct page.
-	// This works with the client-side message display code, will require some fun to make
-	// it work for the HTML version.
-	echo "<p>";
-	if ( $previousUID != null ) {
-		echo "<a href=\"#\" onclick=\"showMsg(listCurrentMailbox, '{$previousUID}'); return false\">Previous Message</a> &nbsp;";
-	}
-	echo "Viewing ". ($thisMessagePosition + 1) . " of " . $totalMessages;
-	if ( $nextUID != null ) {
-		echo "&nbsp; <a href=\"#\" onclick=\"showMsg(listCurrentMailbox, '{$nextUID}'); return false\">Next Message</a>";
-	}
-	echo "</p>";
-
-	//-----------------------
-
-	// Show the simplified headers (date, sender, subject)
-	echo "<p class=\"msg-head\"><span class=\"msg-head-label\">From</span> <span class=\"msg-head-sender\">", $from, "</span> <span class=\"msg-head-label\">at</span> <span class=\"msg-head-date\">", $localDate, "</span><br /><span class=\"msg-head-subject\">", $subject, "</span></p>";
-
-	if (count($msgArray['text/html']) > 0) {
-		// Display HTML in preference.
-		foreach ( $msgArray['text/html'] as $htmlPart ) {
-			echo "<div class=\"html-message\">";
-			$msgExtraFlags = array();
-			echo processMsgMarkup( $htmlPart, 'text/html', $mailbox, $msgUid, $msgExtraFlags );
-			echo "</div>";
-		}
-	} else {
-		// Display text.
-		foreach ( $msgArray['text/plain'] as $textPart ) {
-			echo "<div class=\"plain-message\">";
-			$msgExtraFlags = array();
-			echo processMsgMarkup( $textPart, 'text/plain', $mailbox, $msgUid, $msgExtraFlags );
-			echo "</div>";
-		}
-	}
-
-	// List attachments.
-	if (count($msgArray['attachments']) > 0) {
-		echo _("Attachments") . ": <ul class=\"attachments\">";
-
-		foreach ($msgArray['attachments'] as $attach) {
-			if ( $attach['filename'] == "" ) continue; // Skip attachments that are inline-only.
-			$attachurl = "message.php?mailbox=" . urlencode( $mailbox ) .
-				"&uid=" . urlencode( $_POST['msg'] ) .
-				"&filename=" . urlencode( $attach['filename'] );
-			echo "<li>";
-			echo "<a href=\"$attachurl\" onclick=\"return if_newWin('$attachurl')\">";
-			echo $attach['filename'], "</a> (", _("type"), $attach['type'], ", ", _("size"), " ~", formatNumberBytes($attach['size']), ")";
-
-			if ( substr( $attach['type'], 0, 5 ) == "image" ) {
-				echo "<br />";
-				echo "<img src=\"$attachurl\" alt=\"{$attach['filename']}\" />";
-			}
-			echo "</li>";
-		}
-		echo "</ul>";
-	}
-
-	echo remoteRequestSuccess( array( 'htmlFragment' => ob_get_clean(), 'uid' => $_POST['msg'] ) );
-}
+// 	include( 'libs/HTMLPurifier.auto.php' );
+//
+// 	// For the retrieveFullMessage function, we need the number,
+// 	// not the UID, of the message we're after.
+// 	$msgUid = $_POST['msg'];
+// 	$msgNo = imap_msgno( $mbox, $msgUid );
+//
+// 	// TODO: Sanitise the UID input, and handle if the message doesn't occur!
+// 	// Fetch the structure and text parts of this message.
+// 	$msgArray = retrieveMessage( $msgNo, false );
+//
+// 	if ( $msgArray == null ) {
+// 		// Unable to get that message.
+// 		die( remoteRequestFailure( 'MESSAGE', _("Unable to retrieve that message: non existant message.") ) );
+// 	}
+//
+// 	// Fetch and parse its headers.
+// 	$headerObj = imap_headerinfo( $mbox, $msgNo );
+//
+// 	$from = filterHeader( formatIMAPAddress( $headerObj->from ), false );
+//
+// 	$subject = _("(no subject)");
+// 	if ( isset( $headerObj->subject ) ) {
+// 		// TODO: use filterHeader instead
+// 		$subject = filterHeader( $headerObj->subject, false );
+// 	}
+//
+// 	$localDate = processDate( $headerObj->date, $DATE_FORMAT_LONG );
+//
+// 	//-----------------------
+// 	// Figure out the UIDs of the next and previous messages.
+// 	$thisMessagePosition = array_search( $_POST['msg'], $_SESSION['boxcache'] );
+//
+// 	$previousUID = null;
+// 	$previousData = null;
+// 	$nextUID = null;
+// 	$nextData = null;
+// 	$totalMessages = count( $_SESSION['boxcache'] );
+// 	if ( $thisMessagePosition === false ) {
+// 		// Not found.
+// 	} else {
+// 		if ( isset( $_SESSION['boxcache'][ $thisMessagePosition - 1 ] ) ) {
+// 			$previousUID = $_SESSION['boxcache'][ $thisMessagePosition - 1 ];
+// 			$previousData = fetchMessages( array( $previousUID ) );
+// 			$previousData = $previousData[0];
+// 		}
+// 		if ( isset( $_SESSION['boxcache'][ $thisMessagePosition + 1 ] ) ) {
+// 			$nextUID = $_SESSION['boxcache'][ $thisMessagePosition + 1 ];
+// 			$nextData = fetchMessages( array( $nextUID ) );
+// 			$nextData = $nextData[0];
+// 		}
+// 	}
+// 	//-----------------------
+//
+// 	// Capture the output.
+// 	ob_start();
+//
+// 	// Show the next/previous message links.
+// 	// TODO: When going "return to list" return to correct page.
+// 	// This works with the client-side message display code, will require some fun to make
+// 	// it work for the HTML version.
+// 	echo "<p>";
+// 	if ( $previousUID != null ) {
+// 		echo "<a href=\"#\" onclick=\"showMsg(listCurrentMailbox, '{$previousUID}'); return false\">Previous Message</a> &nbsp;";
+// 	}
+// 	echo "Viewing ". ($thisMessagePosition + 1) . " of " . $totalMessages;
+// 	if ( $nextUID != null ) {
+// 		echo "&nbsp; <a href=\"#\" onclick=\"showMsg(listCurrentMailbox, '{$nextUID}'); return false\">Next Message</a>";
+// 	}
+// 	echo "</p>";
+//
+// 	//-----------------------
+//
+// 	// Show the simplified headers (date, sender, subject)
+// 	echo "<p class=\"msg-head\"><span class=\"msg-head-label\">From</span> <span class=\"msg-head-sender\">", $from, "</span> <span class=\"msg-head-label\">at</span> <span class=\"msg-head-date\">", $localDate, "</span><br /><span class=\"msg-head-subject\">", $subject, "</span></p>";
+//
+// 	if (count($msgArray['text/html']) > 0) {
+// 		// Display HTML in preference.
+// 		foreach ( $msgArray['text/html'] as $htmlPart ) {
+// 			echo "<div class=\"html-message\">";
+// 			$msgExtraFlags = array();
+// 			echo processMsgMarkup( $htmlPart, 'text/html', $mailbox, $msgUid, $msgExtraFlags );
+// 			echo "</div>";
+// 		}
+// 	} else {
+// 		// Display text.
+// 		foreach ( $msgArray['text/plain'] as $textPart ) {
+// 			echo "<div class=\"plain-message\">";
+// 			$msgExtraFlags = array();
+// 			echo processMsgMarkup( $textPart, 'text/plain', $mailbox, $msgUid, $msgExtraFlags );
+// 			echo "</div>";
+// 		}
+// 	}
+//
+// 	// List attachments.
+// 	if (count($msgArray['attachments']) > 0) {
+// 		echo _("Attachments") . ": <ul class=\"attachments\">";
+//
+// 		foreach ($msgArray['attachments'] as $attach) {
+// 			if ( $attach['filename'] == "" ) continue; // Skip attachments that are inline-only.
+// 			$attachurl = "message.php?mailbox=" . urlencode( $mailbox ) .
+// 				"&uid=" . urlencode( $_POST['msg'] ) .
+// 				"&filename=" . urlencode( $attach['filename'] );
+// 			echo "<li>";
+// 			echo "<a href=\"$attachurl\" onclick=\"return if_newWin('$attachurl')\">";
+// 			echo $attach['filename'], "</a> (", _("type"), $attach['type'], ", ", _("size"), " ~", formatNumberBytes($attach['size']), ")";
+//
+// 			if ( substr( $attach['type'], 0, 5 ) == "image" ) {
+// 				echo "<br />";
+// 				echo "<img src=\"$attachurl\" alt=\"{$attach['filename']}\" />";
+// 			}
+// 			echo "</li>";
+// 		}
+// 		echo "</ul>";
+// 	}
+//
+// 	echo remoteRequestSuccess( array( 'htmlFragment' => ob_get_clean(), 'uid' => $_POST['msg'] ) );
+// }
 
 // ------------------------------------------------------------------------
 //
-// Get Message data
+// Prepare JSON data for displaying a message
 //
 function request_getMessage() {
 	global $mbox, $DATE_FORMAT_LONG, $mailbox;
@@ -1174,17 +1171,23 @@ function request_sendMessage() {
 	}
 }
 
+// ------------------------------------------------------------------------
+//
+// Return HTML for settings panel
+//
 function request_settingsPanel() {
 	$settingsPanel = generateSettingsPanel();
-	echo remoteRequestSuccess( array( 'htmlFragment' => $settingsPanel['htmlFragment'], 'startPanel' => $settingsPanel['startPanel'] ) );
+	echo remoteRequestSuccess( $settingsPanel );
 }
 
+// ------------------------------------------------------------------------
+//
+// Save input from the settings panel
+//
 function request_settingsPanelSave() {
 	global $USER_SETTINGS;
 
-	// Input data is in $_POST['settings'].
-	// Merge it with the current user settings.
-	$errors = parseUserSettings( $_POST['settings'] );
+	$errors = parseUserSettings();
 
 	// Save the settings.
 	saveUserSettings( $USER_SETTINGS );
@@ -1197,6 +1200,10 @@ function request_settingsPanelSave() {
 	}
 }
 
+// ------------------------------------------------------------------------
+//
+// Handle a request within the identity editor (in the settings panel)
+//
 function request_identityEditor() {
 	global $USER_SETTINGS;
 
@@ -1259,10 +1266,8 @@ function request_identityEditor() {
 //
 // AJAX Request Dispatcher
 //
-// TODO: This is for ajax requests; will need another one to handle POST requests.
-// (Because POST requests will need to be sequences of functions, for example, a
-// call to sendMessage() to save a draft, and then a call to createComposer() to
-// recreate the composer)
+// TODO: This is for ajax requests; will need another one to handle
+// form-style (non-JavaScript) requests.
 if ( isset( $_POST['request'] ) && !empty( $_POST['request'] ) ) {
 	$functionName = "request_{$_POST['request']}";
 
@@ -1270,7 +1275,7 @@ if ( isset( $_POST['request'] ) && !empty( $_POST['request'] ) ) {
 		$functionName();
 	}
 
-	// If the function doesn't exist, do nothing - should be silent.
+	// If the function doesn't exist, fail silently.
 }
 
 imap_close($mbox);

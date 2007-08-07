@@ -26,7 +26,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 var OptionsEditorClass = new Class({
 
 	initialize: function ( wrapper ) {
-		this.openpanel = "";
 		this.wrapper = wrapper;
 	},
 
@@ -52,14 +51,6 @@ var OptionsEditorClass = new Class({
 		$('opts-bar').style.display = 'block';
 		$(this.wrapper).style.display = 'block';
 		$(this.wrapper).setHTML(result.htmlFragment);
-
-		this.openpanel = result.startPanel;
-	},
-
-	showPanel: function ( panelName ) {
-		toggleDisplay( 'settings_' + this.openpanel );
-		toggleDisplay( 'settings_' + panelName );
-		this.openpanel = panelName;
 	},
 
 	closePanel: function () {
@@ -75,7 +66,7 @@ var OptionsEditorClass = new Class({
 	generateQueryString: function( sourceForm ) {
 		var inputs = $A( $(sourceForm).getElementsByTagName('input') );
 		inputs.extend( $A( $(sourceForm).getElementsByTagName('select') ) );
-		var results = Array();
+		var results = new Array();
 
 		for ( var i = 0; i < inputs.length; i++ ) {
 			var thisValue = "";
@@ -303,21 +294,21 @@ function opts_getCB( responseText ) {
 
 
 // Save our settings to the server.
-function opts_save() {
-	if_remoteRequestStart();
-	new Ajax( 'ajax.php', {
-		postBody: 'request=saveUserSettings&settings=' + encodeURIComponent( Json.toString( userSettings ) ),
-		onComplete : function ( responseText ) {
-			opts_saveCB( responseText );
-		},
-		onFailure : function( responseText ) {
-			if_remoteRequestFailed( responseText );
-		}
-		} ).request();
-}
+// function opts_save() {
+// 	if_remoteRequestStart();
+// 	new Ajax( 'ajax.php', {
+// 		postBody: 'request=saveUserSettings&settings=' + encodeURIComponent( Json.toString( userSettings ) ),
+// 		onComplete : function ( responseText ) {
+// 			opts_saveCB( responseText );
+// 		},
+// 		onFailure : function( responseText ) {
+// 			if_remoteRequestFailed( responseText );
+// 		}
+// 		} ).request();
+// }
 
 
-function opts_saveCB( responseText ) {
-	var result = if_checkRemoteResult( responseText );
-	if (!result) return;
-}
+// function opts_saveCB( responseText ) {
+// 	var result = if_checkRemoteResult( responseText );
+// 	if (!result) return;
+// }

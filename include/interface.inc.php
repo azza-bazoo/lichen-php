@@ -23,32 +23,33 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-if ( version_compare( PHP_VERSION, '5.2.0', '<' ) ) {
+
+if ( !function_exists( 'json_encode' ) ) {
 	// We don't have a json_encode function, so include one from PEAR.
 	include( 'libs/JSON.php' );
 	$json_convertor = new Services_JSON();
 
-	function json_encode_real($data) {
+	function json_encode_assoc($data) {
 		global $json_convertor;
 		return $json_convertor->encode($data);
 	}
-	function json_decode_real($data) {
+	function json_decode_assoc($data) {
 		global $json_convertor;
 		return $json_convertor->decode($data);
 	}
 } else {
-	// PEARs JSON functions take and return arrays.
-	// PHP 5.2.0's will return 'stdClass' objects instead,
-	// which breaks code (because you can't "data['foo']" on them)
-	// So we wrap these with ones that work on arrays.
-	function json_encode_real($data) {
-		return json_encode($data);
+	// PEAR's JSON functions take and return arrays.
+	// PHP 5.2.0's will return 'stdClass' objects instead, which
+	// breaks our code (because you can't call $data['foo'])
+	function json_encode_assoc( $data ) {
+		return json_encode( $data );
 	}
-	function json_decode_real($data) {
-		// The second parameter - TRUE - make it return arrays instead.
-		return json_decode($data, TRUE);
+	function json_decode_assoc( $data ) {
+		// The second parameter here makes it return arrays instead.
+		return json_decode( $data, true );
 	}
 }
+
 
 // Prepares a JSON response to the client of a failure.
 function remoteRequestFailure( $code, $message ) {
@@ -58,7 +59,7 @@ function remoteRequestFailure( $code, $message ) {
 	} else {
 		$imapErrors = "";
 	}
-	return json_encode_real(
+	return json_encode_assoc(
 		array(
 			'resultCode' => $code,
 			'errorMessage' => $message,
@@ -79,7 +80,7 @@ function remoteRequestSuccess( $array = NULL ) {
 		$array['imapNotices'] = implode( ", ", $imapErrors );
 	}
 
-	return json_encode_real( $array );
+	return json_encode_assoc( $array );
 }
 
 ?>

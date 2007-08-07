@@ -110,7 +110,7 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 	// also allows the client to cache it.
 	echo "<script type=\"text/javascript\">";
 	echo "var userSettings = ";
-	$settings = json_encode_real( $USER_SETTINGS );
+	$settings = json_encode_assoc( $USER_SETTINGS );
 	if ( $settings == "null" ) {
 		echo "{};";
 	} else {

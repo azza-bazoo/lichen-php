@@ -40,7 +40,7 @@ function getUserDirectory() {
 }
 
 
-// Get the users settings from file.
+// Load the current user's settings from file
 function getUserSettings() {
 	global $DEFAULT_SETTINGS, $SMTP_DOMAIN;
 
@@ -48,24 +48,24 @@ function getUserSettings() {
 
 	$dataFile = "{$userDataDir}/lichenrc";
 
-	$settings = NULL;
+	$settings = null;
 	if ( file_exists( $dataFile ) ) {
-		// Load it...
-		$settings = json_decode_real( file_get_contents( $dataFile ) );
+		// Load previously saved settings
+		$settings = json_decode_assoc( file_get_contents( $dataFile ) );
 	}
 
-	if ( $settings == NULL || $settings['BUILTINVER'] != 1 || $DEFAULT_SETTINGS['defaults_version'] != $settings['defaults_version'] ) {
+	if ( $settings == null || $DEFAULT_SETTINGS['defaults_version'] != $settings['defaults_version'] ) {
 		// Prepare default settings for this user, or update new settings.
 		// This only adds new keys to the settings array, won't change others.
-		// TODO: This is mainly for development - saves me editing my lichenrc file too much.
-		// I guess it's a little complicated though... probably should be taken out.
 		$newSettings = array(
-			"BUILTINVER" => 2, // Increment for each change to this array.
 			"timezone" => "UTC",
 			"theme" => "default",
 			"list_pagesize" => 20,
+			"list_defaultsort" => "date_r",
 			"forward_as_attach" => true,
 			"list_showpreviews" => true,
+			"list_showsize" => false,
+			"boxlist_showtotal" => false,
 			"identities" =>
 				array(
 					array(
@@ -78,13 +78,12 @@ function getUserSettings() {
 
 		if ( $settings == null ) $settings = array();
 
-		// Later arguments to this function take precedence.
-		// So, first is BUILT IN SETTINGS, then the ADMINISTRATOR SETTINGS,
-		// then the user's own settings.
+		// Precedence order: built-in settings highest, then administrator
+		// settings from lichen-config.php, then the user's own settings.
 		$settings = array_merge( $newSettings, $DEFAULT_SETTINGS, $settings );
 
 		// Create a config file and write these settings.
-		// saveUserSettings();
+		saveUserSettings();
 	}
 
 	return $settings;
@@ -99,7 +98,7 @@ function saveUserSettings( $settings ) {
 	$file = fopen( "{$userDataDir}/lichenrc", "w" );
 	$result = false;
 	if ( $file !== false ) {
-		$result = fwrite( $file, json_encode_real( $settings ) );
+		$result = fwrite( $file, json_encode_assoc( $settings ) );
 		fclose( $file );
 	}
 
@@ -130,62 +129,8 @@ function getUserIdentity( $byAddress = NULL ) {
 	return NULL;
 }
 
-$SETTINGS_PANEL = array(
 
-	_("General") =>
-		array(
-			_("Timezone") =>
-				array( "type" => "select", "key" => "timezone", "sourcedata" => "timezone_identifiers_list" ), // TODO: PHP >=5.1.0
-			),
-	_("Message List") =>
-		array(
-//			_("Show Flagged column") =>
-//				array( "type" => "boolean", "key" => "list_showflagged" ),
-			_("Show Message Previews") =>
-				array( "type" => "boolean", "key" => "list_showpreviews" ),
-			_("Show Message Size") =>
-				array( "type" => "boolean", "key" => "list_showsize" ),
-			_("Messages per page") =>
-				array( "type" => "number", "key" => "list_pagesize", "min" => 5 ),
-			_("Default sort") =>
-				array( "type" => "select", "key" => "list_defaultsort",
-					"sourcedata" => array(
-						array( "value" => "date", "display" => _("Date (Oldest first)") ),
-						array( "value" => "date_r", "display" => _("Date (Newest first)") ),
-						array( "value" => "from", "display" => _("From")),
-						array( "value" => "from_r", "display" => _("From (Reverse)")),
-						array( "value" => "subject", "display" => _("Subject")),
-						array( "value" => "subject_r", "display" => _("Subject (Reverse)")),
-						array( "value" => "to", "display" => _("To")),
-						array( "value" => "to_r", "display" => _("To (Reverse)")),
-						array( "value" => "cc", "display" => _("CC")),
-						array( "value" => "cc_r", "display" => _("CC (Reverse)")),
-						array( "value" => "size", "display" => _("Size (Smallest First)")),
-						array( "value" => "size_r", "display" => _("Size (Smallest Last)")),
-					)
-				),
-			_("Show mailbox totals") =>
-				array( "type" => "boolean", "key" => "boxlist_showtotal" ),
-		),
-	_("Composer") =>
-		array(
-			_("Forward as attachment by default") =>
-				array( "type" => "boolean", "key" => "forward_as_attach" ),
-		),
-	_("Message Display") =>
-		array(
-			_("Fixed width display") =>
-				array( "type" => "boolean", "key" => "message_fixedwidth" ),
-		),
-	_("Identities") =>
-		array(
-			"custom" => "generateIdentityEditor"
-		)
-
-);
-
-
-// Generate the HTML required to have a working identity editor.
+// Generate HTML for the sending identities editor
 function generateIdentityEditor() {
 	global $USER_SETTINGS;
 
@@ -208,197 +153,182 @@ function generateIdentityEditor() {
 }
 
 
-// Generate the HTML to change settings. The result is dictated by the settings panel array.
+// Generate the HTML for the settings interface
 function generateSettingsPanel() {
-	global $SETTINGS_PANEL, $USER_SETTINGS, $DEFAULT_SETTINGS;
+	global $USER_SETTINGS, $DEFAULT_SETTINGS;
 
-	$result = "<div>";
-	$result .= "<form name=\"settings\" id=\"settings\" method=\"post\" onsubmit=\"OptionsEditor.saveOptions();return false\" action=\"#\">";
-	$result .= "<div>";
+	// _("Default sort") =>
+	// array( "type" => "select", "key" => "list_defaultsort",
+	// "sourcedata" => array(
+	// array( "value" => "date", "display" => _("Date (oldest first)") ),
+	// array( "value" => "date_r", "display" => _("Date (newest first)") ),
+	// array( "value" => "from", "display" => _("From (ascending)")),
+	// array( "value" => "from_r", "display" => _("From (descending)")),
+	// array( "value" => "subject", "display" => _("Subject (ascending)")),
+	// array( "value" => "subject_r", "display" => _("Subject (descending)")),
+	// array( "value" => "to", "display" => _("To (ascending)")),
+	// array( "value" => "to_r", "display" => _("To (descending)")),
+	// array( "value" => "cc", "display" => _("CC (ascending)")),
+	// array( "value" => "cc_r", "display" => _("CC (descending)")),
+	// array( "value" => "size", "display" => _("Size (smallest first)")),
+	// array( "value" => "size_r", "display" => _("Size (biggest first)")),
 
-	foreach ( $SETTINGS_PANEL as $panelname => $value ) {
-		$result .= "<span class=\"settpanel\"><a href=\"#\" onclick=\"OptionsEditor.showPanel('" . $panelname . "'); return false\">";
-		$result .= "{$panelname}</a></span> &nbsp; &nbsp;";
+	$panel = "<form name=\"settings\" id=\"settings\" method=\"post\" onsubmit=\"OptionsEditor.saveOptions();return false\" action=\"#\">";
+
+	//--------------------
+	// Timezone selector
+	$panel .= "<div class=\"opts-block\"><label for=\"opts-timezone\" class=\"opts-name\">Your timezone:</label> " . generateTimezoneSelect( $USER_SETTINGS['timezone'] ) . "</div>";
+
+	//--------------------
+	// Show message preview
+	$panel .= "<div class=\"opts-block\">In message listings &nbsp; <input type=\"checkbox\" name=\"opts-list_showpreviews\" id=\"opts-list_showpreviews\" ";
+
+	if ( $USER_SETTINGS['list_showpreviews'] ) { $panel .= "checked=\"checked\" "; }
+
+	$panel .= "/> <label for=\"opts-list_showpreviews\" class=\"opts-name\">show message previews</label> &nbsp; ";
+
+	//--------------------
+	// Show 'size' column
+	$panel .= "<input type=\"checkbox\" name=\"opts-list_showsize\" id=\"opts-list_showsize\" ";
+
+	if ( $USER_SETTINGS['list_showsize'] ) { $panel .= "checked=\"checked\" "; }
+
+	$panel .= "/> <label for=\"opts-list_showsize\" class=\"opts-name\">show size</label><br />";
+
+	//--------------------
+	// Messages per page
+	$panel .= "and list <select name=\"opts-list_pagesize\" id=\"opts-list_pagesize\">";
+
+	$sizeOptions = array( 5, 10, 20, 25, 50, 75, 100 );
+	foreach ( $sizeOptions as $i ) {
+		$panel .= "<option value=\"$i\" ";
+		if ( $USER_SETTINGS['list_pagesize'] == $i ) { $panel .= "selected=\"selected\" "; }
+		$panel .= ">$i</option>";
 	}
 
-	$result .= "</div>";
+	$panel .= "</select> <label for=\"opts-list_pagesize\" class=\"opts-name\">messages per page</label>";
 
-	$firstPanel = "";
-	foreach ( $SETTINGS_PANEL as $panelname => $settings ) {
-		$result .= "<div id=\"settings_{$panelname}\"";
-		if ( $firstPanel == "" ) {
-			$firstPanel = $panelname;
-		} else {
-			$result .= " style=\"display: none;\"";
-		}
-		$result .= ">";
+	//--------------------
+	// Show totals in mailbox list
+	$panel .= "<div class=\"opts-block\"><input type=\"checkbox\" name=\"opts-boxlist_showtotal\" id=\"opts-boxlist_showtotal\" ";
 
-		foreach ( $settings as $settingname => $settingdata ) {
-			if ( $settingname == "custom" ) {
-				$result .= "<div>" . $settingdata() . "</div>";
-				continue;
-			}
-			$result .= "<div class=\"setting_row\">";
-			$result .= "<span class=\"setting_name\">{$settingname}:</span>";
-			$result .= "<span class=\"setting_input\">";
+	if ( $USER_SETTINGS['boxlist_showtotal'] ) { $panel .= "checked=\"checked\" "; }
 
-			switch ( $settingdata['type'] ) {
-				case 'boolean':
-					$result .= "<input type=\"checkbox\" name=\"settings[{$settingdata['key']}]\" ";
-					$result .= "id=\"settings[{$settingdata['key']}]\" value=\"true\" ";
-					// This if says: if the user has the key and it's set, mark as checked.
-					// If the user doesn't have the key, but there is a default setting for it, mark it as checked.
-					if ( ( isset( $USER_SETTINGS[$settingdata['key']] ) && $USER_SETTINGS[$settingdata['key']] ) ||
-						( !isset( $USER_SETTINGS[$settingdata['key']] ) && isset( $DEFAULT_SETTINGS[$settingdata['key']] ) &&
-						$DEFAULT_SETTINGS[$settingdata['key']] ) ) {
+	$panel .= "/> <label for=\"opts-boxlist_showtotal\" class=\"opts-name\">Show total count for each mailbox</label></div>";
 
-						$result .= "checked=\"checked\"";
-					}
-					$result .= " />";
-					break;
-				case 'number':
-				case 'string':
-					$result .= "<input type=\"text\" size=\"20\" ";
-				       	$result .= "name=\"settings[{$settingdata['key']}]\" ";
-					$result .= "id=\"settings[{$settingdata['key']}]\" ";
-					if ( isset( $USER_SETTINGS[$settingdata['key']] ) ) {
-						$result .= "value=\"" . htmlentities($USER_SETTINGS[$settingdata['key']]) . "\" />";
-					} else if ( isset( $DEFAULT_SETTINGS[$settingdata['key']] ) ) {
-						$result .= "value=\"" . htmlentities($DEFAULT_SETTINGS[$settingdata['key']]) . "\" />";
-					}
-					break;
-				case 'select':
-					$result .= "<select name=\"settings[{$settingdata['key']}]\" ";
-					$result .= "id=\"settings[{$settingdata['key']}]\">";
-					$soucedata = array();
-					if ( is_array( $settingdata['sourcedata'] ) ) {
-						// Static array - take a reference.
-						$sourcedata = &$settingdata['sourcedata'];
-					} else {
-						// Function that generates the data.
-						// TODO: Pass it in the current value? This needs to be
-						// enhanced.
-						$sourcedata = $settingdata['sourcedata']();
-					}
-					foreach ( $sourcedata as $element ) {
-						$selected = "";
-						$value = $element;
-						$display = $element;
-						if ( is_array( $element ) ) {
-							$value = $element['value'];
-							$display = $element['display'];
-						}
-						if ( ( isset( $USER_SETTINGS[$settingdata['key']] ) &&
-							$USER_SETTINGS[$settingdata['key']] == $value ) ||
-							( !isset( $USER_SETTINGS[$settingdata['key']] ) &&
-								isset( $DEFAULT_SETTINGS[$settingdata['key']] ) &&
-								$DEFAULT_SETTINGS[$settingdata['key']] == $value ) ) {
-							$selected = "selected=\"selected\"";
-						}
-						$result .= "<option value=\"" . htmlentities( $value ) . "\" {$selected}>";
-						$result .= htmlentities( $display ) . "</option>";
-					}
-					$result .= "</select>";
-					break;
-			}
+	//--------------------
+	// Default forward mode
+	$panel .= "<div class=\"opts-block\">By default, <strong>forward messages</strong> <input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-true\" value=\"true\" ";
 
-			$result .= "</span>";
-			$result .= "</div>";
-		}
+	if ( $USER_SETTINGS['forward_as_attach'] ) { $panel .= "checked=\"checked\" "; }
 
-		$result .= "</div>";
-	}
+	$panel .= " /> <label for=\"opts-forward_as_attach-true\" class=\"opts-name\">as attachments</label> <input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-false\" value=\"false\" ";
 
-	$result .= "<div align=\"right\">";
-	$result .= "<button onclick=\"OptionsEditor.saveOptions(); return false\">" . _("Save Settings") . "</button>";
-	$result .= "<button onclick=\"OptionsEditor.closePanel(); return false\">" . _("Cancel") . "</button>";
-	$result .= "</div>";
+	if ( !$USER_SETTINGS['forward_as_attach'] ) { $panel .= "checked=\"checked\" "; }
 
-	$result .= "</form>";
-	$result .= "</div>";
+	$panel .= " /> <label for=\"opts-forward_as_attach-false\" class=\"opts-name\">inline</label></div>";
 
-	return array( "htmlFragment" => $result, "startPanel" => $firstPanel );
+	//--------------------
+	// Sending identities
+	$panel .= "<div class=\"opts-block\">" . generateIdentityEditor() . "</div>";
+
+	$panel .= "</form>";
+
+	return array( "htmlFragment" => $panel );
 }
 
 
-// Given a blob from the client, which is the status of the settings on the panel,
-// go ahead and parse them and merge them with the current user settings.
-function parseUserSettings( $inputSettings ) {
-	global $USER_SETTINGS, $SETTINGS_PANEL;
+// Assuming that $_POST variables have been set corresponding to input from
+// the settings panel, update the global $USER_SETTINGS array with the changes
+// and return an array of errors, if there are any.
+function parseUserSettings() {
+	global $USER_SETTINGS, $_DATE_TIMEZONE_DATA;
 
 	$settingErrors = array();
 
-	foreach ( $SETTINGS_PANEL as $panel => $settings ) {
-		foreach ( $settings as $settingname => $setting ) {
-			if ( !isset( $inputSettings[$setting['key']] ) ) {
-				// Ignore this setting, no change.
-				continue;
-			}
-			$invalidValue = false;
-			$settingValue = "";
-			$inputValue = $inputSettings[$setting['key']];
-			switch ( $setting['type'] ) {
-				case 'boolean':
-					if ( $inputValue == "true" ) {
-						$settingValue = true;
-					} else {
-						$settingValue = false;
-					}
-					break;
-				case 'string':
-					$settingValue = $inputValue;
-					break;
-				case 'number':
-					if ( is_numeric( $inputValue ) ) {
-						$settingValue = $inputValue += 0;
+	foreach ( $_POST as $keyName => $value ) {
+		$value = urldecode( $value );
 
-						if ( isset( $setting['min'] ) ) {
-							if ( $settingValue < $setting['min'] ) {
-								$invalidValue = true;
-								$msg = sprintf( _("%s -> %s must be %d or greater."), $panel, $settingname, $setting['min'] );
-								$settingErrors[] = $msg;
-							}
-						}
+		switch ( $keyName ) {
+			case 'opts-timezone':
+				if ( isset( $_DATE_TIMEZONE_DATA ) ) {
+					// PHP < 5.2: the PEAR library uses a global array
+					if ( !isset( $_DATE_TIMEZONE_DATA[$value] ) ) {
+						array_push( $settingErrors,
+							"timezone - invalid timezone name" );
 					} else {
-						// Ignore this value - invalid input.
-						$invalidValue = true;
+						$USER_SETTINGS['timezone'] = $value;
 					}
-					break;
-				case 'select':
-					$allowableValues = array();
-					if ( is_array( $setting['sourcedata'] ) ) {
-						$allowableValues = &$setting['sourcedata'];
-					} else {
-						$allowableValues = $setting['sourcedata']();
-					}
-					$valueOk = false;
-					foreach ( $allowableValues as $value ) {
-						if ( is_array( $value ) ) {
-							if ( $value['value'] == $inputValue ) {
-								$valueOk = true;
-								break;
-							}
-						} else {
-							if ( $value == $inputValue ) {
-								$valueOk = true;
-								break;
-							}
+				} else {
+					// PHP > 5.2: create an array of all supported
+					// timezones, and look for the one given
+					foreach ( DateTimeZone::listIdentifiers() as $zone ) {
+						if ( $value == $zone ) {
+							$USER_SETTINGS['timezone'] = $value;
+							break;
 						}
 					}
-					if ( $valueOk ) {
-						// Setting is ok.
-						$settingValue = $inputValue;
-					} else {
-						$invalidValue = true;
-						$msg = sprintf( _("%s -> %s is invalid."), $panel, $settingname );
-						$settingErrors[] = $msg;
-					}
-					break;
-			}
+				}
+				break;
 
-			if ( !$invalidValue ) {
-				$USER_SETTINGS[$setting['key']] = $settingValue;
-			}
+			case 'opts-list_pagesize':
+				if ( !ctype_digit( $value ) ) {
+					array_push( $settingErrors,
+						"list_pagesize - not a valid number" );
+				} elseif ( $value < 5 ) {
+					array_push( $settingErrors,
+						"list_pagesize - this value is too low" );
+				} elseif ( $value > 200 ) {
+					array_push( $settingErrors,
+						"list_pagesize - this value is too high" );
+				} else {
+					$USER_SETTINGS['list_pagesize'] = $value;
+				}
+				break;
+
+			case 'opts-list_showpreviews':
+				if ( $value == 'true' ) {
+					$USER_SETTINGS['list_showpreviews'] = true;
+				} else {
+					$USER_SETTINGS['list_showpreviews'] = false;
+				}
+				break;
+
+			case 'opts-list_showsize':
+				if ( $value == 'true' ) {
+					$USER_SETTINGS['list_showsize'] = true;
+				} else {
+					$USER_SETTINGS['list_showsize'] = false;
+				}
+				break;
+
+			case 'opts-boxlist_showtotal':
+				if ( $value == 'true' ) {
+					$USER_SETTINGS['boxlist_showtotal'] = true;
+				} else {
+					$USER_SETTINGS['boxlist_showtotal'] = false;
+				}
+				break;
+
+			case 'opts-forward_as_attach-true':
+				if ( $value == 'true' ) {
+					$USER_SETTINGS['forward_as_attach'] = true;
+				} else {
+					$USER_SETTINGS['forward_as_attach'] = false;
+				}
+				break;
+
+			case 'opts-forward_as_attach-false':
+				// Ignore this; option above is used instead
+				break;
+
+			case 'request':
+				// This is used by the dispatcher in ajax.php
+				break;
+
+			case 'identities-list':
+				// Identities should have been set in ajax.php already
+				break;
 		}
 	}
 
@@ -409,7 +339,7 @@ function parseUserSettings( $inputSettings ) {
 // Returns a string containing a select box of timezones; this list omits
 // the extensive duplication in the zoneinfo database.
 // The list was manually generated on an unexciting summer's day ...
-function drawTimeZoneSelect( $selected ) {
+function generateTimezoneSelect( $selected ) {
 
 	$timezones = array(
 		"Pacific/Midway" => "[UTC -11:00] Midway, Pago Pago, Samoa",
@@ -516,7 +446,7 @@ function drawTimeZoneSelect( $selected ) {
 		$selected = "Africa/Casablanca";
 	}
 
-	$outputString = "<select name=\"timezone\" id=\"timezone\">\n";
+	$outputString = "<select name=\"opts-timezone\" id=\"opts-timezone\">\n";
 
 	foreach ( $timezones as $zoneName => $displayName ) {
 		if ( $selected == $zoneName ) {
