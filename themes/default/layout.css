@@ -46,6 +46,7 @@ form.login { position: absolute; top: 120px; left: 0; width: 700px; height: 380p
 /* Options panel */
 
 form#settings { width: 100%; }
+/* .opts-tab { display: none; } */
 
 /* Notification messages */
 

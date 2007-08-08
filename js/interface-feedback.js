@@ -116,6 +116,7 @@ function if_checkRemoteResult( remoteText ) {
 	result = Json.evaluate( remoteText, true );
 
 	if (!result) {
+		// TODO: this shouldn't be an alert box.
 		alert( "Unable to Json decode what the server sent back.\n" +
 			"The server sent us: '" + remoteText + "'\n" );
 		if_remoteRequestEnd();

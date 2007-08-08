@@ -130,184 +130,6 @@ function getUserIdentity( $byAddress = NULL ) {
 }
 
 
-// Generate HTML for the sending identities editor
-function generateIdentityEditor() {
-	global $USER_SETTINGS;
-
-	$result = "";
-
-	$result .= "<select size=\"10\" id=\"opts-identity-list\">";
-	foreach ( $USER_SETTINGS['identities'] as $identity ) {
-		$result .= "<option value=\"" . htmlentities( $identity['address'] ) . "," . htmlentities( $identity['name'] ) . "\">" .
-		       htmlentities( $identity['name'] ) . " &lt;" . htmlentities( $identity['address'] ) . "&gt;";
-		if ( $identity['isdefault'] ) $result .= " (default)";
-		$result .= "</option>";
-	}
-	$result .= "</select><br />";
-	$result .= "<div id=\"opts-identity-edit\"></div>";
-
-
-	$result .= "<a href=\"#\" onclick=\"return OptionsEditor.identity_add()\">" . _("Add") . "</a> | ";
-	$result .= "<a href=\"#\" onclick=\"return OptionsEditor.identity_setdefault()\">" . _("Make Default") . "</a> | ";
-	$result .= "<a href=\"#\" onclick=\"return OptionsEditor.identity_edit()\">" . _("Edit") . "</a> | ";
-	$result .= "<a href=\"#\" onclick=\"return OptionsEditor.identity_remove()\">" . _("Remove") . "</a>";
-
-
-
-	return $result;
-}
-
-
-// Generate HTML for the mailbox manager, polling the IMAP server for a list.
-function generateMailboxManager() {
-
-	// Build the HTML.
-	$result = "";
-	$result .= "add new mailbox";
-	$result .= "<ul>";
-//	$result .= "<tr id=\"mbm-row-\"><td><div id=\"mbm-namearea-\">[Top Level]</div></td>";
-//	$result .= "<td><div id=\"mbm-buttonarea-\"></div></td></tr>";
-
-	foreach ( getMailboxList() as $thisMailbox ) {
-//		$result .= "<tr id=\"mbm-row-{$thisMailbox['fullboxname']}\"><td>";
-
-		$result .= "<li>";
-		$result .= "[<a href=\"#\" onclick=\"MailboxManager.changeParentInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">move</a>] ";
-
-		$result .= "<span id=\"mbm-namearea-{$thisMailbox['fullboxname']}\">";
-		for ( $j = 0; $j < $thisMailbox['folderdepth']; $j ++ ) {
-			$result .= "-"; // Poor man's indenting.
-		}
-		$result .= $thisMailbox['mailbox'];
-		$result .= "</span>";
-
-		$result .= " [<a href=\"#\" onclick=\"MailboxManager.renameInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">rename</a>] ";
-		$result .= "[<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">delete</a>]";
-
-		$result .= "<br />[<a href=\"#\" onclick=\"MailboxManager.newChild('{$thisMailbox['fullboxname']}'); return false\">add subfolder</a>]";
-
-		$result .= "</li>";
-	}
-
-	$result .= "</ul>";
-
-	return $result;
-}
-
-
-// Generate the HTML for the settings interface
-function generateSettingsPanel() {
-	global $USER_SETTINGS, $DEFAULT_SETTINGS;
-
-	// _("Default sort") =>
-	// array( "type" => "select", "key" => "list_defaultsort",
-	// "sourcedata" => array(
-	// array( "value" => "date", "display" => _("Date (oldest first)") ),
-	// array( "value" => "date_r", "display" => _("Date (newest first)") ),
-	// array( "value" => "from", "display" => _("From (ascending)")),
-	// array( "value" => "from_r", "display" => _("From (descending)")),
-	// array( "value" => "subject", "display" => _("Subject (ascending)")),
-	// array( "value" => "subject_r", "display" => _("Subject (descending)")),
-	// array( "value" => "to", "display" => _("To (ascending)")),
-	// array( "value" => "to_r", "display" => _("To (descending)")),
-	// array( "value" => "cc", "display" => _("CC (ascending)")),
-	// array( "value" => "cc_r", "display" => _("CC (descending)")),
-	// array( "value" => "size", "display" => _("Size (smallest first)")),
-	// array( "value" => "size_r", "display" => _("Size (biggest first)")),
-
-	$panel = "";
-
-	$panel .= "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" id=\"top-corner\" />";
-	// $panel .= "<div class=\"header-right\">&nbsp;</div>";
-	$panel .= "<div class=\"opts-tabs\"><a href=\"#\" onclick=\"OptionsEditor.switchTab('settings');return false\" class=\"opts-activetab\">Lichen settings</a> <a href=\"#\" onclick=\"OptionsEditor.switchTab('identities');return false\">Sending identities</a> <a href=\"#\" onclick=\"OptionsEditor.switchTab('mailboxes');return false\">Mailbox manager</a></div></div>";
-
-	$panel .= "<form class=\"tab\" id=\"opts-settings\" method=\"post\" onsubmit=\"OptionsEditor.saveOptions();return false\" action=\"#\">";
-
-	//--------------------
-	// Timezone selector
-	$panel .= "<div class=\"opts-block\"><label for=\"opts-timezone\" class=\"opts-name\">Your timezone:</label> " . generateTimezoneSelect( $USER_SETTINGS['timezone'] ) . "</div>";
-
-	//--------------------
-	// Messages per page
-	// TODO: clean up the CSS here
-	$panel .= "<div class=\"opts-block\">In message listings:<div style=\"margin-left:170px;margin-top:-18px\">";
-
-	$panel .= "show <select name=\"opts-list_pagesize\" id=\"opts-list_pagesize\">";
-
-	$sizeOptions = array( 5, 10, 20, 25, 50, 75, 100 );
-	foreach ( $sizeOptions as $i ) {
-		$panel .= "<option value=\"$i\" ";
-		if ( $USER_SETTINGS['list_pagesize'] == $i ) { $panel .= "selected=\"selected\" "; }
-		$panel .= ">$i</option>";
-	}
-
-	$panel .= "</select> <label for=\"opts-list_pagesize\" class=\"opts-name\">messages per page</label><br />";
-
-	//--------------------
-	// Show message preview
-	$panel .= "<input type=\"checkbox\" name=\"opts-list_showpreviews\" id=\"opts-list_showpreviews\" ";
-
-	if ( $USER_SETTINGS['list_showpreviews'] ) { $panel .= "checked=\"checked\" "; }
-
-	$panel .= "/> <label for=\"opts-list_showpreviews\" class=\"opts-name\">show message previews</label><br />";
-
-	//--------------------
-	// Show 'size' column
-	$panel .= "<input type=\"checkbox\" name=\"opts-list_showsize\" id=\"opts-list_showsize\" ";
-
-	if ( $USER_SETTINGS['list_showsize'] ) { $panel .= "checked=\"checked\" "; }
-
-	$panel .= "/> <label for=\"opts-list_showsize\" class=\"opts-name\">show size</label></div></div>";
-
-	//--------------------
-	// Show totals in mailbox list
-	$panel .= "<div class=\"opts-block\"><input type=\"checkbox\" name=\"opts-boxlist_showtotal\" id=\"opts-boxlist_showtotal\" ";
-
-	if ( $USER_SETTINGS['boxlist_showtotal'] ) { $panel .= "checked=\"checked\" "; }
-
-	$panel .= "/> <label for=\"opts-boxlist_showtotal\" class=\"opts-name\">Show total count for each mailbox</label></div>";
-
-	//--------------------
-	// Default forward mode
-	$panel .= "<div class=\"opts-block\">By default, forward messages as: <input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-true\" value=\"true\" ";
-
-	if ( $USER_SETTINGS['forward_as_attach'] ) { $panel .= "checked=\"checked\" "; }
-
-	$panel .= " /> <label for=\"opts-forward_as_attach-true\" class=\"opts-name\">attachments</label> <input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-false\" value=\"false\" ";
-
-	if ( !$USER_SETTINGS['forward_as_attach'] ) { $panel .= "checked=\"checked\" "; }
-
-	$panel .= " /> <label for=\"opts-forward_as_attach-false\" class=\"opts-name\">inline</label></div>";
-
-	//--------------------
-	$panel .= "<p class=\"opts-buttons\">";
-
-	$panel .= "<button><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_ok.png\" alt=\"\" /> " . _( "save changes" ) . "</button>";
-
-	$panel .= "<button onclick=\"OptionsEditor.closePanel();return false\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</button>";
-
-	$panel .= "</p></form>";
-
-	//--------------------
-	// Sending identities
-	$panel .= "<form class=\"tab\" id=\"opts-identities\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
-
-	$panel .= generateIdentityEditor();
-
-	$panel .= "</form>";
-
-	//--------------------
-	// Mailbox manager
-	$panel .= "<form class=\"tab\" id=\"opts-mailboxes\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
-
-	$panel .= generateMailboxManager();
-
-	$panel .= "</form>";
-
-	return array( "htmlFragment" => $panel );
-}
-
-
 // Assuming that $_POST variables have been set corresponding to input from
 // the settings panel, update the global $USER_SETTINGS array with the changes
 // and return an array of errors, if there are any.
@@ -403,6 +225,202 @@ function parseUserSettings() {
 	}
 
 	return $settingErrors;
+}
+
+
+// Generate the HTML for the settings interface
+function generateSettingsPanel() {
+	global $USER_SETTINGS, $DEFAULT_SETTINGS;
+
+	// _("Default sort") =>
+	// array( "type" => "select", "key" => "list_defaultsort",
+	// "sourcedata" => array(
+	// array( "value" => "date", "display" => _("Date (oldest first)") ),
+	// array( "value" => "date_r", "display" => _("Date (newest first)") ),
+	// array( "value" => "from", "display" => _("From (ascending)")),
+	// array( "value" => "from_r", "display" => _("From (descending)")),
+	// array( "value" => "subject", "display" => _("Subject (ascending)")),
+	// array( "value" => "subject_r", "display" => _("Subject (descending)")),
+	// array( "value" => "to", "display" => _("To (ascending)")),
+	// array( "value" => "to_r", "display" => _("To (descending)")),
+	// array( "value" => "cc", "display" => _("CC (ascending)")),
+	// array( "value" => "cc_r", "display" => _("CC (descending)")),
+	// array( "value" => "size", "display" => _("Size (smallest first)")),
+	// array( "value" => "size_r", "display" => _("Size (biggest first)")),
+
+	// It-will-do-for-now hack to display only the requested tab;
+	// this is best done with display:none on the client side
+	// (though it might slow PHP due to all of the concatenation)
+
+	$panel = "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" id=\"top-corner\" /><div class=\"header-right\">&nbsp;</div>";
+
+	// Boring, repetitive 'if's for the tab bar
+	$panel .= "<div class=\"opts-tabbar\"><a href=\"#\" onclick=\"OptionsEditor.showEditor('settings');return false\"";
+	if ( $_POST['tab'] == 'settings' ) { $panel .= " class=\"opts-activetab\""; }
+	$panel .= ">Lichen settings</a> <a href=\"#\" onclick=\"OptionsEditor.showEditor('identities');return false\"";
+	if ( $_POST['tab'] == 'identities' ) { $panel .= " class=\"opts-activetab\""; }
+	$panel .= ">Sending identities</a> <a href=\"#\" onclick=\"OptionsEditor.showEditor('mailboxes');return false\"";
+	if ( $_POST['tab'] == 'mailboxes' ) { $panel .= " class=\"opts-activetab\""; }
+	$panel .= ">Mailbox manager</a></div></div>";
+
+	switch ( $_POST['tab'] ) {
+		case 'settings':
+			$panel .= generateSettingsForm();
+			break;
+		case 'identities':
+			$panel .= generateIdentityEditor();
+			break;
+		case 'mailboxes':
+			$panel .= generateMailboxManager();
+			break;
+	}
+
+	return array( "htmlFragment" => $panel );
+}
+
+
+// Generate HTML for the form to edit general preferences
+function generateSettingsForm() {
+	global $USER_SETTINGS;
+
+	$result = "<form class=\"opts-tab\" id=\"opts-settings\" method=\"post\" onsubmit=\"OptionsEditor.saveOptions();return false\" action=\"#\">";
+
+	//--------------------
+	// Timezone selector
+	$result .= "<div class=\"opts-block\"><label for=\"opts-timezone\" class=\"opts-name\">Your timezone:</label> " . generateTimezoneSelect( $USER_SETTINGS['timezone'] ) . "</div>";
+
+	//--------------------
+	// Messages per page
+	// TODO: clean up the CSS here
+	$result .= "<div class=\"opts-block\">In message listings:<div style=\"margin-left:170px;margin-top:-18px\">";
+
+	$result .= "show <select name=\"opts-list_pagesize\" id=\"opts-list_pagesize\">";
+
+	$sizeOptions = array( 5, 10, 20, 25, 50, 75, 100 );
+	foreach ( $sizeOptions as $i ) {
+		$result .= "<option value=\"$i\" ";
+		if ( $USER_SETTINGS['list_pagesize'] == $i ) { $result .= "selected=\"selected\" "; }
+		$result .= ">$i</option>";
+	}
+
+	$result .= "</select> <label for=\"opts-list_pagesize\" class=\"opts-name\">messages per page</label><br />";
+
+	//--------------------
+	// Show message preview
+	$result .= "<input type=\"checkbox\" name=\"opts-list_showpreviews\" id=\"opts-list_showpreviews\" ";
+
+	if ( $USER_SETTINGS['list_showpreviews'] ) { $result .= "checked=\"checked\" "; }
+
+	$result .= "/> <label for=\"opts-list_showpreviews\" class=\"opts-name\">show message previews</label><br />";
+
+	//--------------------
+	// Show 'size' column
+	$result .= "<input type=\"checkbox\" name=\"opts-list_showsize\" id=\"opts-list_showsize\" ";
+
+	if ( $USER_SETTINGS['list_showsize'] ) { $result .= "checked=\"checked\" "; }
+
+	$result .= "/> <label for=\"opts-list_showsize\" class=\"opts-name\">show size</label></div></div>";
+
+	//--------------------
+	// Show totals in mailbox list
+	$result .= "<div class=\"opts-block\"><input type=\"checkbox\" name=\"opts-boxlist_showtotal\" id=\"opts-boxlist_showtotal\" ";
+
+	if ( $USER_SETTINGS['boxlist_showtotal'] ) { $result .= "checked=\"checked\" "; }
+
+	$result .= "/> <label for=\"opts-boxlist_showtotal\" class=\"opts-name\">Show total count for each mailbox</label></div>";
+
+	//--------------------
+	// Default forward mode
+	$result .= "<div class=\"opts-block\">By default, forward messages as: <input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-true\" value=\"true\" ";
+
+	if ( $USER_SETTINGS['forward_as_attach'] ) { $result .= "checked=\"checked\" "; }
+
+	$result .= " /> <label for=\"opts-forward_as_attach-true\" class=\"opts-name\">attachments</label> <input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-false\" value=\"false\" ";
+
+	if ( !$USER_SETTINGS['forward_as_attach'] ) { $result .= "checked=\"checked\" "; }
+
+	$result .= " /> <label for=\"opts-forward_as_attach-false\" class=\"opts-name\">inline</label></div>";
+
+	//--------------------
+	// OK/cancel buttons
+	$result .= "<p class=\"opts-buttons\">";
+
+	$result .= "<button><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_ok.png\" alt=\"\" /> " . _( "save changes" ) . "</button>";
+
+	$result .= "<button onclick=\"OptionsEditor.closePanel();return false\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</button>";
+
+	$result .= "</p></form>";
+
+	return $result;
+}
+
+
+// Generate HTML for the sending identities editor
+function generateIdentityEditor() {
+	global $USER_SETTINGS;
+
+	$result = "<form class=\"opts-tab\" id=\"opts-identities\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
+
+	$result .= "<select size=\"10\" id=\"opts-identity-list\">";
+	foreach ( $USER_SETTINGS['identities'] as $identity ) {
+		$result .= "<option value=\"" . htmlentities( $identity['address'] ) . "," . htmlentities( $identity['name'] ) . "\">" .
+		       htmlentities( $identity['name'] ) . " &lt;" . htmlentities( $identity['address'] ) . "&gt;";
+		if ( $identity['isdefault'] ) $result .= " (default)";
+		$result .= "</option>";
+	}
+	$result .= "</select><br />";
+	$result .= "<div id=\"opts-identity-edit\"></div>";
+
+
+	$result .= "<p class=\"opts-buttons\"><button onclick=\"return OptionsEditor.identity_add()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_add.png\" alt=\"\" />" . _("add identity") . "</button> ";
+//	$result .= "<a href=\"#\" onclick=\"return OptionsEditor.identity_setdefault()\">" . _("Make Default") . "</a> | ";
+//	$result .= "<a href=\"#\" onclick=\"return OptionsEditor.identity_edit()\">" . _("Edit") . "</a> | ";
+	$result .= "<button onclick=\"return OptionsEditor.identity_remove()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_remove.png\" alt=\"\" />" . _("remove") . "</button></p>";
+
+	$result .= "</form>";
+
+	return $result;
+}
+
+
+// Generate HTML for the mailbox manager, polling the IMAP server for a list.
+function generateMailboxManager() {
+
+	$result = "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
+	$result .= "<button onclick=\"MailboxManager.newChild('');return false\">add mailbox</button>";
+	$result .= "<ul>";
+//	$result .= "<tr id=\"mbm-row-\"><td><div id=\"mbm-namearea-\">[Top Level]</div></td>";
+//	$result .= "<td><div id=\"mbm-buttonarea-\"></div></td></tr>";
+
+	foreach ( getMailboxList() as $thisMailbox ) {
+//		$result .= "<tr id=\"mbm-row-{$thisMailbox['fullboxname']}\"><td>";
+
+		$result .= "<li>";
+		$result .= "[<a href=\"#\" onclick=\"MailboxManager.changeParentInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">move</a>] ";
+
+		$result .= "<span id=\"mbm-namearea-{$thisMailbox['fullboxname']}\">";
+		for ( $j = 0; $j < $thisMailbox['folderdepth']; $j ++ ) {
+			$result .= "-"; // Poor man's indenting.
+		}
+		$result .= $thisMailbox['mailbox'];
+		$result .= "</span>";
+
+		$result .= " [<a href=\"#\" onclick=\"MailboxManager.renameInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">rename</a>] ";
+		$result .= "[<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">delete</a>]";
+
+		$result .= "<br />[<a href=\"#\" onclick=\"MailboxManager.newChild('{$thisMailbox['fullboxname']}'); return false\">add subfolder</a>]";
+
+		$result .= "</li>";
+	}
+
+	$result .= "</ul>";
+
+//	$result .= "<p class=\"opts-buttons\">";
+	$result .= "<button onclick=\"OptionsEditor.closePanel();return false\">" . _( "close" ) . "</button>";
+//	$result .= "</p>";
+	$result .= "</form>";
+
+	return $result;
 }
 
 

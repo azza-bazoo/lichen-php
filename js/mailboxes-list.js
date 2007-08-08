@@ -34,7 +34,7 @@ function list_buildMailboxList( mailboxes ) {
 
 	$('mailboxes').empty();
 
-	var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"#manage-mailboxes\" onclick=\"MailboxManager.showManager();return false\">edit</a>]</li>";
+	var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"#manage-mailboxes\" onclick=\"OptionsEditor.showEditor('mailboxes');return false\">edit</a>]</li>";
 
 	for ( var i = 0; i < mailboxes.length; i++ ) {
 

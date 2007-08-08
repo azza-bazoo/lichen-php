@@ -29,18 +29,16 @@ var OptionsEditorClass = new Class({
 		this.wrapper = wrapper;
 	},
 
-	showEditor: function () {
+	showEditor: function ( targetTab ) {
 		// TODO: disable the background mailbox refresh
 		// and reload mailboxes completely when exiting options panel
 
 		clearTimeout( refreshTimer );
 		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
-			postBody: 'request=settingsPanel',
+			postBody: 'request=settingsPanel&tab=' + encodeURIComponent( targetTab ),
 			onComplete : this.showEditorCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
+			onFailure : if_remoteRequestFailed
 			} ).request();
 	},
 

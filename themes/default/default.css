@@ -101,7 +101,7 @@ form.login { background: url('login.jpg') no-repeat; font-size: smaller; }
 .opts-block { font-size: smaller; border-bottom: solid 1px #999999; padding: 15px; margin-bottom: 5px; }
 
 .opts-buttons { text-align: center; }
-button img { vertical-align: middle; }
+.opts-buttons button img { vertical-align: middle; margin-right: 3px; }
 .opts-buttons button { cursor: pointer; border: none; background: #ffffff; margin: 5px; font-size: 11px; color: #808099; }
 
 /* Notification messages */

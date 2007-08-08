@@ -29,50 +29,50 @@ var MailboxManagerClass = new Class({
 		this.mailboxCache = null;
 	},
 
-	showManager: function () {
-		if_remoteRequestStart();
-		new Ajax( 'ajax.php', {
-			postBody: 'request=mailboxManager',
-			onComplete : this.showManagerCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
-			} ).request();
-	},
+// 	showManager: function () {
+// 		if_remoteRequestStart();
+// 		new Ajax( 'ajax.php', {
+// 			postBody: 'request=mailboxManager',
+// 			onComplete : this.showManagerCB.bind( this ),
+// 			onFailure : function( responseText ) {
+// 				if_remoteRequestFailed( responseText );
+// 			}
+// 			} ).request();
+// 	},
 
-	showManagerCB: function ( responseText ) {
-		var result = if_checkRemoteResult( responseText );
-		if (!result) return;
-
-		var mailboxes = result.mailboxes;
-
-		// Build the HTML.
-		var managerHtml = "<div>";
-		managerHtml += "<h3>Mailbox Manager</h3>";
-		managerHtml += "<table border=\"0\">";
-		managerHtml += "<tr id=\"mbm-row-\"><td><div id=\"mbm-namearea-\">[Top Level]</div></td>";
-		managerHtml += "<td><div id=\"mbm-buttonarea-\">" + this._makeButtons( '', '', true ) + "</div></td></tr>";
-		for ( var i = 0; i < mailboxes.length; i++ ) {
-			var thisMailbox = mailboxes[i];
-			managerHtml += "<tr id=\"mbm-row-" + thisMailbox.fullboxname + "\"><td>";
-			managerHtml += "<div id=\"mbm-namearea-" + thisMailbox.fullboxname + "\">";
-			for ( var j = 0; j < thisMailbox.folderdepth; j++ ) {
-				managerHtml += "-"; // Poor man's indenting.
-			}
-			managerHtml += thisMailbox.mailbox;
-			managerHtml += "</div></td><td><div id=\"mbm-buttonarea-" + thisMailbox.fullboxname + "\">";
-			managerHtml += this._makeButtons( thisMailbox.fullboxname, thisMailbox.mailbox ) + "</div></td></tr>";
-		}
-		managerHtml += "</table>";
-
-		managerHtml += "<a href=\"#\" onclick=\"MailboxManager.closeManager(); return false\">Close Pane</a>";
-		managerHtml += "</div>";
-
-		this.mailboxCache = result.mailboxes;
-
-		$('opts-wrapper').setHTML(managerHtml);
-		$('opts-wrapper').setStyle('display', 'block');
-	},
+// 	showManagerCB: function ( responseText ) {
+// 		var result = if_checkRemoteResult( responseText );
+// 		if (!result) return;
+//
+// 		var mailboxes = result.mailboxes;
+//
+// 		// Build the HTML.
+// 		var managerHtml = "<div>";
+// 		managerHtml += "<h3>Mailbox Manager</h3>";
+// 		managerHtml += "<table border=\"0\">";
+// 		managerHtml += "<tr id=\"mbm-row-\"><td><div id=\"mbm-namearea-\">[Top Level]</div></td>";
+// 		managerHtml += "<td><div id=\"mbm-buttonarea-\">" + this._makeButtons( '', '', true ) + "</div></td></tr>";
+// 		for ( var i = 0; i < mailboxes.length; i++ ) {
+// 			var thisMailbox = mailboxes[i];
+// 			managerHtml += "<tr id=\"mbm-row-" + thisMailbox.fullboxname + "\"><td>";
+// 			managerHtml += "<div id=\"mbm-namearea-" + thisMailbox.fullboxname + "\">";
+// 			for ( var j = 0; j < thisMailbox.folderdepth; j++ ) {
+// 				managerHtml += "-"; // Poor man's indenting.
+// 			}
+// 			managerHtml += thisMailbox.mailbox;
+// 			managerHtml += "</div></td><td><div id=\"mbm-buttonarea-" + thisMailbox.fullboxname + "\">";
+// 			managerHtml += this._makeButtons( thisMailbox.fullboxname, thisMailbox.mailbox ) + "</div></td></tr>";
+// 		}
+// 		managerHtml += "</table>";
+//
+// 		managerHtml += "<a href=\"#\" onclick=\"MailboxManager.closeManager(); return false\">Close Pane</a>";
+// 		managerHtml += "</div>";
+//
+// 		this.mailboxCache = result.mailboxes;
+//
+// 		$('opts-wrapper').setHTML(managerHtml);
+// 		$('opts-wrapper').setStyle('display', 'block');
+// 	},
 
 // 	_makeButtons: function ( fullboxname, displayname, toplevel ) {
 // 		// Internal function to generate buttons to work with each mailbox.

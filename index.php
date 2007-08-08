@@ -146,7 +146,7 @@ ENDJS;
 
 	echo "<ul id=\"corner-bar\" class=\"toolbar\">";
 
-	drawToolbarButton( "settings", "configure", "#settings", "settings", "OptionsEditor.showEditor()" );
+	drawToolbarButton( "settings", "configure", "#settings", "settings", "OptionsEditor.showEditor('settings')" );
 	drawToolbarButton( "log out", "exit", $LICHEN_URL."?logout", "logout", "" );
 
 	echo "</ul><ul id=\"list-bar\" class=\"toolbar\">";
