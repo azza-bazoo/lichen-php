@@ -61,7 +61,7 @@ function comp_showCB( responseText ) {
 
 // Check the input data in the new message form, and then
 // issue an XHR to send the message.
-function comp_send( retto, saveDraft ) {
+function comp_send( currentlyShownUID, saveDraft ) {
 	if_remoteRequestStart();
 	var parameters = "request=sendMessage&";
 	if ( saveDraft ) parameters += "draft=save&";
@@ -69,7 +69,7 @@ function comp_send( retto, saveDraft ) {
 	new Ajax( 'ajax.php', {
 		postBody: parameters,
 		onComplete : function( responseText ) {
-			comp_sendCB( responseText, retto );
+			comp_sendCB( responseText, currentlyShownUID );
 		},
 		onFailure : function( responseText ) {
 			if_remoteRequestFailed( responseText );
@@ -80,7 +80,7 @@ function comp_send( retto, saveDraft ) {
 
 // Callback for message sending: return to the mailbox listing
 // and give the user a feedback message.
-function comp_sendCB( responseText, retto ) {
+function comp_sendCB( responseText, currentlyShownUID ) {
 //	$('list-status').setHTML( statusMsg );
 //	$('list-status').style.display = 'block';
 	var result = if_checkRemoteResult( responseText );
@@ -94,7 +94,7 @@ function comp_sendCB( responseText, retto ) {
 		}
 		Flash.flashMessage("Draft saved at [insert timestamp here]");
 	} else {
-		if (retto) {
+		if (currentlyShownUID) {
 			if_returnToMessage();
 		} else {
 			if_returnToList( false );

@@ -248,8 +248,8 @@ function listMailboxContents( $searchq, $sort, $page, $metadataOnly = false ) {
 	// Figure out our sort parameter.
 	// Use the user's default if not given.
 	if ( $sort == "" ) {
-		if ( isset( $USER_SETTINGS['list_defaultsort'] ) ) {
-			$sort = $USER_SETTINGS['list_defaultsort'];
+		if ( isset( $USER_SETTINGS['list_sortmode'] ) ) {
+			$sort = $USER_SETTINGS['list_sortmode'];
 		}
 	}
 

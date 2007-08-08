@@ -41,9 +41,7 @@ var IMAPServerConnector = new Class({
 				'&page='+page+'&search='+encodeURIComponent(search)+'&sort='+encodeURIComponent(sort)+
 				'&validity='+encodeURIComponent(validity)+'&cacheonly='+encodeURIComponent(cacheonly),
 			onComplete : this.messageListCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
+			onFailure : if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -60,9 +58,7 @@ var IMAPServerConnector = new Class({
 		new Ajax( 'ajax.php', {
 			postBody: 'request=getMailboxList&validity='+encodeURIComponent(validity),
 			onComplete : this.mailboxListCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
+			onFailure : if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -82,16 +78,14 @@ var IMAPServerConnector = new Class({
 			postBody: 'request=getMessage&mailbox='+encodeURIComponent(mailbox)+'&msg='+encodeURIComponent(uid)+
 				'&mode='+encodeURIComponent(mode),
 			onComplete : this.messageBodyCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
+			onFailure : if_remoteRequestFailed
 		} ).request();
 	},
 
 	messageBodyCB: function( serverResponse ) {
 		// Parse the server's response.
 		var result = if_checkRemoteResult( serverResponse );
-		if ( !result ) { return null; } // TODO: Something other than this, here. IE: Error handling; let the user know what happened.
+		if ( !result ) { return null; } // TODO: Something other than this - let the user know what happened.
 
 		this.dataStore.fetchMessageCB( result, result.data.mailbox, result.data.uid );
 	}

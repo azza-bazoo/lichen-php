@@ -61,7 +61,7 @@ function getUserSettings() {
 			"timezone" => "UTC",
 			"theme" => "default",
 			"list_pagesize" => 20,
-			"list_defaultsort" => "date_r",
+			"list_sortmode" => "date_r",
 			"forward_as_attach" => true,
 			"list_showpreviews" => true,
 			"list_showsize" => false,
@@ -83,7 +83,7 @@ function getUserSettings() {
 		$settings = array_merge( $newSettings, $DEFAULT_SETTINGS, $settings );
 
 		// Create a config file and write these settings.
-		saveUserSettings();
+		saveUserSettings( $settings );
 	}
 
 	return $settings;
@@ -231,22 +231,6 @@ function parseUserSettings() {
 // Generate the HTML for the settings interface
 function generateSettingsPanel() {
 	global $USER_SETTINGS, $DEFAULT_SETTINGS;
-
-	// _("Default sort") =>
-	// array( "type" => "select", "key" => "list_defaultsort",
-	// "sourcedata" => array(
-	// array( "value" => "date", "display" => _("Date (oldest first)") ),
-	// array( "value" => "date_r", "display" => _("Date (newest first)") ),
-	// array( "value" => "from", "display" => _("From (ascending)")),
-	// array( "value" => "from_r", "display" => _("From (descending)")),
-	// array( "value" => "subject", "display" => _("Subject (ascending)")),
-	// array( "value" => "subject_r", "display" => _("Subject (descending)")),
-	// array( "value" => "to", "display" => _("To (ascending)")),
-	// array( "value" => "to_r", "display" => _("To (descending)")),
-	// array( "value" => "cc", "display" => _("CC (ascending)")),
-	// array( "value" => "cc_r", "display" => _("CC (descending)")),
-	// array( "value" => "size", "display" => _("Size (smallest first)")),
-	// array( "value" => "size_r", "display" => _("Size (biggest first)")),
 
 	// It-will-do-for-now hack to display only the requested tab;
 	// this is best done with display:none on the client side

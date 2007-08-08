@@ -23,31 +23,40 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-function list_sort( sort ) {
-	// Clear the old sort image.
-//	var oldImg = $('sort_' + listCurrentSort + '_dir');
-//	if ( oldImg ) {
-//		oldImg.src = 'themes/' + userSettings.theme + 'icons/blank.png';
-//	}
+function list_sort( sortField ) {
+	// Clear the old sort image
+	if ( listCurrentSort.substr( -2 ) == "_r" ) {
+		$( 'list-sort-' + listCurrentSort.substring( 0, listCurrentSort.length-2 ) ).getParent().getElementsByTagName('img')[0].remove()
+	} else {
+		$('list-sort-'+listCurrentSort).getParent().getElementsByTagName('img')[0].remove();
+	}
 
-	if ( sort == listCurrentSort ) {
-		// Already sorting by this, reverse direction.
-		if ( listCurrentSort.substr( listCurrentSort.length - 2, 2 ) == "_r" ) {
+	if ( sortField == listCurrentSort ) {
+		// Already sorting by this field, so reverse direction.
+		if ( listCurrentSort.substr( -2 ) == "_r" ) {
 			// Already in reverse. Go forward.
-			listCurrentSort = sort;
+			listCurrentSort = sortField;
 		} else {
 			// Going forward. Reverse it.
-			listCurrentSort = sort + "_r";
+			listCurrentSort = sortField + "_r";
 		}
 	} else {
-		// Not already set, set it - ascending first.
-		listCurrentSort = sort;
+		// Set this as sort field, assuming an ascending sort.
+		listCurrentSort = sortField;
 	}
+
+	// TODO: it might be more efficient to eliminate this extra request
+	// and somehow insert this into the server connector class?
+	// For now, this fails silently (user can always click to sort again)
+	new Ajax( 'ajax.php', {
+		postBody: 'request=setNewSortOrder&sort='+encodeURIComponent( listCurrentSort )
+		} ).request();
 
 	// Trigger an update of the list.
 	// The list callback will set the correct sort icon.
 	list_show();
 }
+
 
 function list_show( mailbox, page ) {
 	var sendmailbox = "";
@@ -84,7 +93,6 @@ function list_showCB( responseText ) {
 	listCurrentSort = result.sort;
 
 	$('list-wrapper').empty();
-//	var msgTable = new Element('table', { 'id': 'tablefoo' });
 	var tableContents = "";
 
 	tableContents += list_createPageBar( result, true );
@@ -100,20 +108,20 @@ function list_showCB( responseText ) {
 		tableContents += "<table>";
 	}
 
-	tableContents += "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" style=\"width:" + (window.getWidth()-411) + "\" /><col class=\"mcol-date\" /></colgroup>";
+	tableContents += "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" style=\"width:" + (window.getWidth()-515) + "px\" /><col class=\"mcol-date\" /></colgroup>";
 
 	tableContents += "<thead><tr class=\"list-sortrow\"><th></th><th></th>";
 
-	tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-from\" onclick=\"list_sort('from');return false\">sender</a></th>";
-	tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-subject\" onclick=\"list_sort('subject');return false\">subject</a></th>";
+	tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-from\" id=\"list-sort-from\" onclick=\"list_sort('from');return false\">sender</a></th>";
+	tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-subject\" id=\"list-sort-subject\" onclick=\"list_sort('subject');return false\">subject</a></th>";
 	if ( userSettings.list_showsize ) {
-		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-size\" onclick=\"list_sort('size');return false\">size</a></th>";
+		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-size\" id=\"list-sort-size\" onclick=\"list_sort('size');return false\">size</a></th>";
 	}
-	tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-date\" id=\"list-sortbydate\" onclick=\"list_sort('date');return false\">date</a></th>";
+	tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-date\" id=\"list-sort-date\" onclick=\"list_sort('date');return false\">date</a></th>";
 	tableContents += "</tr></thead><tbody>";
 
 	if ( messages.length == 0 ) {
-		tableContents += "<tr><td>No messages in this mailbox.</td></tr>";
+		tableContents += "<tr><td colspan=\"5\" class=\"list-nothing\">No messages in this mailbox.</td></tr>";
 	}
 
 	// Hack: use a better loop later, but this avoids scoping problems.
@@ -180,16 +188,17 @@ function list_showCB( responseText ) {
 
 	$('list-wrapper').setHTML( tableContents );
 
-	// Set the appropriate sort icon based on the current sort.
-//	if ( listCurrentSort.substr( listCurrentSort.length - 2, 2 ) == "_r" ) {
-		// Reverse.
-//		var newImg = $('sort_' + listCurrentSort.substr( 0, listCurrentSort.length - 2 ) + '_dir');
-//		if ( newImg ) newImg.src = 'themes/' + userSettings.theme + '/icons/sortup.png';
-//	} else {
-//		// Forward.
-//		var newImg = $('sort_' + listCurrentSort + '_dir');
-//		if ( newImg ) newImg.src = 'themes/' + userSettings.theme + '/icons/sortdown.png';
-//	}
+	// Set an icon to indicate the current sort.
+	if ( listCurrentSort.substr( -2 ) == "_r" ) {
+		var sortImg = new Element( 'img', { 'class': 'list-sort-marker',
+				'src': 'themes/' + userSettings.theme + '/icons/sort_decrease.png' } );
+		$( 'list-sort-' + listCurrentSort.substring( 0, listCurrentSort.length-2 ) ).getParent().adopt( sortImg );
+	} else {
+		var sortImg = new Element( 'img', { 'class': 'list-sort-marker',
+				'src': 'themes/' + userSettings.theme + '/icons/sort_incr.png' } );
+		// mootools' injectAfter doesn't seem to work here
+		$('list-sort-'+listCurrentSort).getParent().adopt( sortImg );
+	}
 
 	// Update the mailbox lists
 	Messages.fetchMailboxList();

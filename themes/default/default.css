@@ -28,7 +28,6 @@ select { font-size: inherit; }
 
 #list-wrapper table { border-collapse: collapse; }
 
-/* border-bottom: solid 1px #cccccc; */
 td { border-bottom: solid 1px #cccccc; border-top: solid 1px #cccccc; padding-bottom: 3px; padding-top: 3px; padding-left: 0; padding-right: 0; font-size: smaller; }
 
 .msg-row { padding-bottom: 3px; padding-top: 3px; padding-left: 0; padding-right: 0; font-size: smaller; }
@@ -37,9 +36,8 @@ tr.odd td { background: #f4f4ff; }
 tr.even td { background: #ffffff; }
 .new { font-weight: bold; }
 
-/* .date { width: 125px; }
-.sender { width: 200px; margin-left: 6px; }
-.subject { width: 400px; margin-right: 10px; } */
+td.list-nothing { padding: 20px; text-align: center; }
+
 .mcol-checkbox { width: 22px; }
 .mcol-flag { width: 26px; }
 .mcol-sender { width: 200px; }
@@ -52,14 +50,16 @@ td.subject, td.sender { cursor: pointer; }
 
 /* Header and footer control bars */
 
+th.list-sortlabel { text-align: left; font-weight: normal; }
+img.list-sort-marker { margin-left: 4px; vertical-align: middle; }
+a#list-sort-date { margin-left: 10px; }
+
 .header-bar, .footer-bar { font-size: 11px; line-height: 20px; padding: 2px; background: #ffffbf; }
 .header-bar { height: 20px; }
 .footer-bar { height: 40px; }
 
 .header-bar, .footer-bar, .list-sortrow { background: #ffffbf; font-size: 11px; }
-
-th.list-sortlabel { text-align: left; font-weight: normal; }
-a#list-sortbydate { margin-left: 10px; }
+.header-bar a, .footer-bar a, .list-sortlabel a { color: #0000ff; }
 
 #top-corner, #bottom-corner { position: absolute; left: 0; width: 5px; height: 5px; }
 #top-corner { top: 0; }
