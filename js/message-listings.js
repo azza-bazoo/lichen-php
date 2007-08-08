@@ -215,34 +215,31 @@ function list_createPageBar( resultObj, isTopBar ) {
 		lastMsgThisPage = resultObj.numbermessages.toInt();
 	}
 
-	var msgActions = "<select onchange=\"list_withSelected(this)\">";
-	msgActions += "<option value=\"noop\" selected=\"selected\">Move selected to ...</option>";
+	newPageBar += "<div class=\"header-left\">";
+	newPageBar += "<select onchange=\"list_withSelected(this)\">";
+	newPageBar += "<option value=\"noop\" selected=\"selected\">Move selected to ...</option>";
 
 	// TODO: Make this work properly - currently using a global var
 	// specially created in mailboxes-list.js
 	for ( var i = 0; i < mailboxCache.length; i++ ) {
-		msgActions += "<option value=\"move-" + mailboxCache[i].fullboxname + "\">";
+		newPageBar += "<option value=\"move-" + mailboxCache[i].fullboxname + "\">";
 		for ( var j = 0; j < mailboxCache[i].folderdepth; j++ ) {
 			newPageBar += "-";
 		}
-		msgActions += mailboxCache[i].mailbox;
-		msgActions += "</option>";
+		newPageBar += mailboxCache[i].mailbox;
+		newPageBar += "</option>";
 	}
 
-	msgActions += "</select>";
-	msgActions += " &nbsp; <button onclick=\"return false\">delete</button> &nbsp; <button onclick=\"return false\">read/unread</button> &nbsp; <button onclick=\"return false\">flag/unflag</button> &nbsp; ";
+	newPageBar += "</select>";
+	newPageBar += " &nbsp; <button onclick=\"return false\">delete</button> &nbsp; <button onclick=\"return false\">flag</button> &nbsp; <button onclick=\"return false\">mark read</button><br />";
 
-	var selectLinks = "select: <a href='#' onclick='list_selectMessages(\"all\"); return false'>all</a> | ";
-	selectLinks += "<a href='#' onclick='list_selectMessages(\"none\"); return false'>none</a> | ";
-	selectLinks += "<a href='#' onclick='list_selectMessages(\"invert\"); return false'>invert</a>";
-
-	if ( isTopBar ) {
-		newPageBar += "<div class=\"header-left\">" + selectLinks + "<br />" + msgActions + "</div>";
-	} else {
-		newPageBar += "<div class=\"header-left\">" + msgActions + "<br />" + selectLinks + "</div>";
+	if ( !isTopBar ) {
+		newPageBar += "select: <a href='#' onclick='list_selectMessages(\"all\"); return false'>all</a> | ";
+		newPageBar += "<a href='#' onclick='list_selectMessages(\"none\"); return false'>none</a> | ";
+		newPageBar += "<a href='#' onclick='list_selectMessages(\"invert\"); return false'>invert</a>";
 	}
 
-	newPageBar += "<div class=\"header-right\">";
+	newPageBar += "</div><div class=\"header-right\">";
 
 // 	if ( thisPage > 2 ) {
 // 		newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, 0); return false\">first</a> | ";
