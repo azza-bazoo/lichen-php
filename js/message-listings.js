@@ -86,13 +86,12 @@ function list_showCB( responseText ) {
 	$('list-wrapper').empty();
 //	var msgTable = new Element('table', { 'id': 'tablefoo' });
 	var tableContents = "";
-	var pageSwitchBar = list_createPageBar( result );
 
-	tableContents += "<div class=\"header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" id=\"top-corner\" />" + pageSwitchBar + "</div>";
+	tableContents += list_createPageBar( result, true );
 
 	if ( result.search != "" ) {
-		tableContents += "<div class=\"header-bar\">Search results for \"" + result.search + "\". " +
-			"<a href=\"#clearsearch\" onclick=\"doQuickSearch(null, true); return false\">Clear Search</a></div>";
+		tableContents += "Search results for &#8220;" + result.search + "&#8221; " +
+			"[<a href=\"#clearsearch\" onclick=\"doQuickSearch(null, true); return false\">clear search</a>]";
 	}
 
 	if ( window.khtml ) {
@@ -103,14 +102,14 @@ function list_showCB( responseText ) {
 
 	tableContents += "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" style=\"width:" + (window.getWidth()-411) + "\" /><col class=\"mcol-date\" /></colgroup>";
 
-	tableContents += "<thead><tr><th></th><th></th>";
+	tableContents += "<thead><tr class=\"list-sortrow\"><th></th><th></th>";
 
-	tableContents += "<th><a href=\"#sort-from\" onclick=\"list_sort('from');return false\">sender</a></th>";
-	tableContents += "<th><a href=\"#sort-subject\" onclick=\"list_sort('subject');return false\">subject</a></th>";
+	tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-from\" onclick=\"list_sort('from');return false\">sender</a></th>";
+	tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-subject\" onclick=\"list_sort('subject');return false\">subject</a></th>";
 	if ( userSettings.list_showsize ) {
-		tableContents += "<th><a href=\"#sort-size\" onclick=\"list_sort('size');return false\">size</a></th>";
+		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-size\" onclick=\"list_sort('size');return false\">size</a></th>";
 	}
-	tableContents += "<th><a href=\"#sort-date\" onclick=\"list_sort('date');return false\">date</a></th>";
+	tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-date\" id=\"list-sortbydate\" onclick=\"list_sort('date');return false\">date</a></th>";
 	tableContents += "</tr></thead><tbody>";
 
 	if ( messages.length == 0 ) {
@@ -177,7 +176,7 @@ function list_showCB( responseText ) {
 	}
 
 	tableContents += "</tbody></table>";
-	tableContents += "<div class=\"footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" id=\"bottom-corner\" />" + pageSwitchBar + "</div>";
+	tableContents += list_createPageBar( result, false );
 
 	$('list-wrapper').setHTML( tableContents );
 
@@ -199,8 +198,14 @@ function list_showCB( responseText ) {
 
 // Given a parsed result object for a mailbox message listing, generate a
 // string with the text-only toolbar to display above and below the list.
-function list_createPageBar( resultObj ) {
+function list_createPageBar( resultObj, isTopBar ) {
 	var newPageBar = "";
+
+	if ( isTopBar ) {
+		newPageBar += "<div class=\"header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" id=\"top-corner\" />";
+	} else {
+		newPageBar += "<div class=\"footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" id=\"bottom-corner\" />";
+	}
 
 	var thisPage = resultObj.thispage.toInt() + 1;
 	var pageCount = resultObj.numberpages.toInt();
@@ -210,41 +215,43 @@ function list_createPageBar( resultObj ) {
 		lastMsgThisPage = resultObj.numbermessages.toInt();
 	}
 
-	newPageBar += "<div class=\"header-left\">select: <a href='#' onclick='list_selectMessages(\"all\"); return false'>all</a> |";
-	newPageBar += "<a href='#' onclick='list_selectMessages(\"none\"); return false'>none</a> | ";
-	newPageBar += "<a href='#' onclick='list_selectMessages(\"invert\"); return false'>invert</a>";
-	newPageBar += "&nbsp;<select onchange=\"list_withSelected(this)\" style=\"font-size: inherit;\">";
-	newPageBar += "<option value=\"noop\">-- with selected --</option>";
-	newPageBar += "<option value=\"markseen\">mark as read</option>";
-	newPageBar += "<option value=\"markunseen\">mark as unread</option>";
-	newPageBar += "<option value=\"flag\">flag messages</option>";
-	newPageBar += "<option value=\"unflag\">unflag messages</option>";
-	newPageBar += "<option value=\"noop\">-- Move to folder:</option>";
+	var msgActions = "<select onchange=\"list_withSelected(this)\">";
+	msgActions += "<option value=\"noop\" selected=\"selected\">Move selected to ...</option>";
 
-	// TODO: Make this work properly - currently using a cache of mailbox lists, rather than getting a fresh list.
+	// TODO: Make this work properly - currently using a global var
+	// specially created in mailboxes-list.js
 	for ( var i = 0; i < mailboxCache.length; i++ ) {
-		newPageBar += "<option value=\"move-" + mailboxCache[i].fullboxname + "\">";
+		msgActions += "<option value=\"move-" + mailboxCache[i].fullboxname + "\">";
 		for ( var j = 0; j < mailboxCache[i].folderdepth; j++ ) {
 			newPageBar += "-";
 		}
-		newPageBar += mailboxCache[i].mailbox;
-		newPageBar += "</option>";
+		msgActions += mailboxCache[i].mailbox;
+		msgActions += "</option>";
 	}
 
-	newPageBar += "</select>";
-	newPageBar += "</div>";
+	msgActions += "</select>";
+	msgActions += " &nbsp; <button onclick=\"return false\">delete</button> &nbsp; <button onclick=\"return false\">read/unread</button> &nbsp; <button onclick=\"return false\">flag/unflag</button> &nbsp; ";
+
+	var selectLinks = "select: <a href='#' onclick='list_selectMessages(\"all\"); return false'>all</a> | ";
+	selectLinks += "<a href='#' onclick='list_selectMessages(\"none\"); return false'>none</a> | ";
+	selectLinks += "<a href='#' onclick='list_selectMessages(\"invert\"); return false'>invert</a>";
+
+	if ( isTopBar ) {
+		newPageBar += "<div class=\"header-left\">" + selectLinks + "<br />" + msgActions + "</div>";
+	} else {
+		newPageBar += "<div class=\"header-left\">" + msgActions + "<br />" + selectLinks + "</div>";
+	}
 
 	newPageBar += "<div class=\"header-right\">";
 
-	if ( thisPage > 2 ) {
-		newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, 0); return false\">first</a> | ";
-	}
+// 	if ( thisPage > 2 ) {
+// 		newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, 0); return false\">first</a> | ";
+// 	}
 	if ( thisPage > 1 ) {
 		newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (thisPage-2) + "); return false\">previous</a> | ";
 	}
 
-	// TODO: CSS Hack below to inherit font size.
-	newPageBar += "<strong><select onchange=\"list_show(null, this.value);\" style=\"font-size: inherit;\">";
+	newPageBar += "<select onchange=\"list_show(null, this.value);\">";
 	var pageSize = resultObj.pagesize.toInt();
 	var maxMessages = resultObj.numbermessages.toInt();
 	var pageCounter = 0;
@@ -262,17 +269,17 @@ function list_createPageBar( resultObj ) {
 	}
 	newPageBar += "</select>";
 
-	//+ (resultObj.thispage.toInt() * resultObj.pagesize.toInt() + 1) + " to " + lastMsgThisPage
-	newPageBar += " of " + resultObj.numbermessages.toInt() + "</strong>";
+	// (resultObj.thispage.toInt() * resultObj.pagesize.toInt() + 1) + " to " + lastMsgThisPage
+	newPageBar += " of " + resultObj.numbermessages.toInt();
 
 	if ( pageCount - thisPage > 0 ) {
 		newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + thisPage + "); return false\">next</a>";
 	}
-	if ( pageCount - thisPage > 1 ) {
-		newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (pageCount-1) + "); return false\">last</a>";
-	}
+// 	if ( pageCount - thisPage > 1 ) {
+// 		newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (pageCount-1) + "); return false\">last</a>";
+// 	}
 
-	newPageBar += "</div>";
+	newPageBar += "</div></div>";
 
 	return newPageBar;
 }

@@ -43,6 +43,10 @@ form.login { position: absolute; top: 120px; left: 0; width: 700px; height: 380p
 
 .input-block { position: absolute; top: 172px; left: 260px; width: 320px; }
 
+/* Options panel */
+
+form#settings { width: 100%; }
+
 /* Notification messages */
 
 #flash { position: absolute; top: 5px; right: 5px; z-index: 1000; }

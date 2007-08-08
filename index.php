@@ -153,10 +153,8 @@ ENDJS;
 
 	drawToolbarButton( "compose", "mail_new", "#compose", "compose", "comp_showForm('','')" );
 
-	// Caution: HTML hacks in the search form.
-	echo <<<ENDSEARCH
-<li id="btn-search"><form action="$LICHEN_URL" onsubmit="doQuickSearch();return false" style="display: inline; margin: 0;"><label for="qsearch"><img src="themes/{$USER_SETTINGS['theme']}/icons/mail_find.png" alt="" title="Search messages" /></label> <input type="text" name="qsearch" id="qsearch" style="display:inline;vertical-align:middle" /> <input type="submit" value="Go" style="display:inline;vertical-align:middle" /></form></li>
-ENDSEARCH;
+	// TODO: fix HTML hacks in the search form.
+	echo "<li id=\"btn-search\"><form action=\"$LICHEN_URL\" onsubmit=\"doQuickSearch();return false\" style=\"display:inline;margin:0;\"><label for=\"qsearch\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/mail_find.png\" alt=\"\" title=\"", _("Search messages"), "\" /></label> <input type=\"text\" name=\"qsearch\" id=\"qsearch\" style=\"display:inline;vertical-align:middle\" /> <input type=\"submit\" value=\"", _("search"), "\" style=\"display:inline;vertical-align:middle\" /></form></li>";
 
 	echo "</ul><ul id=\"comp-bar\" class=\"toolbar\">";
 
@@ -178,8 +176,9 @@ ENDSEARCH;
 
 	echo "</ul><ul id=\"opts-bar\" class=\"toolbar\">";
 
-	drawToolbarButton( "save settings", "button_ok", "#inbox", "saveopts", "OptionsEditor.saveOptions()" );
-	drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopopts", "OptionsEditor.closePanel()" );
+	// For this release, these have been moved to below the options themselves
+//	drawToolbarButton( "save changes", "button_ok", "#inbox", "saveopts", "OptionsEditor.saveOptions()" );
+//	drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopopts", "OptionsEditor.closePanel()" );
 
 	echo "</ul>\n";
 

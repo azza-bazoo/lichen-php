@@ -74,42 +74,37 @@ var MailboxManagerClass = new Class({
 		$('opts-wrapper').setStyle('display', 'block');
 	},
 
-	_makeButtons: function ( fullboxname, displayname, toplevel ) {
-		// Internal function to generate buttons to work with each mailbox.
-		// TODO: Assumes that its instance is called "MailboxManager"
-		var buttonsHtml = "[<a href=\"#\" onclick=\"MailboxManager.newChild('" + fullboxname + "'); return false\">add</a>] ";
-		if ( !toplevel ) {
-			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.renameInline('" + fullboxname + "', '" + displayname + "'); return false\">edit</a>] ";
-			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.changeParentInline('" + fullboxname + "', '" + displayname + "'); return false\">move</a>] ";
-			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('" + fullboxname + "', '" + displayname + "'); return false\">delete</a>] ";
-		}
+// 	_makeButtons: function ( fullboxname, displayname, toplevel ) {
+// 		// Internal function to generate buttons to work with each mailbox.
+// 		// TODO: Assumes that its instance is called "MailboxManager"
+// 		var buttonsHtml = "[<a href=\"#\" onclick=\"MailboxManager.newChild('" + fullboxname + "'); return false\">add</a>] ";
+// 		if ( !toplevel ) {
+// 			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.renameInline('" + fullboxname + "', '" + displayname + "'); return false\">edit</a>] ";
+// 			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.changeParentInline('" + fullboxname + "', '" + displayname + "'); return false\">move</a>] ";
+// 			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('" + fullboxname + "', '" + displayname + "'); return false\">delete</a>] ";
+// 		}
+//
+// 		return buttonsHtml;
+// 	},
 
-		return buttonsHtml;
-	},
-
-	closeManager: function () {
-		$('opts-wrapper').setStyle('display', 'none');
-		list_checkCount();
-	},
+// 	closeManager: function () {
+// 		$('opts-wrapper').setStyle('display', 'none');
+// 		list_checkCount();
+// 	},
 
 	renameInline: function ( fullboxname, boxname ) {
 		// Replace the area with the name with an input control with the name,
 		// plus a button to submit it.
-
-		var nameArea = $('mbm-namearea-' + fullboxname);
-		var buttonArea = $('mbm-buttonarea-' + fullboxname);
-
-		if ( nameArea && buttonArea ) {
+		if ( $('mbm-namearea-' + fullboxname) ) {
 			var editHtml = "<input id=\"mbm-rename-" + fullboxname + "\" type=\"text\" size=\"20\" value=\"" + boxname + "\" />";
-			editHtml += "<button onclick=\"MailboxManager.renameDone('" + fullboxname + "', '" + boxname + "'); return false\">Set</button>";
+			editHtml += "<button onclick=\"MailboxManager.renameDone('" + fullboxname + "', '" + boxname + "');return false\">save</button> <button onclick=\"MailboxManager.renameCancel('" + boxname + "');return false\">cancel</button> ";
 
-			// Hide the buttons for this one, replace the name area with the input box.
-			nameArea.setHTML( editHtml );
+			$('mbm-namearea-' + fullboxname).setHTML( editHtml );
+
 			var renameBox = $('mbm-rename-' + fullboxname);
 			if ( renameBox ) {
 				renameBox.focus();
 			}
-			buttonArea.setStyle( 'display', 'none' );
 		}
 	},
 
@@ -139,6 +134,15 @@ var MailboxManagerClass = new Class({
 						} ).request();
 				}
 			}
+		}
+	},
+
+	renameCancel: function ( boxname ) {
+		// Cancel an inline rename
+
+		var nameBox = $('mbm-rename-' + fullboxname);
+		if ( nameBox ) {
+			this.serverActionCB( {action: 'rename', mailbox1: fullboxname, mailbox2: fullboxname} );
 		}
 	},
 

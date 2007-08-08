@@ -62,7 +62,7 @@ function getMailboxList() {
 
 	$list = imap_getmailboxes( $mbox, $IMAP_CONNECT, "*" );
 
-	if ($list === FALSE) return NULL;
+	if ( $list === false ) return null;
 
 	$mailboxList = array();
 	if ( is_array( $list ) ) {

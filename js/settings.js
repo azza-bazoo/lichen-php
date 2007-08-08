@@ -30,6 +30,9 @@ var OptionsEditorClass = new Class({
 	},
 
 	showEditor: function () {
+		// TODO: disable the background mailbox refresh
+		// and reload mailboxes completely when exiting options panel
+
 		clearTimeout( refreshTimer );
 		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
@@ -91,7 +94,7 @@ var OptionsEditorClass = new Class({
 	saveOptions: function () {
 		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
-			postBody: 'request=settingsPanelSave&' + this.generateQueryString('settings'),
+			postBody: 'request=settingsPanelSave&' + this.generateQueryString('opts-settings'),
 			onComplete : this.saveOptionsCB.bind( this ),
 			onFailure : function( responseText ) {
 				if_remoteRequestFailed( responseText );
@@ -149,7 +152,7 @@ var OptionsEditorClass = new Class({
 	},
 
 	identity_setdefault: function () {
-		var identitylist = $('identities-list');
+		var identitylist = $('opts-identity-list');
 
 		if ( identitylist.value == "" ) return false;
 
@@ -171,8 +174,8 @@ var OptionsEditorClass = new Class({
 	},
 
 	identity_edit: function () {
-		var editarea = $('identity-editor');
-		var identitylist = $('identities-list');
+		var editarea = $('opts-identity-edit');
+		var identitylist = $('opts-identity-list');
 
 		if ( identitylist.value == "" ) return false;
 
@@ -220,7 +223,7 @@ var OptionsEditorClass = new Class({
 	},
 
 	identity_remove: function () {
-		var identitylist = $('identities-list');
+		var identitylist = $('opts-identity-list');
 
 		if ( identitylist.value == "" ) return false;
 
@@ -247,7 +250,7 @@ var OptionsEditorClass = new Class({
 
 		this.identity_cleareditor();
 
-		var identitieslist = $('identities-list');
+		var identitieslist = $('opts-identity-list');
 		identitieslist.empty();
 
 		// Below we deviate from normal and use the DOM to add the options
