@@ -1242,6 +1242,7 @@ function request_identityEditor() {
 	switch ( $action ) {
 		case "add":
 			// Add a new identity.
+			// TODO: check for conflicts with existing identity names
 			array_push( $USER_SETTINGS['identities'], array(
 				"name" => $idname,
 				"address" => $idemail,
@@ -1250,6 +1251,7 @@ function request_identityEditor() {
 			break;
 		case "delete":
 			// Delete an identity.
+			// TODO: assign new default if need be
 			$delIndex = -1;
 			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
 				if ( $USER_SETTINGS['identities'][$i]['address'] == $workingid ) {

@@ -27,6 +27,7 @@ var OptionsEditorClass = new Class({
 
 	initialize: function ( wrapper ) {
 		this.wrapper = wrapper;
+//		this.currentIdentityMail = '';
 	},
 
 	showEditor: function ( targetTab ) {
@@ -115,23 +116,27 @@ var OptionsEditorClass = new Class({
 	},
 
 	identity_add: function () {
-		var editarea = $('identity-editor');
+		$('opts-identity-name').value = '';
+		$('opts-identity-address').value = '';
 
-		editarea.empty();
-		var htmlFragment = "<div><span>Name:</span> <input type=\"text\" size=\"30\" id=\"identity-name\" /></div>";
-		htmlFragment += "<div><span>Email:</span> <input type=\"text\" size=\"30\" id=\"identity-email\" /></div>";
-		htmlFragment += "<button onclick=\"return OptionsEditor.identity_add_done()\">Add</button>";
-		htmlFragment += "<button onclick=\"return OptionsEditor.identity_cleareditor()\">Cancel</button>";
+		if ( !$('opts-identity-new') ) {
+			var newMenuOption = new Element( 'option', { 'id': 'opts-identity-new' } );
+			newMenuOption.appendText( 'new identity' );
+			$('opts-identity-list').adopt( newMenuOption );
+			$('opts-identity-list').value = 'new identity';
+		}
 
-		editarea.setHTML( htmlFragment );
+		// TODO: is there a cleaner way to do this?
+		$('opts-identity-save').onclick = OptionsEditor.identity_add_done.bind( this );
 
 		return false;
 	},
 
 	identity_add_done: function () {
-		var idname = $('identity-name').value;
-		var idemail = $('identity-email').value;
+		var idname = $('opts-identity-name').value;
+		var idemail = $('opts-identity-address').value;
 
+		// TODO: check for conflicts with existing identity names
 		if ( idname == "" || idemail == "" ) {
 			Flash.flashMessage( "Can't add an identity with a blank name or blank e-mail." );
 			return false;
@@ -148,6 +153,54 @@ var OptionsEditorClass = new Class({
 
 		return false;
 	},
+
+	identity_edit: function () {
+		if ( $('opts-identity-new') ) { $('opts-identity-new').remove(); }
+
+		var identitylist = $('opts-identity-list');
+
+		if ( identitylist.value == "" ) return false;
+
+		var identity = identitylist.value;
+		var identityParts = identity.split(",");
+		var idAddress = identityParts.shift();
+		var idName = identityParts.join(",");
+
+		$('opts-identity-name').value = idName;
+		$('opts-identity-address').value = idAddress;
+
+		// TODO: something more efficient than a closure
+		$('opts-identity-save').onclick = function(){ return OptionsEditor.identity_edit_done(idemail); };
+
+		return false;
+	},
+
+	identity_edit_done: function ( oldemail ) {
+		var idname = $('opts-identity-name').value;
+		var idemail = $('opts-identity-address').value;
+
+		if ( idname == "" || idemail == "" ) {
+			Flash.flashMessage( "Can't edit an identity to have a blank name or blank e-mail." );
+			return false;
+		}
+
+		if_remoteRequestStart();
+		new Ajax( 'ajax.php', {
+			postBody: 'request=identityEditor&action=edit&idname='+encodeURIComponent( idname )+'&idemail='+encodeURIComponent( idemail )+
+				'&oldid='+encodeURIComponent(oldemail),
+			onComplete : this.identity_actionCB.bind( this ),
+			onFailure : function( responseText ) {
+				if_remoteRequestFailed( responseText );
+			}
+			} ).request();
+
+		return false;
+	},
+
+// 	identity_cleareditor: function () {
+// 		$('identity-editor').empty();
+// 		return false;
+// 	},
 
 	identity_setdefault: function () {
 		var identitylist = $('opts-identity-list');
@@ -168,55 +221,6 @@ var OptionsEditorClass = new Class({
 			}
 			} ).request();
 
-		return false;
-	},
-
-	identity_edit: function () {
-		var editarea = $('opts-identity-edit');
-		var identitylist = $('opts-identity-list');
-
-		if ( identitylist.value == "" ) return false;
-
-		var identity = identitylist.value;
-		identity = identity.split(",");
-		var idemail = identity.shift();
-		var idname = identity.join(",");
-
-		editarea.empty();
-		var htmlFragment = "<div><span>Name:</span> <input type=\"text\" size=\"30\" id=\"identity-name\" value=\"" + idname + "\" /></div>";
-		htmlFragment += "<div><span>Email:</span> <input type=\"text\" size=\"30\" id=\"identity-email\" value=\"" + idemail + "\" /></div>";
-		htmlFragment += "<button onclick=\"return OptionsEditor.identity_edit_done('" + idemail + "')\">Edit</button>";
-		htmlFragment += "<button onclick=\"return OptionsEditor.identity_cleareditor()\">Cancel</button>";
-
-		editarea.setHTML( htmlFragment );
-
-		return false;
-	},
-
-	identity_edit_done: function ( oldemail ) {
-		var idname = $('identity-name').value;
-		var idemail = $('identity-email').value;
-
-		if ( idname == "" || idemail == "" ) {
-			Flash.flashMessage( "Can't edit an identity to have a blank name or blank e-mail." );
-			return false;
-		}
-
-		if_remoteRequestStart();
-		new Ajax( 'ajax.php', {
-			postBody: 'request=identityEditor&action=edit&idname='+encodeURIComponent( idname )+'&idemail='+encodeURIComponent( idemail )+
-				'&oldid='+encodeURIComponent(oldemail),
-			onComplete : this.identity_actionCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
-			} ).request();
-
-		return false;
-	},
-
-	identity_cleareditor: function () {
-		$('identity-editor').empty();
 		return false;
 	},
 
@@ -246,27 +250,28 @@ var OptionsEditorClass = new Class({
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
 
-		this.identity_cleareditor();
+		// Since the identity editor tab appears with an AJAX call
+		// (for now), repeating that call will regenerate the list.
+		OptionsEditor.showEditor('identities');
 
-		var identitieslist = $('opts-identity-list');
-		identitieslist.empty();
-
-		// Below we deviate from normal and use the DOM to add the options
-		// back to the list. I've done this because the setHTML didn't work
-		// in IE. The DOM Method works in both IE and FireFox, more testing
-		// is required for other browers.
-		for ( var i = 0; i < result.identities.length; i++ ) {
-			var thisId = result.identities[i];
-			var value = thisId.address + "," + thisId.name;
-			var display = thisId.name + " &lt;" + thisId.address + "&gt;";
-			if ( thisId.isdefault ) display += " (default)";
-
-			var option = new Element('option');
-			option.value = value;
-			option.setHTML( display );
-
-			identitieslist.adopt(option);
-		}
+// 		this.identity_cleareditor();
+//
+// 		var identitieslist = $('opts-identity-list');
+// 		identitieslist.empty();
+//
+// 		// Use the DOM to rebuild list of options; setHTML breaks in IE6
+// 		for ( var i = 0; i < result.identities.length; i++ ) {
+// 			var thisId = result.identities[i];
+// 			var value = thisId.address + "," + thisId.name;
+// 			var display = thisId.name + " &lt;" + thisId.address + "&gt;";
+// 			if ( thisId.isdefault ) display += " (default)";
+//
+// 			var option = new Element('option');
+// 			option.value = value;
+// 			option.setHTML( display );
+//
+// 			identitieslist.adopt(option);
+// 		}
 	}
 });
 

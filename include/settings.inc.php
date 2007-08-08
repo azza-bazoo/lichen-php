@@ -236,7 +236,8 @@ function generateSettingsPanel() {
 	// this is best done with display:none on the client side
 	// (though it might slow PHP due to all of the concatenation)
 
-	$panel = "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" id=\"top-corner\" /><div class=\"header-right\">&nbsp;</div>";
+	$panel = "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" id=\"top-corner\" />";
+//	$panel .= "<div class=\"header-right\">&nbsp;</div>";
 
 	// Boring, repetitive 'if's for the tab bar
 	$panel .= "<div class=\"opts-tabbar\"><a href=\"#\" onclick=\"OptionsEditor.showEditor('settings');return false\"";
@@ -343,25 +344,49 @@ function generateSettingsForm() {
 function generateIdentityEditor() {
 	global $USER_SETTINGS;
 
+	// Temporary workaround in case a default identity isn't set
+	// (the saving code should check for & prevent this scenario)
+	$defaultIdentity = $USER_SETTINGS['identities'][count($USER_SETTINGS['identities'])];
+
 	$result = "<form class=\"opts-tab\" id=\"opts-identities\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
 
-	$result .= "<select size=\"10\" id=\"opts-identity-list\">";
-	foreach ( $USER_SETTINGS['identities'] as $identity ) {
-		$result .= "<option value=\"" . htmlentities( $identity['address'] ) . "," . htmlentities( $identity['name'] ) . "\">" .
-		       htmlentities( $identity['name'] ) . " &lt;" . htmlentities( $identity['address'] ) . "&gt;";
-		if ( $identity['isdefault'] ) $result .= " (default)";
-		$result .= "</option>";
-	}
-	$result .= "</select><br />";
-	$result .= "<div id=\"opts-identity-edit\"></div>";
+	$result .= "<div id=\"opts-identity-sel\"><select size=\"10\" id=\"opts-identity-list\">";
 
+	foreach ( $USER_SETTINGS['identities'] as $thisIdentity ) {
+
+		$result .= "<option value=\"" . htmlentities( $thisIdentity['address'] ) . "," . htmlentities( $thisIdentity['name'] ) . "\" ";
+		if ( $thisIdentity['isdefault'] ) { $result .= "selected=\"selected\" "; }
+		$result .= " onclick=\"OptionsEditor.identity_edit()\">";
+
+		$result .= htmlentities( $thisIdentity['name'] ) . " &lt;" . htmlentities( $thisIdentity['address'] ) . "&gt;";
+
+		if ( $thisIdentity['isdefault'] ) {
+			$result .= " (default)";
+			$defaultIdentity = $thisIdentity;
+		}
+
+		$result .= "</option>";
+
+	}
+
+	$result .= "</select>";
 
 	$result .= "<p class=\"opts-buttons\"><button onclick=\"return OptionsEditor.identity_add()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_add.png\" alt=\"\" />" . _("add identity") . "</button> ";
-//	$result .= "<a href=\"#\" onclick=\"return OptionsEditor.identity_setdefault()\">" . _("Make Default") . "</a> | ";
-//	$result .= "<a href=\"#\" onclick=\"return OptionsEditor.identity_edit()\">" . _("Edit") . "</a> | ";
-	$result .= "<button onclick=\"return OptionsEditor.identity_remove()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_remove.png\" alt=\"\" />" . _("remove") . "</button></p>";
+	$result .= "<button onclick=\"return OptionsEditor.identity_setdefault()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/filenew.png\" alt=\"\" />" . _("set as default") . "</button> ";
+	$result .= "<button onclick=\"return OptionsEditor.identity_remove()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_remove.png\" alt=\"\" />" . _("remove") . "</button></p></div>";
 
-	$result .= "</form>";
+	$result .= "<div id=\"opts-identity-edit\">";
+
+	$result .= "<p><label for=\"opts-identity-name\">" . _("your name:") . "</label> ";
+	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-name\" value=\"" . $defaultIdentity['name'] . "\" /><br />";
+	$result .= "<label for=\"opts-identity-address\">" . _("e-mail address:") . "</label> ";
+	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-address\" value=\"" . $defaultIdentity['address'] . "\" /></p>";
+
+	$result .= "<p><button id=\"opts-identity-save\" onclick=\"return OptionsEditor.identity_edit_done('" . $defaultIdentity['address'] . "')\">" . _("save changes") . "</button></p>";
+
+	$result .= "</div>";
+
+	$result .= "<p class=\"opts-close\"><button onclick=\"OptionsEditor.closePanel();return false\">" . _( "close" ) . "</button></p></form>";
 
 	return $result;
 }
@@ -399,9 +424,7 @@ function generateMailboxManager() {
 
 	$result .= "</ul>";
 
-//	$result .= "<p class=\"opts-buttons\">";
-	$result .= "<button onclick=\"OptionsEditor.closePanel();return false\">" . _( "close" ) . "</button>";
-//	$result .= "</p>";
+	$result .= "<p class=\"opts-close\"><button onclick=\"OptionsEditor.closePanel();return false\">" . _( "close" ) . "</button></p></form>";
 	$result .= "</form>";
 
 	return $result;
