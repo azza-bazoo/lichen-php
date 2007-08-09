@@ -171,6 +171,14 @@ function request_moveMessage() {
 		$messages = explode( ",", $_POST['uid'] );
 	}
 
+	// If we're deleting, move to trash.
+	if ( $destinationBox == "LICHENTRASH" ) {
+		$destinationBox = $SPECIAL_FOLDERS['trash'];
+	}
+	if ( $mailbox == $SPECIAL_FOLDERS['trash'] ) {
+		// If the source mailbox was the trash folder, then really delete.
+	}
+
 	if ( $destinationBox == "" || count( $messages ) == 0 ) {
 		echo remoteRequestFailure( 'MOVE', _("Did not specify destination mailbox or message uid(s).") );
 	} else {
