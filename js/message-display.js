@@ -65,6 +65,15 @@ var MessageDisplay = new Class({
 		$(this.wrapperdiv).style.display = 'block';
 		$('msg-bar').style.display = 'block';
 		lastShownUID = message.uid;
+
+		// This is a hack to display the "edit as draft" button
+		// only if the user is viewing the drafts folder.
+		var draftButton = $('btn-draft');
+		if ( listCurrentMailbox == specialFolders['drafts'] ) {
+			draftButton.setStyle('display', 'inline');
+		} else {
+			draftButton.setStyle('display', 'none');
+		}
 	},
 
 	_render: function( message, forceType ) {

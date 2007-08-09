@@ -119,6 +119,7 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 
 	// TODO: this shouldn't be needed or should be cleaned up
 	echo "var serverUser = \"" . addslashes( $_SESSION['user'] ) . "\";";
+	echo "var specialFolders = " . json_encode_assoc( $SPECIAL_FOLDERS ) . ";"; 
 	echo "</script>";
 
 
