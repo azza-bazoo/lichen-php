@@ -70,7 +70,7 @@ var OptionsEditorClass = new Class({
 		$('list-bar').style.display = 'block';
 		$('list-wrapper').style.display = 'block';
 	//	opts_get();
-		
+
 		// Hack: update the mailbox list; because it may have changed.
 		Messages.fetchMailboxList();
 	},
@@ -105,9 +105,7 @@ var OptionsEditorClass = new Class({
 		new Ajax( 'ajax.php', {
 			postBody: 'request=settingsPanelSave&' + this.generateQueryString('opts-settings'),
 			onComplete : this.saveOptionsCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
+			onFailure : if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -152,13 +150,11 @@ var OptionsEditorClass = new Class({
 			return false;
 		}
 
-		if_remoteRequestStart();
+//		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
 			postBody: 'request=identityEditor&action=add&idname='+encodeURIComponent( idname )+'&idemail='+encodeURIComponent( idemail ),
 			onComplete : this.identity_actionCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
+			onFailure : if_remoteRequestFailed
 			} ).request();
 
 		return false;
@@ -194,23 +190,16 @@ var OptionsEditorClass = new Class({
 			return false;
 		}
 
-		if_remoteRequestStart();
+//		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
 			postBody: 'request=identityEditor&action=edit&idname='+encodeURIComponent( idname )+'&idemail='+encodeURIComponent( idemail )+
 				'&oldid='+encodeURIComponent(oldemail),
 			onComplete : this.identity_actionCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
+			onFailure : if_remoteRequestFailed
 			} ).request();
 
 		return false;
 	},
-
-// 	identity_cleareditor: function () {
-// 		$('identity-editor').empty();
-// 		return false;
-// 	},
 
 	identity_setdefault: function () {
 		var identitylist = $('opts-identity-list');
@@ -222,13 +211,11 @@ var OptionsEditorClass = new Class({
 		var idemail = identity.shift();
 		var idname = identity.join(",");
 
-		if_remoteRequestStart();
+//		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
 			postBody: 'request=identityEditor&action=setdefault&oldid='+encodeURIComponent( idemail ),
 			onComplete : this.identity_actionCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
+			onFailure : if_remoteRequestFailed
 			} ).request();
 
 		return false;
@@ -244,13 +231,11 @@ var OptionsEditorClass = new Class({
 		var idemail = identity[0];
 		var idname = identity[1];
 
-		if_remoteRequestStart();
+//		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
 			postBody: 'request=identityEditor&action=delete&oldid='+encodeURIComponent( idemail ),
 			onComplete : this.identity_actionCB.bind( this ),
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
+			onFailure : if_remoteRequestFailed
 			} ).request();
 
 		return false;
@@ -288,15 +273,13 @@ var OptionsEditorClass = new Class({
 
 // Ask the server for our settings.
 function opts_get() {
-	if_remoteRequestStart();
+//	if_remoteRequestStart();
 	new Ajax( 'ajax.php', {
 		postBody: 'request=getUserSettings',
 		onComplete : function ( responseText ) {
 			opts_getCB( responseText );
 		},
-		onFailure : function( responseText ) {
-			if_remoteRequestFailed( responseText );
-		}
+		onFailure : if_remoteRequestFailed
 		} ).request();
 }
 
@@ -311,15 +294,13 @@ function opts_getCB( responseText ) {
 
 // Save our settings to the server.
 // function opts_save() {
-// 	if_remoteRequestStart();
+// //	if_remoteRequestStart();
 // 	new Ajax( 'ajax.php', {
 // 		postBody: 'request=saveUserSettings&settings=' + encodeURIComponent( Json.toString( userSettings ) ),
 // 		onComplete : function ( responseText ) {
 // 			opts_saveCB( responseText );
 // 		},
-// 		onFailure : function( responseText ) {
-// 			if_remoteRequestFailed( responseText );
-// 		}
+// 		onFailure : if_remoteRequestFailed
 // 		} ).request();
 // }
 

@@ -33,7 +33,7 @@ var listCurrentPage = 0;
 var listCurrentSearch = '';
 var listCurrentSort = userSettings['list_sortmode'];
 var mailboxCount = 0;
-var remoteRequestCount = 0;	// number of active remote requests
+var activeFadeEffect = false;
 var refreshTimer;
 var userSettings;
 

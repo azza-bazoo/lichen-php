@@ -80,23 +80,45 @@ var FlashArea = new Class({
 });
 
 
-// Remote request started; display some sort of loading feedback.
-// Keep a count of the remote requests.
-function if_remoteRequestStart() {
-	remoteRequestCount += 1;
+// Simple class to apply (and later stop) an exit transition effect
+// on a given element, typically one of the interface pane wrappers.
+var PaneTransition = new Class({
 
-//	$('loading').style.display = 'block';
+	initialize: function ( targetElementName ) {
+		this.fadeOut = new Fx.Style( targetElementName, 'opacity', { duration: 1500 } );
+		this.elementID = targetElementName;
+		this.fadeOut.start( 0.9, 0 );
+	},
+
+	end: function () {
+		// Stop the animation and reset opacity back to 1, but hide the element
+		this.fadeOut.stop();
+		$( this.elementID ).style.display='none';
+		new Fx.Style( this.elementID, 'opacity' ).set( 1 );
+	}
+});
+
+
+// Remote request started; display some sort of loading feedback.
+function if_remoteRequestStart() {
+	var wrapElements = new Array( 'list-wrapper', 'msg-wrapper', 'opts-wrapper',
+					'comp-wrapper', 'addr-wrapper' );
+
+	for ( var i = 0; i < wrapElements.length; i ++ ) {
+		if ( $( wrapElements[i] ).style.display != 'none' ) {
+			break;
+		}
+	}
+
+	activeFadeEffect = new PaneTransition( wrapElements[i] );
 }
 
 
-// A request has completed... decrement the count, and if all requests
-// have finished, remove the loading div.
+// Stop the loading feedback animation
 function if_remoteRequestEnd() {
-	if (remoteRequestCount > 0) {
-		remoteRequestCount -= 1;
-	}
-	if (remoteRequestCount == 0) {
-//		$('loading').style.display = 'none';
+	if ( activeFadeEffect ) {
+		activeFadeEffect.end();
+		activeFadeEffect = false;
 	}
 }
 

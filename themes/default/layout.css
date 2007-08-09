@@ -33,9 +33,13 @@ Distributed under the GNU General Public License
 
 .subject, .sender, .date { white-space: nowrap; overflow: hidden; }
 
-/* Message listings version 2 */
+.mcol-checkbox { width: 22px; }
+.mcol-flag { width: 26px; }
+.mcol-sender { width: 200px; }
+.mcol-date { width: 125px; }
 
-.msg-row { position: absolute; left: 118px; }
+div.sender { width: 190px; }
+div.date { width: 115px; margin-left: 10px; }
 
 /* Login screen */
 

@@ -60,14 +60,12 @@ var MailboxManagerClass = new Class({
 				} else {
 					newname = fullboxname.substr(0, fullboxname.length - boxname.length) + newname;
 
-					if_remoteRequestStart();
+//					if_remoteRequestStart();
 					new Ajax( 'ajax.php', {
 						postBody: 'request=mailboxAction&action=rename&mailbox1=' + encodeURIComponent(fullboxname) +
 							'&mailbox2=' + encodeURIComponent(newname),
 						onComplete : this.serverActionCB.bind( this ),
-						onFailure : function( responseText ) {
-							if_remoteRequestFailed( responseText );
-						}
+						onFailure : if_remoteRequestFailed
 						} ).request();
 				}
 			}
@@ -85,13 +83,11 @@ var MailboxManagerClass = new Class({
 
 	mailboxDelete: function ( fullboxname, boxname ) {
 		if ( confirm("Are you sure you want to delete '" + boxname + "'?\nAll messages in this mailbox will be deleted.\nThis cannot be undone.") ) {
-			if_remoteRequestStart();
+//			if_remoteRequestStart();
 			new Ajax( 'ajax.php', {
 				postBody: 'request=mailboxAction&action=delete&mailbox1=' + encodeURIComponent(fullboxname),
 				onComplete : this.serverActionCB.bind( this ),
-				onFailure : function( responseText ) {
-					if_remoteRequestFailed( responseText );
-				}
+				onFailure : if_remoteRequestFailed
 				} ).request();
 		}
 	},
@@ -123,14 +119,12 @@ var MailboxManagerClass = new Class({
 		var childMailbox = $('mbm-newchild-' + fullboxname);
 
 		if ( childMailbox && childMailbox.value != "" ) {
-			if_remoteRequestStart();
+//			if_remoteRequestStart();
 			new Ajax( 'ajax.php', {
 				postBody: 'request=mailboxAction&action=create&mailbox1=' + encodeURIComponent(fullboxname) +
 					'&mailbox2=' + encodeURIComponent(childMailbox.value),
 				onComplete : this.serverActionCB.bind( this ),
-				onFailure : function( responseText ) {
-					if_remoteRequestFailed( responseText );
-				}
+				onFailure : if_remoteRequestFailed
 				} ).request();
 		}
 	},
@@ -182,14 +176,12 @@ var MailboxManagerClass = new Class({
 		var newParentMailbox = $('mbm-changeparent-' + fullboxname);
 
 		if ( newParentMailbox && newParentMailbox.value != boxname ) {
-			if_remoteRequestStart();
+//			if_remoteRequestStart();
 			new Ajax( 'ajax.php', {
 				postBody: 'request=mailboxAction&action=move&mailbox1=' + encodeURIComponent(fullboxname) +
 					'&mailbox2=' + encodeURIComponent(newParentMailbox.value),
 				onComplete : this.serverActionCB.bind( this ),
-				onFailure : function( responseText ) {
-					if_remoteRequestFailed( responseText );
-				}
+				onFailure : if_remoteRequestFailed
 				} ).request();
 		}
 	},

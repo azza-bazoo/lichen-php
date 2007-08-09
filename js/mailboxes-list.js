@@ -55,7 +55,6 @@ function list_buildMailboxList( mailboxes ) {
 
 		containerContents += "<span class=\"mailbox\">" + mailboxes[i].mailbox + "</strong> ";
 
-
 		containerContents += "<span id=\"mb-unread-" + mailboxes[i].fullboxname + "\">";
 		if (mailboxes[i].unseen > 0 || userSettings['boxlist_showtotal']) {
 			containerContents += "(" + mailboxes[i].unseen;
@@ -135,6 +134,7 @@ function list_countCB( mailboxes ) {
 function if_selectmailbox( mailbox ) {
 	lastUIDconst = "";
 	msgCount = 0;
+	if_remoteRequestStart();	// fade current mailbox
 
 	// Remove the current mailbox's selection highlight in the listing
 	$('mb-'+listCurrentMailbox).removeClass('mb-active');
@@ -146,7 +146,7 @@ function if_selectmailbox( mailbox ) {
 		// show loading feedback and display in the callback
 		if_hideWrappers();
 		if_hideToolbars();
-		$('list-wrapper').style.display = 'block';
+//		$('list-wrapper').style.display = 'block';
 		$('list-bar').style.display = 'block';
 	}
 

@@ -89,6 +89,7 @@ function list_showCB( responseText ) {
 	listCurrentSort = result.sort;
 
 	$('list-wrapper').empty();
+	$('list-wrapper').style.display = 'block';
 	var tableContents = "";
 
 	tableContents += list_createPageBar( result, true );
@@ -143,9 +144,8 @@ function list_showCB( responseText ) {
 
 		thisRow += "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" + thisMsg.uid + "\" id=\"s-" + thisMsg.uid + "\" value=\"" + thisMsg.uid + "\" onclick=\"list_messageCheckboxClicked();\" /></td>";
 
-		var flagImage = thisMsg.flagged ? "themes/" + userSettings.theme + "/icons/flag.png" : "themes/" + userSettings.theme + "/icons/flag_off.png";
-		thisRow += "<td><a href=\"#\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle');return false\" title=\"Flag this message\">";
-		thisRow += "<img src=\"" + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" alt=\"\" /></a></td>";
+		var flagImage = thisMsg.flagged ? "/icons/flag.png" : "/icons/flag_off.png";
+		thisRow += "<td><img src=\"themes/" + userSettings.theme + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" alt=\"\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
 
 		thisRow += "<td class=\"sender\" onclick=\"showMsg('"
 			+ listCurrentMailbox + "','" + thisMsg.uid + "',0)\"";

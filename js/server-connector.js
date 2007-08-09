@@ -31,11 +31,6 @@ var IMAPServerConnector = new Class({
 	},
 
 	messageList: function( mailbox, search, page, sort, validity, cacheonly ) {
-		if ( !cacheonly ) {
-			// For user-initiated requests, show loading feedback
-			if_remoteRequestStart();
-		}
-
 		new Ajax( 'ajax.php', {
 			postBody: 'request=mailboxContentsList&mailbox='+encodeURIComponent(mailbox)+
 				'&page='+page+'&search='+encodeURIComponent(search)+'&sort='+encodeURIComponent(sort)+
@@ -71,9 +66,6 @@ var IMAPServerConnector = new Class({
 	},
 
 	messageBody: function( mailbox, uid, mode ) {
-		// TODO: Do we need a validity for this? Do messages really change?
-		if_remoteRequestStart();
-
 		new Ajax( 'ajax.php', {
 			postBody: 'request=getMessage&mailbox='+encodeURIComponent(mailbox)+'&msg='+encodeURIComponent(uid)+
 				'&mode='+encodeURIComponent(mode),

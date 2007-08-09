@@ -216,6 +216,7 @@ var MessageDisplay = new Class({
 
 // TODO: This is a hack to make it work for now ...
 function showMsg( mailbox, uid, mode ) {
+	if_remoteRequestStart();
 	MessageDisplayer.showMessage( mailbox, uid, mode );
 	return false;
 }

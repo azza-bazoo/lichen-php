@@ -39,7 +39,7 @@ function asyncUploadFile( sourceForm ) {
 	// Now retarget the form to this new iFrame.
 	$(sourceForm).setProperty( 'target', iframeName );
 
-	if_remoteRequestStart();
+//	if_remoteRequestStart();
 
 	// Force the form to upload.
 	return true;

@@ -39,14 +39,8 @@ tr.even td { background: #ffffff; }
 td.list-nothing { padding: 20px; text-align: center; }
 .list-notification { padding: 4px; font-size: smaller; background: #fff0f0; }
 
-.mcol-checkbox { width: 22px; }
-.mcol-flag { width: 26px; }
-.mcol-sender { width: 200px; }
-.mcol-date { width: 125px; }
+td.subject, td.sender, img.list-flag { cursor: pointer; }
 
-div.sender { width: 190px; }
-div.date { width: 115px; margin-left: 10px; }
-td.subject, td.sender { cursor: pointer; }
 .messagePreview, .senderAddress { margin-left: 0.6em; font-weight: normal; color: #999999; }
 
 /* Header and footer control bars */

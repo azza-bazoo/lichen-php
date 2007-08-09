@@ -38,9 +38,7 @@ function comp_showForm( mode, quoteUID, mailto ) {
 		onComplete : function ( responseText ) {
 			comp_showCB( responseText );
 		},
-		onFailure : function( responseText ) {
-			if_remoteRequestFailed( responseText );
-		}
+		onFailure : if_remoteRequestFailed
 		} ).request();
 }
 
@@ -71,9 +69,7 @@ function comp_send( currentlyShownUID, saveDraft ) {
 		onComplete : function( responseText ) {
 			comp_sendCB( responseText, currentlyShownUID );
 		},
-		onFailure : function( responseText ) {
-			if_remoteRequestFailed( responseText );
-		}
+		onFailure : if_remoteRequestFailed
 		} ).request();
 }
 
@@ -92,7 +88,15 @@ function comp_sendCB( responseText, currentlyShownUID ) {
 		if ( $('comp-draftuid') ) {
 			$('comp-draftuid').value = result.draftUid;
 		}
-		Flash.flashMessage("Draft saved at [insert timestamp here]");
+
+		var d = new Date();
+		var hr = d.getHours();
+		var min = d.getMinutes();
+		if ( min < 10 ) { min = '0'+min; }
+		if ( hr == 0 ) { hr = '12'; }
+		if ( hr > 12 ) { hr = hr-12; min += ' PM'; } else { min += ' AM'; }
+		Flash.flashMessage( 'Draft saved at ' + hr + ':' + min );
+
 	} else {
 		if (currentlyShownUID) {
 			if_returnToMessage();

@@ -24,13 +24,16 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 function if_returnToList( leavingUID ) {
-	list_checkCount(); // Check the list is up to date and reset the timer.
-	if ( leavingUID && $('mr-'+leavingUID) ) {
-		$('mr-'+leavingUID).removeClass('new');
-	}
-	if_hideWrappers();
+//	list_checkCount(); // Check the list is up to date and reset the timer.
+//	if ( leavingUID && $('mr-'+leavingUID) ) {
+//		$('mr-'+leavingUID).removeClass('new');
+//	}
+
+	// For now, just hide the message without fading
+	// TODO: change after caching code rewrite
+	$('msg-wrapper').style.display = 'none';
+//	if_remoteRequestStart();
 	if_hideToolbars();
-	$('list-wrapper').style.display = 'block';
 	$('list-bar').style.display = 'block';
 	list_show();
 }
@@ -47,22 +50,21 @@ function if_returnToMessage() {
 function if_remoteRequestFailed( remoteText ) {
 	// For the time being...
 	if_remoteRequestEnd();
+	// TODO: show, rather than momentarily flash, the error
 	Flash.flashMessage( remoteText );
 	//alert( remoteText );
 }
 
 
 function if_relogin() {
-	if_remoteRequestStart();
+//	if_remoteRequestStart();
 	var password = $('relogin_pass').value;
 	new Ajax( 'index.php', {
 		postBody: 'action=relogin&user='+encodeURIComponent(serverUser)+'&pass='+encodeURIComponent(password),
 		onComplete : function ( responseText ) {
 			if_reloginCB( responseText );
 		},
-		onFailure : function( responseText ) {
-			if_remoteRequestFailed( responseText );
-		}
+		onFailure : if_remoteRequestFailed
 		} ).request();
 }
 
@@ -84,15 +86,13 @@ function if_reloginCB( responseText ) {
 
 // For testing purposes.
 function if_logoutSilent() {
-	if_remoteRequestStart();
+//	if_remoteRequestStart();
 	new Ajax( 'index.php', {
 		postBody: 'logout=0&silent=0',
 		onComplete : function ( responseText ) {
 			if_logoutSilentCB( responseText );
 		},
-		onFailure : function( responseText ) {
-			if_remoteRequestFailed( responseText );
-		}
+		onFailure : if_remoteRequestFailed
 		} ).request();
 }
 

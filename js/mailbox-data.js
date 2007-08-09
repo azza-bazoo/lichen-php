@@ -215,13 +215,16 @@ var MessagesDatastore = new Class({
 	},
 
 	fetchMessage: function( mailbox, uid, mode ) {
+		// Message caching disabled for now due to conflicts
+		// with interface feedback code.
+
 		// Return from the cache if we can.
 		// mode is the type of data we want: the server only sends us what we want by default.
 		// mode can be: "html", "text", "source", "all"
-		var result = this.cache.getMessage( mailbox, uid, mode, true ); // TODO: The "true" is hack to never invalidate the cache.
-		if ( result ) {
-			MessageDisplayer.showMessageCB( result );
-		} else {
+//		var result = this.cache.getMessage( mailbox, uid, mode, true ); // TODO: The "true" is hack to never invalidate the cache.
+//		if ( result ) {
+//			MessageDisplayer.showMessageCB( result );
+//		} else {
 			// Cache Miss, ask the server.
 			if ( this.online ) {
 				this.server.messageBody( mailbox, uid, mode );
@@ -229,7 +232,7 @@ var MessagesDatastore = new Class({
 				// We're not online.
 				Flash.flashMessage( "Unable to view message: in offline mode, and not cached." );
 			}
-		}
+//		}
 	},
 
 	fetchMessageCB: function( message, mailbox, uid ) {
