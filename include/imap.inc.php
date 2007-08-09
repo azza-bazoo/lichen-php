@@ -122,9 +122,9 @@ function getMailboxList() {
 function imapCheckMailboxExistence( $boxname ) {
 	global $mbox, $IMAP_CONNECT;
 
-	$exists = @imap_status( $mbox, $IMAP_CONNECT . $boxname );
+	$exists = @imap_status( $mbox, $IMAP_CONNECT . $boxname, SA_ALL );
 
-	if ( $exists == null ) {
+	if ( $exists === false ) {
 		$result = imap_createmailbox( $mbox, $IMAP_CONNECT . $boxname );
 		if ( $result == false ) {
 			return false;
