@@ -112,6 +112,7 @@ function request_getUserSettings() {
 //
 function request_mailboxContentsList() {
 	global $mbox, $IMAP_CONNECT, $mailbox;
+	global $USER_SETTINGS;
 
 	$searchQuery = "";
 	$displayPage = 0;
@@ -129,6 +130,24 @@ function request_mailboxContentsList() {
 	}
 	if ( isset( $_POST['validity'] ) ) {
 		$validityKey = $_POST['validity'];
+	}
+
+	// Save whatever they sent as the sort as the default.
+	// This is kinda of a hack, so basically the setting is "implicit".
+	$validSortTypes = array( "date", "date_r",
+				"from", "from_r",
+				"subject", "subject_r",
+				"to", "to_r",
+				"cc", "cc_r",
+				"size", "size_r" );
+
+	if ( isset( $_POST['sort'] )
+		&& array_search( $_POST['sort'], $validSortTypes ) !== false
+		&& $_POST['sort'] != $USER_SETTINGS['list_sortmode'] ) {
+
+		// If the sort order has changed, save it.
+		$USER_SETTINGS['list_sortmode'] = $_POST['sort'];
+		saveUserSettings( $USER_SETTINGS );
 	}
 
 	// See if the mailbox has changed. If not, no need to send back all that data.
@@ -1207,33 +1226,6 @@ function request_settingsPanelSave() {
 	} else {
 		echo remoteRequestSuccess( array( 'settings' => $USER_SETTINGS ) );
 	}
-}
-
-// ------------------------------------------------------------------------
-//
-// Save a change to the mailbox listing sort order
-//
-function request_setNewSortOrder() {
-	global $USER_SETTINGS;
-
-	$validSortTypes = array( "date", "date_r",
-				"from", "from_r",
-				"subject", "subject_r",
-				"to", "to_r",
-				"cc", "cc_r",
-				"size", "size_r" );
-
-	if ( isset( $_POST['sort'] )
-		&& array_search( $_POST['sort'], $validSortTypes ) !== false
-		&& $_POST['sort'] != $USER_SETTINGS['list_sortmode'] ) {
-
-		// If the sort order has changed, save it.
-		$USER_SETTINGS['list_sortmode'] = $_POST['sort'];
-		saveUserSettings( $USER_SETTINGS );
-	}
-
-	// For now, this function completes (or fails) silently
-	// and any output it does send is ignored.
 }
 
 // ------------------------------------------------------------------------

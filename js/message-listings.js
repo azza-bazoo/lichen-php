@@ -45,12 +45,8 @@ function list_sort( sortField ) {
 		listCurrentSort = sortField;
 	}
 
-	// TODO: it might be more efficient to eliminate this extra request
-	// and somehow insert this into the server connector class?
-	// For now, this fails silently (user can always click to sort again)
-	new Ajax( 'ajax.php', {
-		postBody: 'request=setNewSortOrder&sort='+encodeURIComponent( listCurrentSort )
-		} ).request();
+	// Save the sort as the users default.
+	userSettings['list_sortmode'] = sortField;
 
 	// Trigger an update of the list.
 	// The list callback will set the correct sort icon.

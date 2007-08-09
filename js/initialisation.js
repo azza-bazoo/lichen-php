@@ -31,7 +31,7 @@ var lastShownUID = "";
 var listCurrentMailbox = 'INBOX';
 var listCurrentPage = 0;
 var listCurrentSearch = '';
-var listCurrentSort = 'date_r';
+var listCurrentSort = userSettings['list_sortmode'];
 var mailboxCount = 0;
 var remoteRequestCount = 0;	// number of active remote requests
 var refreshTimer;
