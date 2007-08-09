@@ -234,8 +234,17 @@ function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags 
 		// We also tag the images with the "remoteimage" class, allowing the client side JS to be able to find
 		// them and reenable the images. Count the number of matches so we know if there are any remote images.
 		$replacementCount = 0;
-		$string = preg_replace( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', "<img$1src=\"http://_$2\" class=\"remoteimg\"",
-						$string, -1, &$replacementCount );
+		if ( version_compare( PHP_VERSION, '5.1.0', '<' ) ) {
+			// PHP < 5.1.0's preg_replace doesn't have the ability to count the matches.
+			// So we do this beforehand with a preg_match_all, and then do the replacement.
+			// (This is really a hack)
+			$replacementCount = preg_match_all( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', $string );
+			$string = preg_replace( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', "<img$1src=\"http://_$2\" class=\"remoteimg\"",
+							$string, -1 );
+		} else {
+			$string = preg_replace( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', "<img$1src=\"http://_$2\" class=\"remoteimg\"",
+							$string, -1, &$replacementCount );
+		}
 		if ( is_array( $outMsgFlags ) && $replacementCount > 0 ) {
 			$outMsgFlags['htmlhasremoteimages'] = true;
 		}
