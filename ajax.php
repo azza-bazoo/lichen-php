@@ -193,6 +193,9 @@ function request_moveMessage() {
 	// If we're deleting, move to trash.
 	if ( $destinationBox == "LICHENTRASH" ) {
 		$destinationBox = $SPECIAL_FOLDERS['trash'];
+		if (! imapCheckMailboxExistence( $SPECIAL_FOLDERS['trash'] ) ) {
+			die( remoteRequestFailure( 'MOVE', _('Unable to create trash mailbox. Messages not deleted.') ) );
+		}
 	}
 	if ( $mailbox == $SPECIAL_FOLDERS['trash'] ) {
 		// If the source mailbox was the trash folder, then really delete.
