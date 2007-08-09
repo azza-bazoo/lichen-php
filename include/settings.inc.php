@@ -236,17 +236,17 @@ function generateSettingsPanel() {
 	// this is best done with display:none on the client side
 	// (though it might slow PHP due to all of the concatenation)
 
-	$panel = "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" id=\"top-corner\" />";
+	$panel = "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" class=\"top-corner\" />";
 //	$panel .= "<div class=\"header-right\">&nbsp;</div>";
 
 	// Boring, repetitive 'if's for the tab bar
 	$panel .= "<div class=\"opts-tabbar\"><a href=\"#\" onclick=\"OptionsEditor.showEditor('settings');return false\"";
 	if ( $_POST['tab'] == 'settings' ) { $panel .= " class=\"opts-activetab\""; }
-	$panel .= ">Lichen settings</a> <a href=\"#\" onclick=\"OptionsEditor.showEditor('identities');return false\"";
+	$panel .= ">" . _("Lichen settings") . "</a> <a href=\"#\" onclick=\"OptionsEditor.showEditor('identities');return false\"";
 	if ( $_POST['tab'] == 'identities' ) { $panel .= " class=\"opts-activetab\""; }
-	$panel .= ">Sending identities</a> <a href=\"#\" onclick=\"OptionsEditor.showEditor('mailboxes');return false\"";
+	$panel .= ">" . _("Sending identities") . "</a> <a href=\"#\" onclick=\"OptionsEditor.showEditor('mailboxes');return false\"";
 	if ( $_POST['tab'] == 'mailboxes' ) { $panel .= " class=\"opts-activetab\""; }
-	$panel .= ">Mailbox manager</a></div></div>";
+	$panel .= ">" . _("Mailbox manager") . "</a></div></div>";
 
 	switch ( $_POST['tab'] ) {
 		case 'settings':
@@ -399,21 +399,25 @@ function generateIdentityEditor() {
 
 // Generate HTML for the mailbox manager, polling the IMAP server for a list.
 function generateMailboxManager() {
+	global $USER_SETTINGS;
 
 	$result = "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
-	$result .= "<button onclick=\"MailboxManager.newChild('');return false\">add mailbox</button>";
+	$result .= "<button onclick=\"MailboxManager.newChild('');return false\">" . _("add mailbox") . "</button>";
 	$result .= "<div id=\"mbm-changearea-\"></div>";
-	$result .= "<ul>";
-//	$result .= "<tr id=\"mbm-row-\"><td><div id=\"mbm-namearea-\">[Top Level]</div></td>";
-//	$result .= "<td><div id=\"mbm-buttonarea-\"></div></td></tr>";
+
+// 	$result .= "<div class=\"sidebar-panel\">";
+// 	$result .= "<img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_add.png\" alt=\"\" /> <strong>" . _("add mailbox") . "</strong><br />";
+// 	$result .= "<label for=\"mbm-newchild-\">" . _("name:") . "</label> <input id=\"mbm-newchild-\" type=\"text\" />";
+// 	$result .= "<button onclick=\"MailboxManager.newChildSubmit(''); return false\">Add</button>";
+// 	$result .= "</div>";
+
+	$result .= "<ul id=\"opts-mbm-list\">";
 
 	foreach ( getMailboxList() as $thisMailbox ) {
-//		$result .= "<tr id=\"mbm-row-{$thisMailbox['fullboxname']}\"><td>";
-
 		$result .= "<li>";
 		$result .= "[<a href=\"#\" onclick=\"MailboxManager.changeParentInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">move</a>] ";
 
-		$result .= "<span id=\"mbm-namearea-{$thisMailbox['fullboxname']}\">";
+		$result .= "<span class=\"opts-mbm-name\" id=\"mbm-namearea-{$thisMailbox['fullboxname']}\">";
 		for ( $j = 0; $j < $thisMailbox['folderdepth']; $j ++ ) {
 			$result .= "-"; // Poor man's indenting.
 		}

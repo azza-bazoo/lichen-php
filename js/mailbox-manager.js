@@ -29,69 +29,6 @@ var MailboxManagerClass = new Class({
 		this.mailboxCache = null;
 	},
 
-// 	showManager: function () {
-// 		if_remoteRequestStart();
-// 		new Ajax( 'ajax.php', {
-// 			postBody: 'request=mailboxManager',
-// 			onComplete : this.showManagerCB.bind( this ),
-// 			onFailure : function( responseText ) {
-// 				if_remoteRequestFailed( responseText );
-// 			}
-// 			} ).request();
-// 	},
-
-// 	showManagerCB: function ( responseText ) {
-// 		var result = if_checkRemoteResult( responseText );
-// 		if (!result) return;
-//
-// 		var mailboxes = result.mailboxes;
-//
-// 		// Build the HTML.
-// 		var managerHtml = "<div>";
-// 		managerHtml += "<h3>Mailbox Manager</h3>";
-// 		managerHtml += "<table border=\"0\">";
-// 		managerHtml += "<tr id=\"mbm-row-\"><td><div id=\"mbm-namearea-\">[Top Level]</div></td>";
-// 		managerHtml += "<td><div id=\"mbm-buttonarea-\">" + this._makeButtons( '', '', true ) + "</div></td></tr>";
-// 		for ( var i = 0; i < mailboxes.length; i++ ) {
-// 			var thisMailbox = mailboxes[i];
-// 			managerHtml += "<tr id=\"mbm-row-" + thisMailbox.fullboxname + "\"><td>";
-// 			managerHtml += "<div id=\"mbm-namearea-" + thisMailbox.fullboxname + "\">";
-// 			for ( var j = 0; j < thisMailbox.folderdepth; j++ ) {
-// 				managerHtml += "-"; // Poor man's indenting.
-// 			}
-// 			managerHtml += thisMailbox.mailbox;
-// 			managerHtml += "</div></td><td><div id=\"mbm-buttonarea-" + thisMailbox.fullboxname + "\">";
-// 			managerHtml += this._makeButtons( thisMailbox.fullboxname, thisMailbox.mailbox ) + "</div></td></tr>";
-// 		}
-// 		managerHtml += "</table>";
-//
-// 		managerHtml += "<a href=\"#\" onclick=\"MailboxManager.closeManager(); return false\">Close Pane</a>";
-// 		managerHtml += "</div>";
-//
-// 		this.mailboxCache = result.mailboxes;
-//
-// 		$('opts-wrapper').setHTML(managerHtml);
-// 		$('opts-wrapper').setStyle('display', 'block');
-// 	},
-
-// 	_makeButtons: function ( fullboxname, displayname, toplevel ) {
-// 		// Internal function to generate buttons to work with each mailbox.
-// 		// TODO: Assumes that its instance is called "MailboxManager"
-// 		var buttonsHtml = "[<a href=\"#\" onclick=\"MailboxManager.newChild('" + fullboxname + "'); return false\">add</a>] ";
-// 		if ( !toplevel ) {
-// 			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.renameInline('" + fullboxname + "', '" + displayname + "'); return false\">edit</a>] ";
-// 			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.changeParentInline('" + fullboxname + "', '" + displayname + "'); return false\">move</a>] ";
-// 			buttonsHtml += "[<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('" + fullboxname + "', '" + displayname + "'); return false\">delete</a>] ";
-// 		}
-//
-// 		return buttonsHtml;
-// 	},
-
-// 	closeManager: function () {
-// 		$('opts-wrapper').setStyle('display', 'none');
-// 		list_checkCount();
-// 	},
-
 	renameInline: function ( fullboxname, boxname ) {
 		// Replace the area with the name with an input control with the name,
 		// plus a button to submit it.
@@ -147,7 +84,7 @@ var MailboxManagerClass = new Class({
 	},
 
 	mailboxDelete: function ( fullboxname, boxname ) {
-		if ( confirm("Are you sure you want to delete '" + boxname + "'? This action is irreversable.") ) {
+		if ( confirm("Are you sure you want to delete '" + boxname + "'?\nAll messages in this mailbox will be deleted.\nThis cannot be undone.") ) {
 			if_remoteRequestStart();
 			new Ajax( 'ajax.php', {
 				postBody: 'request=mailboxAction&action=delete&mailbox1=' + encodeURIComponent(fullboxname),
@@ -270,43 +207,57 @@ var MailboxManagerClass = new Class({
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
 
-		switch ( result.action ) {
-			case 'rename':
-				// Remove the name area, show the buttons.
-				// Then change the IDs of the various parts.
-				//var nameArea = $('mbm-namearea-' + result.mailbox1);
-				//var nameRow = $('mbm-row-' + result.mailbox1);
+		// Since the manager tab appears with an AJAX call
+		// (for now), repeating that call will regenerate the list.
+		OptionsEditor.showEditor('mailboxes');
 
-				//var delimiter = this.mailboxCache[0]['delimiter'];
-				//var startIndex = result.mailbox2.lastIndexOf( delimiter );
-				//var mailboxName = result.mailbox2;
-				//var mailboxDepth = result.mailbox2.split( delimiter );
-				//mailboxDepth = mailboxDepth.length - 1;
-				//if ( startIndex != -1 ) {
-				//	mailboxName = result.mailbox2.substr( startIndex + 1 );
-				//}
-
-				//if ( nameRow ) {
-				//	nameRow.id = 'mbm-row-' + result.mailbox2;
-				//}
-				//if ( nameArea ) {
-				//	var nameAreaHtml = "";
-				//	for ( var j = 0; j < mailboxDepth; j++ ) {
-				//		nameAreaHtml += "-";
-				//	}
-				//	nameAreaHtml += mailboxName;
-				//	nameArea.setHTML(nameAreaHtml);
-				//	nameArea.id = "mbm-namearea-" + result.mailbox2;
-				//}
-				//break;
-				// Hack: just fall through and update the whole thing on rename.
-			case 'delete':
-			case 'create':
-			case 'move':
-				// Refresh the whole list.
-				OptionsEditor.showEditor('mailboxes');
-				break;
-		}
+// 		switch ( result.action ) {
+// 			case 'rename':
+// 				// Remove the name area, show the buttons.
+// 				// Then change the IDs of the various parts.
+// 				var nameArea = $('mbm-namearea-' + result.mailbox1);
+// 				var buttonArea = $('mbm-buttonarea-' + result.mailbox1);
+// 				var nameRow = $('mbm-row-' + result.mailbox1);
+//
+// 				var delimiter = this.mailboxCache[0]['delimiter'];
+// 				var startIndex = result.mailbox2.lastIndexOf( delimiter );
+// 				var mailboxName = result.mailbox2;
+// 				var mailboxDepth = result.mailbox2.split( delimiter );
+// 				mailboxDepth = mailboxDepth.length - 1;
+// 				if ( startIndex != -1 ) {
+// 					mailboxName = result.mailbox2.substr( startIndex + 1 );
+// 				}
+//
+// 				if ( nameRow ) {
+// 					nameRow.id = 'mbm-row-' + result.mailbox2;
+// 				}
+// 				if ( nameArea ) {
+// 					var nameAreaHtml = "";
+// 					for ( var j = 0; j < mailboxDepth; j++ ) {
+// 						nameAreaHtml += "-";
+// 					}
+// 					nameAreaHtml += mailboxName;
+// 					nameArea.setHTML(nameAreaHtml);
+// 					nameArea.id = "mbm-namearea-" + result.mailbox2;
+// 				}
+// 				if ( buttonArea ) {
+// 					buttonArea.setHTML( this._makeButtons( result.mailbox2, mailboxName ) );
+// 					buttonArea.id = "mbm-buttonarea-" + result.mailbox2;
+// 					buttonArea.setStyle( 'display', 'block' );
+// 				}
+// 				break;
+// 			case 'delete':
+// 				var nameRow = $('mbm-row-' + result.mailbox1);
+// 				if ( nameRow ) {
+// 					nameRow.remove();
+// 				}
+// 				break;
+// 			case 'create':
+// 			case 'move':
+// 				// Refresh the whole list.
+// 				this.showManager();
+// 				break;
+// 		}
 
 		if ( result.mailboxes ) {
 			this.mailboxCache = result.mailboxes;

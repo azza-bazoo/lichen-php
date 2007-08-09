@@ -102,11 +102,11 @@ function list_showCB( responseText ) {
 			"[<a href=\"#clearsearch\" onclick=\"doQuickSearch(null, true); return false\">clear search</a>]";
 	}
 
-	if ( window.khtml ) {
-		tableContents += "<table style=\"width:" + (window.getWidth()-118) + "px\">";
-	} else {
+//	if ( window.khtml ) {
+//		tableContents += "<table style=\"width:" + (window.getWidth()-118) + "px\">";
+//	} else {
 		tableContents += "<table>";
-	}
+//	}
 
 	tableContents += "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" style=\"width:" + (window.getWidth()-515) + "px\" /><col class=\"mcol-date\" /></colgroup>";
 
@@ -193,7 +193,7 @@ function list_showCB( responseText ) {
 		var sortImg = new Element( 'img', { 'class': 'list-sort-marker',
 				'src': 'themes/' + userSettings.theme + '/icons/sort_decrease.png' } );
 		$( 'list-sort-' + listCurrentSort.substring( 0, listCurrentSort.length-2 ) ).getParent().adopt( sortImg );
-	} else if ( listCurrentSort != "" ) {
+	} else {
 		var sortImg = new Element( 'img', { 'class': 'list-sort-marker',
 				'src': 'themes/' + userSettings.theme + '/icons/sort_incr.png' } );
 		// mootools' injectAfter doesn't seem to work here
@@ -211,9 +211,9 @@ function list_createPageBar( resultObj, isTopBar ) {
 	var newPageBar = "";
 
 	if ( isTopBar ) {
-		newPageBar += "<div class=\"header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" id=\"top-corner\" />";
+		newPageBar += "<div class=\"list-header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" />";
 	} else {
-		newPageBar += "<div class=\"footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" id=\"bottom-corner\" />";
+		newPageBar += "<div class=\"list-footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" class=\"bottom-corner\" />";
 	}
 
 	var thisPage = resultObj.thispage.toInt() + 1;
@@ -250,14 +250,14 @@ function list_createPageBar( resultObj, isTopBar ) {
 
 	newPageBar += "</div><div class=\"header-right\">";
 
-// 	if ( thisPage > 2 ) {
-// 		newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, 0); return false\">first</a> | ";
-// 	}
-	if ( thisPage > 1 ) {
-		newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (thisPage-2) + "); return false\">previous</a> | ";
-	}
-
 	if ( resultObj.numberpages > 1 ) {
+	// 	if ( thisPage > 2 ) {
+	// 		newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, 0); return false\">first</a> | ";
+	// 	}
+		if ( thisPage > 1 ) {
+			newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (thisPage-2) + "); return false\">previous</a> | ";
+		}
+
 		newPageBar += "<select onchange=\"list_show(null, this.value);\">";
 		var pageSize = resultObj.pagesize.toInt();
 		var maxMessages = resultObj.numbermessages.toInt();
@@ -287,7 +287,7 @@ function list_createPageBar( resultObj, isTopBar ) {
 	// 	}
 	} else {
 		if ( resultObj.numbermessages > 0 ) {
-			newPageBar += "1 - " + resultObj.numbermessages;
+			newPageBar += "showing 1 to " + resultObj.numbermessages + " of " + resultObj.numbermessages;
 		}
 	}
 

@@ -54,22 +54,24 @@ th.list-sortlabel { text-align: left; font-weight: normal; }
 img.list-sort-marker { margin-left: 4px; vertical-align: middle; }
 a#list-sort-date { margin-left: 10px; }
 
-.header-bar, .footer-bar { font-size: 11px; line-height: 20px; padding: 2px; background: #ffffbf; }
-.header-bar { height: 20px; }
-.footer-bar { height: 40px; }
+.footer-bar, .list-header-bar, .list-footer-bar { line-height: 20px; padding: 2px; }
+.footer-bar, .list-header-bar { height: 20px; }
+.header-bar, .list-footer-bar { height: 40px; }
 
-.header-bar, .footer-bar, .list-sortrow { background: #ffffbf; font-size: 11px; }
-.header-bar a, .footer-bar a, .list-sortlabel a { color: #0000ff; }
+.header-bar { background: #ffffbf; font-size: smaller; }
 
-#top-corner, #bottom-corner { position: absolute; left: 0; width: 5px; height: 5px; }
-#top-corner { top: 0; }
-#bottom-corner { bottom: 0; }
+.footer-bar, .list-header-bar, .list-footer-bar, .list-sortrow { background: #ffffbf; font-size: 11px; }
+.footer-bar a, .list-header-bar a, .list-footer-bar a, .list-sortlabel a { color: #0000ff; }
 
 .header-left { float: left; margin-left: 7px; }
 .header-right { float: right; margin-right: 7px; }
-.footer-bar .header-right { margin-top: 10px; }
+.list-footer-bar .header-right { margin-top: 10px; }
 
 a.list-return { font-weight: bold; }
+
+img.top-corner, img.bottom-corner { position: absolute; left: 0; width: 5px; height: 5px; }
+img.top-corner { top: 0; }
+img.bottom-corner { bottom: 0; }
 
 /* Login screen */
 
@@ -98,6 +100,10 @@ form.login { background: url('login.jpg') no-repeat; font-size: smaller; }
 
 /* Options panel */
 
+.opts-tabbar { line-height: 25px; padding-top: 15px; }
+.opts-tabbar a { padding: 4px; margin-left: 15px; }
+.opts-activetab { color: #000000; text-decoration: none; font-weight: bold; background: #ffffff; }
+
 form.opts-tab { margin-top: 8px; width: 720px; font-size: smaller; }
 
 .opts-block { border-bottom: solid 1px #999999; padding: 15px; margin-bottom: 5px; }
@@ -108,6 +114,9 @@ form.opts-tab { margin-top: 8px; width: 720px; font-size: smaller; }
 
 #opts-identity-sel { float: left; }
 #opts-identity-edit { float: right; }
+
+.opts-mbm-name { font-weight: bold; }
+#opts-mbm-list li { margin-bottom: 0.8em; }
 
 .opts-close { clear: both; text-align: right; }
 
