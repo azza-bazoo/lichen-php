@@ -193,7 +193,7 @@ function list_showCB( responseText ) {
 		var sortImg = new Element( 'img', { 'class': 'list-sort-marker',
 				'src': 'themes/' + userSettings.theme + '/icons/sort_decrease.png' } );
 		$( 'list-sort-' + listCurrentSort.substring( 0, listCurrentSort.length-2 ) ).getParent().adopt( sortImg );
-	} else {
+	} else if ( listCurrentSort != "" ) {
 		var sortImg = new Element( 'img', { 'class': 'list-sort-marker',
 				'src': 'themes/' + userSettings.theme + '/icons/sort_incr.png' } );
 		// mootools' injectAfter doesn't seem to work here
