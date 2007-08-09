@@ -14,6 +14,7 @@ $SMTP_SERVER  = "localhost";
 $SMTP_PORT    = 465;
 $SMTP_DOMAIN  = $_SERVER['SERVER_NAME'];
 $SMTP_USE_SSL = true;
+$SMTP_DOAUTH  = true;  // Use SMTP authentication; the users username/password is sent to authenticate.
 
 // Location to store user settings and uploaded attachments.
 // This directory must be writable by the web server, and ideally should not

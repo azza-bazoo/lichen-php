@@ -929,7 +929,8 @@ function request_setFlag() {
 function request_sendMessage() {
 	global $mbox, $IMAP_CONNECT, $mailbox;
 	global $IMAP_PORT, $IMAP_SERVER, $IS_SSL, $LICHEN_VERSION,
-		$SPECIAL_FOLDERS, $SMTP_SERVER, $SMTP_PORT, $SMTP_USE_SSL;
+		$SPECIAL_FOLDERS, $SMTP_SERVER, $SMTP_PORT, $SMTP_USE_SSL,
+		$SMTP_DOAUTH;
 
 	include ( 'libs/Swift.php' );
 	include ( 'libs/Swift/Connection/SMTP.php' );
@@ -1120,17 +1121,20 @@ function request_sendMessage() {
 		// Create the connection to the remote SMTP server.
 		// TODO: Add TLS support.
 		$smtpConnection = null;
+		$SMTP_DOAUTH;
 		if ( $SMTP_USE_SSL ) {
 			$smtpConnection =& new Swift_Connection_SMTP( $SMTP_SERVER, $SMTP_PORT, SWIFT_SMTP_ENC_SSL );
 		} else {
 			$smtpConnection =& new Swift_Connection_SMTP( $SMTP_SERVER, $SMTP_PORT, SWIFT_SMTP_ENC_OFF );
 		}
 
-		// Authenticate with the remote server.
-		// (Probably will need to have the ability to set it different per user... I've already run into
-		// this problem, but fortunately Hourann owns the mailserver in question...)
-		$smtpConnection->setUsername( $_SESSION['user'] );
-		$smtpConnection->setPassword( $_SESSION['pass'] );
+		if ( $SMTP_DOAUTH ) {
+			// Authenticate with the remote server.
+			// (Probably will need to have the ability to set it different per user... I've already run into
+			// this problem, but fortunately Hourann owns the mailserver in question...)
+			$smtpConnection->setUsername( $_SESSION['user'] );
+			$smtpConnection->setPassword( $_SESSION['pass'] );
+		}
 
 		// Send the message.
 		$messageSender =& new Swift( $smtpConnection );
