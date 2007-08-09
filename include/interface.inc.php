@@ -30,7 +30,12 @@ if ( !function_exists( 'json_encode' ) ) {
 	$json_convertor = new Services_JSON();
 
 	function unobjectify_deep($value) {
-		$value = is_object( $value ) ? array_map( 'unobjectify_deep', $value ) : get_object_vars( $value );
+		if ( is_object( $value ) ) {
+			$value = get_object_vars( $value );
+		}
+		if ( is_array( $value ) ) {
+			$value = array_map( 'unobjectify_deep', $value );
+		}
 		return $value;
 	}
 	function json_encode_assoc($data) {
