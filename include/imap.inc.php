@@ -124,7 +124,7 @@ function imapCheckMailboxExistence( $boxname ) {
 
 	$exists = @imap_status( $mbox, $IMAP_CONNECT . $boxname );
 
-	if ( $exists != null ) {
+	if ( $exists == null ) {
 		$result = imap_createmailbox( $mbox, $IMAP_CONNECT . $boxname );
 		if ( $result == false ) {
 			return false;
