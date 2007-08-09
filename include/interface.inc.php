@@ -29,13 +29,21 @@ if ( !function_exists( 'json_encode' ) ) {
 	include( 'libs/JSON.php' );
 	$json_convertor = new Services_JSON();
 
+	function unobjectify_deep($value) {
+		$value = is_object( $value ) ? array_map( 'unobjectify_deep', $value ) : get_object_vars( $value );
+		return $value;
+	}
 	function json_encode_assoc($data) {
 		global $json_convertor;
 		return $json_convertor->encode($data);
 	}
 	function json_decode_assoc($data) {
 		global $json_convertor;
-		return $json_convertor->decode($data);
+		$decoded = $json_convertor->decode($data);
+		// PEAR's JSON follows the JSON spec exactly; so associative arrays become objects.
+		// This breaks our code, because we expect to be able to array['foo'] which doesn't work with objects.
+		$decoded = unobjectify_deep($decoded);
+		return $decoded;
 	}
 } else {
 	// PEAR's JSON functions take and return arrays.
