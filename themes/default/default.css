@@ -91,12 +91,17 @@ form.login { background: url('login.jpg') no-repeat; font-size: smaller; }
 
 /* Message display */
 
-.plain-message, .html-message { width: 50em; border-top: solid 1px black; padding: 14px 0 14px 0; font-size: smaller; }
-.plain-message-monospace { font-family: monospace; }
+.plain-message, .html-message, .msg-notification { width: 50em; font-size: smaller; }
+.plain-message, .html-message { padding: 14px 0 14px 0; border-top: solid 1px #000000; }
+.plain-message-monospace { font-family: monospace; font-size: 13px; }
 
 .msg-head-subject { font-size: 17px; font-weight: normal; margin: 12px 0 0 0; }
 .msg-head-line2 { font-size: 11px; margin: 0; }
 .msg-head-date, .msg-head-sender { font-weight: bold; }
+
+#msg-switch-view { font-size: 11px; float: right; margin: 10px; }
+ .msg-notification { padding: 6px; border-top: solid 1px #999999; font-style: italic; }
+.msg-notification, .msg-notification a { color: #999999; }
 
 /* Options panel */
 

@@ -226,7 +226,7 @@ function list_createPageBar( resultObj, isTopBar ) {
 
 	newPageBar += "<div class=\"header-left\">";
 	newPageBar += "<select onchange=\"list_withSelected(this)\">";
-	newPageBar += "<option value=\"noop\" selected=\"selected\">Move selected to ...</option>";
+	newPageBar += "<option value=\"noop\" selected=\"selected\">move selected to ...</option>";
 
 	// TODO: Make this work properly - currently using a global var
 	// specially created in mailboxes-list.js
@@ -240,9 +240,9 @@ function list_createPageBar( resultObj, isTopBar ) {
 	}
 
 	newPageBar += "</select>";
-	newPageBar += " &nbsp; <button onclick=\"if_moveMessages('LICHENTRASH');return false\">delete</button> &nbsp;";
-	newPageBar += "<button onclick=\"list_withSelected(null, 'flag');return false\">flag</button> &nbsp; ";
-	newPageBar += "<button onclick=\"list_withSelected(null, 'markseen');return false\">mark read</button><br />";
+	newPageBar += " &nbsp; <button onclick=\"if_moveMessages('LICHENTRASH');return false\">delete</button>";
+	newPageBar += " &nbsp; <button onclick=\"list_withSelected(null, 'flag');return false\">flag</button>";
+	newPageBar += " &nbsp; <button onclick=\"list_withSelected(null, 'markseen');return false\">mark read</button><br />";
 
 	if ( !isTopBar ) {
 		newPageBar += "select: <a href='#' onclick='list_selectMessages(\"all\"); return false'>all</a> | ";

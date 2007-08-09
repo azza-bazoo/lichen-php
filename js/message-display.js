@@ -96,30 +96,32 @@ var MessageDisplay = new Class({
 		if ( adjacentMessages.next ) {
 			messageNavBar += "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + adjacentMessages.next.uid + "')\">next message</a>";
 		}
-		messageNavBar += "</div>";
 
-		htmlFragment += messageNavBar + "</div>";
+		messageNavBar += "</div></div>";
+		htmlFragment += messageNavBar;
+
+		htmlFragment += "<select id=\"msg-switch-view\" onchange=\"MessageDisplayer.switchView()\">";
+		htmlFragment += "<option value=\"noop\">switch view ...</option>";
+
+		if ( message.texthtml.length > 0 || message.texthtmlpresent ) {
+			htmlFragment += "<option value=\"html\">HTML part</option>";
+		}
+		if ( message.textplain.length > 0 || message.textplainpresent ) {
+			htmlFragment += "<option value=\"text\">text part</option>";
+			htmlFragment += "<option value=\"text-mono\">monospace text</option>";
+		}
+		htmlFragment += "<option value=\"source\">message source</option>";
+		htmlFragment += "</select>";
 
 		htmlFragment += "<h1 class=\"msg-head-subject\">" + message.subject + "</h1>";
 		htmlFragment += "<p class=\"msg-head-line2\">from <span class=\"msg-head-sender\">" + message.from + "</span> ";
 		htmlFragment += "at <span class=\"msg-head-date\">" + message.localdate + "</span></p>";
 
-		htmlFragment += "<div>";
-		var viewLinks = Array();
-		if ( message.texthtml.length > 0 || message.texthtmlpresent ) {
-			viewLinks.push( "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + message.uid + "', 'html')\">HTML View</a>" );
-			if ( message.htmlhasremoteimages ) {
-				viewLinks.push( "<a href=\"#\" onclick=\"return MessageDisplayer.enableRemoteImages()\">Show Remote Images</a>" );
-			}
+		if ( message.htmlhasremoteimages ) {
+			htmlFragment += "<div class=\"msg-notification\">";
+			htmlFragment += "Remote images are not displayed. [<a href=\"#\" onclick=\"return MessageDisplayer.enableRemoteImages()\">show images</a>]";
+			htmlFragment += "</div>";
 		}
-		if ( message.textplain.length > 0 || message.textplainpresent ) {
-			viewLinks.push( "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + message.uid + "', 'text')\">Text View</a>" );
-			viewLinks.push( "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + message.uid + "', 'monospace')\">Monospace View</a>" );
-		}
-		viewLinks.push( "<a href=\"#\" onclick=\"if_newWin('message.php?source&amp;mailbox='+listCurrentMailbox+'&amp;uid='+encodeURIComponent(lastShownUID))\">Source</a>" );
-
-		htmlFragment += viewLinks.join( " | " );
-		htmlFragment += "</div>";
 
 		// TODO: Clean up this multistage IF. Its a bit IFFY.
 		if ( message.texthtml.length > 0 && forceType != "text" && forceType != "monospace" && forceType != "source" ) {
@@ -168,6 +170,29 @@ var MessageDisplay = new Class({
 		htmlFragment += "<div class=\"footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" class=\"bottom-corner\" />" + messageNavBar + "</div>";
 
 		return htmlFragment;
+	},
+
+	switchView: function() {
+		// Respond to a user's click on the "switch view" dropdown
+		switch( $('msg-switch-view').value ) {
+			case 'html':
+				showMsg( listCurrentMailbox, lastShownUID, 'html' );
+				break;
+			case 'text':
+				showMsg( listCurrentMailbox, lastShownUID, 'text' );
+				break;
+			case 'text-mono':
+				showMsg( listCurrentMailbox, lastShownUID, 'monospace' );
+				break;
+			case 'source':
+				if_newWin(
+					'message.php?source&mailbox='
+					+ encodeURIComponent( listCurrentMailbox ) + '&uid='
+					+ encodeURIComponent( lastShownUID ) );
+				break;
+		}
+
+		$('msg-switch-view').value = 'noop';
 	},
 
 	enableRemoteImages: function () {
