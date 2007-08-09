@@ -53,6 +53,13 @@ var OptionsEditorClass = new Class({
 		$('opts-bar').style.display = 'block';
 		$(this.wrapper).style.display = 'block';
 		$(this.wrapper).setHTML(result.htmlFragment);
+
+		// The mailbox manager needs a client side cache list of
+		// the mailboxes. It is passed back with the HTML data.
+		// Cache it in the appropriate spot - this is really a hack.
+		if ( result.mailboxes ) {
+			MailboxManager.mailboxCache = result.mailboxes;
+		}
 	},
 
 	closePanel: function () {
@@ -63,6 +70,9 @@ var OptionsEditorClass = new Class({
 		$('list-bar').style.display = 'block';
 		$('list-wrapper').style.display = 'block';
 	//	opts_get();
+		
+		// Hack: update the mailbox list; because it may have changed.
+		Messages.fetchMailboxList();
 	},
 
 	generateQueryString: function( sourceForm ) {
@@ -170,7 +180,7 @@ var OptionsEditorClass = new Class({
 		$('opts-identity-address').value = idAddress;
 
 		// TODO: something more efficient than a closure
-		$('opts-identity-save').onclick = function(){ return OptionsEditor.identity_edit_done(idemail); };
+		$('opts-identity-save').onclick = function(){ return OptionsEditor.identity_edit_done(idAddress); };
 
 		return false;
 	},

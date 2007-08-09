@@ -260,7 +260,12 @@ function generateSettingsPanel() {
 			break;
 	}
 
-	return array( "htmlFragment" => $panel );
+	$resultData = array( "htmlFragment" => $panel );
+	if ( $_POST['tab'] == 'mailboxes' ) {
+		$resultData['mailboxes'] = getMailboxList();
+	}
+
+	return $resultData;
 }
 
 
@@ -346,7 +351,7 @@ function generateIdentityEditor() {
 
 	// Temporary workaround in case a default identity isn't set
 	// (the saving code should check for & prevent this scenario)
-	$defaultIdentity = $USER_SETTINGS['identities'][count($USER_SETTINGS['identities'])];
+	$defaultIdentity = $USER_SETTINGS['identities'][count($USER_SETTINGS['identities']) - 1];
 
 	$result = "<form class=\"opts-tab\" id=\"opts-identities\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
 
@@ -397,6 +402,7 @@ function generateMailboxManager() {
 
 	$result = "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
 	$result .= "<button onclick=\"MailboxManager.newChild('');return false\">add mailbox</button>";
+	$result .= "<div id=\"mbm-changearea-\"></div>";
 	$result .= "<ul>";
 //	$result .= "<tr id=\"mbm-row-\"><td><div id=\"mbm-namearea-\">[Top Level]</div></td>";
 //	$result .= "<td><div id=\"mbm-buttonarea-\"></div></td></tr>";
@@ -418,6 +424,7 @@ function generateMailboxManager() {
 		$result .= "[<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">delete</a>]";
 
 		$result .= "<br />[<a href=\"#\" onclick=\"MailboxManager.newChild('{$thisMailbox['fullboxname']}'); return false\">add subfolder</a>]";
+		$result .= "<div id=\"mbm-changearea-{$thisMailbox['fullboxname']}\"></div>";
 
 		$result .= "</li>";
 	}

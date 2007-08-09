@@ -97,7 +97,7 @@ var MailboxManagerClass = new Class({
 		// plus a button to submit it.
 		if ( $('mbm-namearea-' + fullboxname) ) {
 			var editHtml = "<input id=\"mbm-rename-" + fullboxname + "\" type=\"text\" size=\"20\" value=\"" + boxname + "\" />";
-			editHtml += "<button onclick=\"MailboxManager.renameDone('" + fullboxname + "', '" + boxname + "');return false\">save</button> <button onclick=\"MailboxManager.renameCancel('" + boxname + "');return false\">cancel</button> ";
+			editHtml += "<button onclick=\"MailboxManager.renameDone('" + fullboxname + "', '" + boxname + "');return false\">save</button> <button onclick=\"MailboxManager.renameCancel('" + fullboxname + "');return false\">cancel</button> ";
 
 			$('mbm-namearea-' + fullboxname).setHTML( editHtml );
 
@@ -137,7 +137,7 @@ var MailboxManagerClass = new Class({
 		}
 	},
 
-	renameCancel: function ( boxname ) {
+	renameCancel: function ( fullboxname ) {
 		// Cancel an inline rename
 
 		var nameBox = $('mbm-rename-' + fullboxname);
@@ -163,18 +163,16 @@ var MailboxManagerClass = new Class({
 		// Append a new entry form to the area.
 		// plus a button to submit it.
 
-		var nameArea = $('mbm-namearea-' + fullboxname);
-		var buttonArea = $('mbm-buttonarea-' + fullboxname);
+		var nameArea = $('mbm-changearea-' + fullboxname);
 
-		if ( nameArea && buttonArea ) {
+		if ( nameArea ) {
 			var childHtml = "<div id=\"mbm-newchild-wrapper-" + fullboxname + "\">";
 			childHtml += "New Subfolder: <input id=\"mbm-newchild-" + fullboxname + "\" type=\"text\" size=\"20\" />";
 			childHtml += "<button onclick=\"MailboxManager.newChildSubmit('" + fullboxname + "'); return false\">Add</button>";
 			childHtml += "<button onclick=\"MailboxManager.newChildCancel('" + fullboxname + "'); return false\">Cancel</button>";
 			childHtml += "</div>";
 
-			nameArea.innerHTML += childHtml;
-			buttonArea.setStyle( 'display', 'none' );
+			nameArea.setHTML( childHtml );
 
 			var newChildBox = $('mbm-newchild-' + fullboxname);
 			if ( newChildBox ) {
@@ -203,23 +201,18 @@ var MailboxManagerClass = new Class({
 	newChildCancel: function ( fullboxname ) {
 		// Just remove the form.
 		var childArea = $('mbm-newchild-wrapper-' + fullboxname);
-		var buttonArea = $('mbm-buttonarea-' + fullboxname);
 
 		if ( childArea ) {
 			childArea.remove();
-		}
-		if ( buttonArea ) {
-			buttonArea.setStyle( 'display', 'block' );
 		}
 	},
 
 	changeParentInline: function ( fullboxname, boxname ) {
 		// Show a drop down allowing us to change the parent.
 
-		var nameArea = $('mbm-namearea-' + fullboxname);
-		var buttonArea = $('mbm-buttonarea-' + fullboxname);
+		var nameArea = $('mbm-changearea-' + fullboxname);
 
-		if ( nameArea && buttonArea ) {
+		if ( nameArea ) {
 			var childHtml = "<div id=\"mbm-changeparent-wrapper-" + fullboxname + "\">";
 			childHtml += "Move to subfolder of: ";
 			childHtml += "<select id=\"mbm-changeparent-" + fullboxname + "\">";
@@ -243,8 +236,7 @@ var MailboxManagerClass = new Class({
 			childHtml += "<button onclick=\"MailboxManager.changeParentCancel('" + fullboxname + "', '" + boxname + "'); return false\">Cancel</button>";
 			childHtml += "</div>";
 
-			nameArea.innerHTML += childHtml;
-			buttonArea.setStyle( 'display', 'none' );
+			nameArea.setHTML( childHtml );
 		}
 	},
 
@@ -268,13 +260,9 @@ var MailboxManagerClass = new Class({
 	changeParentCancel: function ( fullboxname, boxname ) {
 		// Just remove the form.
 		var childArea = $('mbm-changeparent-wrapper-' + fullboxname);
-		var buttonArea = $('mbm-buttonarea-' + fullboxname);
 
 		if ( childArea ) {
 			childArea.remove();
-		}
-		if ( buttonArea ) {
-			buttonArea.setStyle( 'display', 'block' );
 		}
 	},
 
@@ -286,47 +274,37 @@ var MailboxManagerClass = new Class({
 			case 'rename':
 				// Remove the name area, show the buttons.
 				// Then change the IDs of the various parts.
-				var nameArea = $('mbm-namearea-' + result.mailbox1);
-				var buttonArea = $('mbm-buttonarea-' + result.mailbox1);
-				var nameRow = $('mbm-row-' + result.mailbox1);
+				//var nameArea = $('mbm-namearea-' + result.mailbox1);
+				//var nameRow = $('mbm-row-' + result.mailbox1);
 
-				var delimiter = this.mailboxCache[0]['delimiter'];
-				var startIndex = result.mailbox2.lastIndexOf( delimiter );
-				var mailboxName = result.mailbox2;
-				var mailboxDepth = result.mailbox2.split( delimiter );
-				mailboxDepth = mailboxDepth.length - 1;
-				if ( startIndex != -1 ) {
-					mailboxName = result.mailbox2.substr( startIndex + 1 );
-				}
+				//var delimiter = this.mailboxCache[0]['delimiter'];
+				//var startIndex = result.mailbox2.lastIndexOf( delimiter );
+				//var mailboxName = result.mailbox2;
+				//var mailboxDepth = result.mailbox2.split( delimiter );
+				//mailboxDepth = mailboxDepth.length - 1;
+				//if ( startIndex != -1 ) {
+				//	mailboxName = result.mailbox2.substr( startIndex + 1 );
+				//}
 
-				if ( nameRow ) {
-					nameRow.id = 'mbm-row-' + result.mailbox2;
-				}
-				if ( nameArea ) {
-					var nameAreaHtml = "";
-					for ( var j = 0; j < mailboxDepth; j++ ) {
-						nameAreaHtml += "-";
-					}
-					nameAreaHtml += mailboxName;
-					nameArea.setHTML(nameAreaHtml);
-					nameArea.id = "mbm-namearea-" + result.mailbox2;
-				}
-				if ( buttonArea ) {
-					buttonArea.setHTML( this._makeButtons( result.mailbox2, mailboxName ) );
-					buttonArea.id = "mbm-buttonarea-" + result.mailbox2;
-					buttonArea.setStyle( 'display', 'block' );
-				}
-				break;
+				//if ( nameRow ) {
+				//	nameRow.id = 'mbm-row-' + result.mailbox2;
+				//}
+				//if ( nameArea ) {
+				//	var nameAreaHtml = "";
+				//	for ( var j = 0; j < mailboxDepth; j++ ) {
+				//		nameAreaHtml += "-";
+				//	}
+				//	nameAreaHtml += mailboxName;
+				//	nameArea.setHTML(nameAreaHtml);
+				//	nameArea.id = "mbm-namearea-" + result.mailbox2;
+				//}
+				//break;
+				// Hack: just fall through and update the whole thing on rename.
 			case 'delete':
-				var nameRow = $('mbm-row-' + result.mailbox1);
-				if ( nameRow ) {
-					nameRow.remove();
-				}
-				break;
 			case 'create':
 			case 'move':
 				// Refresh the whole list.
-				this.showManager();
+				OptionsEditor.showEditor('mailboxes');
 				break;
 		}
 

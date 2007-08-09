@@ -472,13 +472,13 @@ function fetchMessages( $messageNumbers ) {
 function imapMoveMailbox( $sourceMailbox, $newParent ) {
 	global $mbox, $IMAP_CONNECT;
 
-	$sourceExists    = imap_status( $sourceMailbox );
+	$sourceExists    = imap_status( $mbox, "{$IMAP_CONNECT}{$sourceMailbox}", SA_ALL );
 	if ( !$sourceExists ) {
 		return _("Unable to move a mailbox that doesn't exist.");
 	}
 
 	if ( $newParent != "" ) {
-		$newParentExists = imap_status( $newParent );
+		$newParentExists = imap_status( $mbox, "{$IMAP_CONNECT}{$newParent}", SA_ALL );
 		if ( !$newParentExists ) return _("Unable to move folders to a place that doesn't exist.");
 	}
 
@@ -527,7 +527,7 @@ function imapMoveMailbox( $sourceMailbox, $newParent ) {
 		}
 
 		// Now do the rename.
-		$result = imap_renamemailbox( $mbox, $IMAP_CONNECT . $child[0], $IMAP_CONNECT . $destName );
+		$result = imap_renamemailbox( $mbox, $IMAP_CONNECT . $child['oldname'], $IMAP_CONNECT . $destName );
 
 		if ( $result == false ) {
 			// Stop!
