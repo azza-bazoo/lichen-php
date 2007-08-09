@@ -118,22 +118,7 @@ function request_mailboxContentsList() {
 	$displayPage = 0;
 	$sortMessages = "";
 	$validityKey = "";
-	// No need to consider mailbox; this is already set above.
-	if ( isset( $_POST['search'] ) ) {
-		$searchQuery = $_POST['search'];
-	}
-	if ( isset( $_POST['page'] ) && is_numeric( $_POST['page'] ) ) {
-		$displayPage = $_POST['page'];
-	}
-	if ( isset( $_POST['sort'] ) && !empty( $_POST['sort'] ) ) {
-		$sortMessages = $_POST['sort'];
-	}
-	if ( isset( $_POST['validity'] ) ) {
-		$validityKey = $_POST['validity'];
-	}
 
-	// Save whatever they sent as the sort as the default.
-	// This is kinda of a hack, so basically the setting is "implicit".
 	$validSortTypes = array( "date", "date_r",
 				"from", "from_r",
 				"subject", "subject_r",
@@ -141,13 +126,27 @@ function request_mailboxContentsList() {
 				"cc", "cc_r",
 				"size", "size_r" );
 
-	if ( isset( $_POST['sort'] )
-		&& array_search( $_POST['sort'], $validSortTypes ) !== false
-		&& $_POST['sort'] != $USER_SETTINGS['list_sortmode'] ) {
+	if ( isset( $_POST['search'] ) ) {
+		$searchQuery = $_POST['search'];
+	}
 
-		// If the sort order has changed, save it.
-		$USER_SETTINGS['list_sortmode'] = $_POST['sort'];
-		saveUserSettings( $USER_SETTINGS );
+	if ( isset( $_POST['page'] ) && is_numeric( $_POST['page'] ) ) {
+		$displayPage = $_POST['page'];
+	}
+
+	if ( isset( $_POST['sort'] ) && array_search( $_POST['sort'], $validSortTypes ) !== false ) {
+		$sortMessages = $_POST['sort'];
+
+		if ( $_POST['sort'] != $USER_SETTINGS['list_sortmode'] ) {
+			// If the sort order has changed from the last one we saved,
+			// modify and save the user's preferences again.
+			$USER_SETTINGS['list_sortmode'] = $_POST['sort'];
+			saveUserSettings( $USER_SETTINGS );
+		}
+	}
+
+	if ( isset( $_POST['validity'] ) ) {
+		$validityKey = $_POST['validity'];
 	}
 
 	// See if the mailbox has changed. If not, no need to send back all that data.
@@ -546,7 +545,7 @@ function request_getMessage() {
 	}
 
 	// Prune off data that the client doesn't need.
-	// TODO: Maybe don't get it in the first place ?
+	// TODO: don't fetch it in the first place
 	switch ( $_POST['mode'] ) {
 		case 'html':
 			if ( count( $msgData['texthtml'] ) > 0 ) {
@@ -559,15 +558,8 @@ function request_getMessage() {
 			}
 			break;
 		case 'all':
-			// Don't prune anything, and add the message source.
-// 		case 'source':
-// 			// HACK ALERT... this should be cleaner, and also be able
-// 			// to handle large messages.
-// 			// TODO: This also screws up if the charset is strange in the email.
-// 			$msgData['source']  = imap_fetchheader( $mbox, $_POST['msg'], FT_UID );
-// 			$msgData['source'] .= imap_body( $mbox, $_POST['msg'], FT_UID );
-// 			$msgData['source']  = htmlentities( $msgData['source'] );
-// 			break;
+			// Don't prune anything
+			break;
 		default:
 			// If HTML data exists, prune off the text version.
 			// Other than that, don't touch it.
@@ -588,9 +580,11 @@ function request_getMessage() {
 // Create the HTML for the composer.
 //
 function request_createComposer() {
-	global $mbox, $IMAP_CONNECT, $mailbox, $IMAP_PORT, $IMAP_SERVER, $IS_SSL,
-		$LICHEN_VERSION, $SPECIAL_FOLDERS, $SMTP_SERVER, $SMTP_PORT, $USER_SETTINGS,
-		$LICHEN_URL, $UPLOAD_ATTACHMENT_MAX;
+	global $mbox, $IMAP_CONNECT, $mailbox;
+	global $IMAP_PORT, $IMAP_SERVER, $IS_SSL;
+	global $SMTP_SERVER, $SMTP_PORT, $USER_SETTINGS;
+	global $LICHEN_URL, $LICHEN_VERSION;
+	global $SPECIAL_FOLDERS, $UPLOAD_ATTACHMENT_MAX;
 
 	include ( 'libs/streamattach.php' );
 
@@ -603,7 +597,7 @@ function request_createComposer() {
 		$msgArray = retrieveMessage( $msgNo, false );
 
 		if ( $msgArray == null ) {
-			die( remoteRequestFailure( 'COMPOSER', _("Error: attempting to reply to or forward a non-existant email.") ) );
+			die( remoteRequestFailure( 'COMPOSER', _("Error: cannot find message to reply to or forward.") ) );
 		}
 		$headerObj = imap_headerinfo( $mbox, $msgNo );
 	}
@@ -642,9 +636,29 @@ function request_createComposer() {
 		$action = "new";
 	}
 
+	// Do we need to display the CC or BCC fields immediately?
+	$showCC = false;
+	if ( ( isset( $headerObj->cc  ) && count( $headerObj->cc ) > 0 &&
+		( $action == "draft" || $action == "replyall" ) )
+		|| isset( $mailtoDetails['cc'] ) ) {
+			// Unhide the CC field if:
+			// 1. editing a draft with CC.
+			// 2. replying-to-all on a message.
+			// 3. we were invoked from a mailto: link that had ?cc=foo
+			// All other cases: don't show the CC field by default.
+			$showCC = true;
+	}
+
+	// Show the BCC field if editing a draft, or if a mailto: link has ?bcc=foo
+	$showBCC = false;
+	if ( isset( $headerObj->bcc ) && count( $headerObj->bcc ) > 0 ) $showBCC = true;
+	if ( isset( $mailtoDetails['bcc'] ) ) $showBCC = true;
+
 	// Capture the output.
 	ob_start();
-	echo "<form action=\"$LICHEN_URL\" method=\"post\" name=\"composer\" id=\"composer\" class=\"compose\" onsubmit=\"comp_send();return false\">";
+	echo "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"comp-header\">New message</div></div>";
+
+	echo "<form action=\"$LICHEN_URL\" method=\"post\" id=\"compose\" onsubmit=\"comp_send();return false\">";
 
 	echo "<input type=\"hidden\" name=\"comp-mode\" id=\"comp-mode\" value=\"{$action}\" />";
 	if ( isset( $_POST['uid'] ) ) {
@@ -663,7 +677,7 @@ function request_createComposer() {
 		echo "<input name=\"comp-identity\" id=\"comp-identity\" type=\"hidden\" value=\"".
 		       htmlentities( $USER_SETTINGS['identities'][0]['address'] ) ."\" />";
 	} else {
-		echo "<p>", _("Identity"), ": <select name=\"comp-identity\" id=\"comp-identity\">";
+		echo "<label class=\"comp-label\" for=\"comp-identity\">", _("From:"), "</label> <select name=\"comp-identity\" id=\"comp-identity\">";
 		foreach ( $USER_SETTINGS['identities'] as $identity ) {
 			echo "<option value=\"". htmlentities( $identity['address'] ). "\"";
 			if ( $action == 'reply' || $action == 'replyall' ) {
@@ -685,8 +699,13 @@ function request_createComposer() {
 		echo "</select>";
 	}
 
-	// Build to To: area.
-	echo "<p>", _("To"), ": <textarea cols=\"80\" rows=\"3\" name=\"comp-to\" id=\"comp-to\">";
+	// Build to To: area, including buttons to display CC and BCC fields
+	echo "<div class=\"comp-label\"><label for=\"comp-to\">", _("To:"), "</label><br />";
+
+	echo "<p class=\"comp-add-fields\"><a id=\"comp-ccshow\" href=\"#\" style=\"display: ". ( $showCC ? "none" : "inline" ) .";\" onclick=\"$('comp-cceditor').style.display='block';$('comp-ccshow').style.display='none';return false\">", _("add CC"), "</a>";
+	echo " <a id=\"comp-bccshow\" href=\"#\" style=\"display: ". ( $showBCC ? "none" : "inline" ) .";\" onclick=\"$('comp-bcceditor').style.display='block';$('comp-bccshow').style.display='none';return false\">", _("add BCC"), "</a></p>";
+
+	echo "</div> <textarea name=\"comp-to\" id=\"comp-to\">";
 	switch ($action) {
 		case 'reply':
 			// TODO: parse headers properly earlier, see above, also support multiple CCs
@@ -711,57 +730,38 @@ function request_createComposer() {
 			echo htmlentities( $mailtoDetails['email-to'] );
 			break;
 	}
-	echo "</textarea></p>";
+	echo "</textarea>";
 
-	$showCC = false;
-	if ( isset( $headerObj->cc  ) && count( $headerObj->cc ) > 0 &&
-		( $action == "draft" || $action == "replyall" ) ) {
-			// We want to show the CC under these conditions:
-			// 1. We are editing a draft.
-			// 2. We are replying-to-all on a message.
-			// All other cases: don't show the CC field by default.
-			$showCC = true;
-	}
-	// Corner case: show the CC field when a mailto: link has a cc= part.
-	if ( isset( $mailtoDetails['cc'] ) ) $showCC = true;
-	echo "<p id=\"comp-cceditor\" style=\"display: ". ( $showCC ? "block" : "none" ) .";\">";
-	echo _("CC"), ":  <textarea cols=\"80\" rows=\"3\" name=\"comp-cc\"  id=\"comp-cc\">";
+	echo "<div id=\"comp-cceditor\" style=\"display: ". ( $showCC ? "block" : "none" ) .";\">";
+	echo "<label class=\"comp-label\" for=\"comp-cc\">", _("CC:"), "</label> <textarea name=\"comp-cc\"  id=\"comp-cc\">";
 	if ( $showCC && isset( $headerObj ) && isset( $headerObj->cc ) ) {
 		echo htmlentities( formatIMAPAddress( $headerObj->cc ) );
 	}
 	if ( isset( $mailtoDetails['cc'] ) ) {
 		echo htmlentities( $mailtoDetails['cc'] );
 	}
-	echo "</textarea></p>";
+	echo "</textarea></div>";
 
-	// Practically, we only show the BCC field when editing a draft; you won't
-	// see it on incoming messages (or will you? Bold statement by me.)
-	$showBCC = false;
-	if ( isset( $headerObj->bcc ) && count( $headerObj->bcc ) > 0 ) $showBCC = true;
-	if ( isset( $mailtoDetails['bcc'] ) ) $showBCC = true;
-	echo "<p id=\"comp-bcceditor\" style=\"display: ". ( $showBCC ? "block" : "none" ). ";\">";
-	echo _("BCC"), ": <textarea cols=\"80\" rows=\"3\" name=\"comp-bcc\" id=\"comp-bcc\">";
+	echo "<div id=\"comp-bcceditor\" style=\"display: ". ( $showBCC ? "block" : "none" ). ";\">";
+	echo "<label class=\"comp-label\" for=\"comp-bcc\">", _("BCC:"), "</label> <textarea name=\"comp-bcc\" id=\"comp-bcc\">";
 	if ( $showBCC && isset( $headerObj ) && isset( $headerObj->bcc ) ) {
 		echo htmlentities( formatIMAPAddress( $headerObj->bcc ) );
 	}
 	if ( isset( $mailtoDetails['bcc'] ) ) {
 		echo htmlentities( $mailtoDetails['bcc'] );
 	}
-	echo "</textarea></p>";
-
-	echo "<p><a id=\"comp-ccshow\" href=\"#\" style=\"display: ". ( $showCC ? "none" : "inline" ) .";\" onclick=\"toggleDisplay('comp-cceditor');toggleDisplay('comp-ccshow');return false\">", _("Add CC"), "</a>";
-	echo " <a id=\"comp-bccshow\" href=\"#\" style=\"display: ". ( $showBCC ? "none" : "inline" ) .";\" onclick=\"toggleDisplay('comp-bcceditor');toggleDisplay('comp-bccshow');return false\">", _("Add BCC"), "</a></p>";
+	echo "</textarea></div>";
 
 	// Build the subject area.
-	echo "<p>", _("Subject"), ": <input type=\"text\" name=\"comp-subj\" id=\"comp-subj\" size=\"40\" value=\"";
+	echo "<label class=\"comp-label\" for=\"comp-subj\">", _("Subject:"), "</label> <input type=\"text\" name=\"comp-subj\" id=\"comp-subj\" value=\"";
 	switch ($action) {
 		case 'reply':
 		case 'replyall':
-			echo htmlentities( _("Re") . ": " . $headerObj->subject );
+			echo htmlentities( _("Re:") . " " . $headerObj->subject );
 			break;
 		case 'forwardinline':
 		case 'forwardasattach':
-			echo htmlentities( _("Fwd") . ": ". $headerObj->subject );
+			echo htmlentities( _("Fwd:") . " ". $headerObj->subject );
 			break;
 		case 'draft':
 			echo htmlentities( $headerObj->subject );
@@ -775,7 +775,7 @@ function request_createComposer() {
        	echo "\" /></p>";
 
 	// Build the text area. Text only at the moment.
-	echo "<textarea cols=\"80\" rows=\"25\" name=\"comp-msg\" id=\"comp-msg\">";
+	echo "<textarea name=\"comp-msg\" id=\"comp-msg\">";
 	switch ($action) {
 		case 'reply':
 		case 'replyall':
@@ -809,32 +809,40 @@ function request_createComposer() {
 	}
 	echo "</textarea>";
 
+	if ( $action == "forwardinline" ) {
+		// If we have an inline-forwarded message, provide a link to forward as attachment instead.
+		// TODO: If the user clicks this, it WILL NOT preserve the message content or anything!
+		echo "<p><a href=\"#\" onclick=\"comp_showForm('forwardasattach',lastShownUID); return false\">", _("&raquo; forward message as attachment"), "</a></p>";
+	}
+
+	echo "</form>";
+
+	echo "<div class=\"sidebar-panel\" id=\"comp-attachments\">";
+	echo "<h2 class=\"sidebar-head\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/attach.png\" alt=\"\" /> attachments</h2>";
+
 	// Build the attachments list...
 	echo "<ul id=\"comp-attachlist\">";
-	if ( $action == "forwardinline" ) {
-		// List item is option to forward as attachment instead.
-		// TODO: If the user clicks this, it WILL NOT preserve the message content or anything!
-		echo "<li><a href=\"#\" onclick=\"comp_showForm('forwardasattach',lastShownUID); return false\">", _("Forward this message as an attachment instead"), "</a></li>";
-	} else if ( $action == "forwardasattach" ) {
-		// List item is option to forward inline instead.
-		// TODO: If the user clicks this, it WILL NOT preserve the message content or anything!
-		echo "<li><a href=\"#\" onclick=\"comp_showForm('forwardinline',lastShownUID); return false\">", _("Forward this message inline instead"), "</a></li>";
-	}
+
 	if ( $action == "forwardinline" || $action == "forwardasattach" || $action == "draft" ) {
 		// Save out the attachments to the users attachment dir.
 		$userDir = getUserDirectory() . "/attachments";
 		foreach ( $msgArray['attachments'] as $attachment ) {
+
 			if ( $attachment['filename'] == "" ) continue; // Skip attachments that are inline-only.
+
 			$serverFilename = genUID( $attachment['filename'] );
 			$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
 			streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
 				$mailbox, $_POST['uid'], $attachment['filename'], $attachmentHandle );
 			fclose( $attachmentHandle );
-			echo "<li>{$attachment['filename']} ({$attachment['type']}, {$attachment['size']} bytes) ";
-			echo "(<a href=\"#\" onclick=\"comp_removeAttachment('".addslashes($attachment['filename'])."');return false\">", _("remove"), "</a>)</li>";
+			echo "<li>{$attachment['filename']} ({$attachment['type']}, {$attachment['size']})";
+
+			echo " <a href=\"#\" onclick=\"comp_removeAttachment('".addslashes($attachment['filename'])."');return false\">", _("[remove]"), "</a></li>";
+
 			echo "<input type=\"hidden\" name=\"comp-attach[]\" value=\"" . htmlentities( $attachment['filename'] ) . "\" />";
 		}
 	}
+
 	if ( $action == "forwardasattach" ) {
 		// TODO: Lots of copied code from above - don't copy and paste!
 		$userDir = getUserDirectory() . "/attachments";
@@ -845,23 +853,27 @@ function request_createComposer() {
 		streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
 			$mailbox, $_POST['uid'], "LICHENSOURCE", $attachmentHandle );
 		fclose( $attachmentHandle );
-		echo "<li>{$attachmentFilename} (message/rfc822, " . formatNumberBytes( filesize( "{$userDir}/{$serverFilename}" ) ) . " bytes) ";
-		echo "(<a href=\"#\" onclick=\"comp_removeAttachment('".addslashes($attachmentFilename)."');return false\">", _("remove"), "</a>)</li>";
+
+		echo "<li>{$attachmentFilename} (message/rfc822, " . formatNumberBytes( filesize( "{$userDir}/{$serverFilename}" ) ) . ")";
+//		echo "<a href=\"#\" onclick=\"comp_removeAttachment('".addslashes($attachmentFilename)."');return false\">", _("[remove]"), "</a>";
+
+		// TODO: this resets any data entered!
+		echo " <a href=\"#\" onclick=\"comp_showForm('forwardinline',lastShownUID); return false\">", _("[forward inline]"), "</a>";
+		echo "</li>";
+
 		echo "<input type=\"hidden\" name=\"comp-attach[]\" value=\"" . htmlentities( $attachmentFilename ) . "\" />";
 	}
+
 	echo "</ul>";
 
-	echo "</form>";
-
-	echo "<form enctype=\"multipart/form-data\" action=\"ajax.php\" name=\"comp-uploadform\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return asyncUploadFile($('comp-uploadform'))\">";
+	echo "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return asyncUploadFile($('comp-uploadform'))\">";
 	echo "<input type=\"hidden\" name=\"request\" id=\"request\" value=\"uploadAttachment\" />";
 	echo "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"{$UPLOAD_ATTACHMENT_MAX}\" />";
-	echo "<label for=\"comp-attachfile\">", _("Add attachment"), ":</label> <input type=\"file\" name=\"comp-attachfile\" id=\"comp-attachfile\" />";
+	echo "<label for=\"comp-attachfile\">", _("add new"), "</label><br />";
+	echo "<input type=\"file\" name=\"comp-attachfile\" id=\"comp-attachfile\" />";
+	echo "<div class=\"comp-attach-submit\"><input type=\"submit\" value=\"", _("upload file"), "\" /></div>";
 	echo "<input type=\"hidden\" name=\"upattach\" value=\"1\" />";
-	echo "<input type=\"submit\" value=\"", _("Upload"), "\" />";
-	echo "</form>";
-
-	echo "</div>";
+	echo "</form></div>";
 
 	echo remoteRequestSuccess( array( 'htmlFragment' => ob_get_clean() ) );
 }
@@ -1207,7 +1219,7 @@ function request_sendMessage() {
 // Return HTML for settings panel
 //
 function request_settingsPanel() {
-	$settingsPanel = generateSettingsPanel();
+	$settingsPanel = generateOptionsPanel();
 	echo remoteRequestSuccess( $settingsPanel );
 }
 

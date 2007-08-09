@@ -229,7 +229,7 @@ function parseUserSettings() {
 
 
 // Generate the HTML for the settings interface
-function generateSettingsPanel() {
+function generateOptionsPanel() {
 	global $USER_SETTINGS, $DEFAULT_SETTINGS;
 
 	// It-will-do-for-now hack to display only the requested tab;

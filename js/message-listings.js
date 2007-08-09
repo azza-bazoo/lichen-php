@@ -45,7 +45,7 @@ function list_sort( sortField ) {
 		listCurrentSort = sortField;
 	}
 
-	// Save the sort as the users default.
+	// Change the preference value for default sort
 	userSettings['list_sortmode'] = sortField;
 
 	// Trigger an update of the list.
@@ -94,8 +94,9 @@ function list_showCB( responseText ) {
 	tableContents += list_createPageBar( result, true );
 
 	if ( result.search != "" ) {
-		tableContents += "Search results for &#8220;" + result.search + "&#8221; " +
-			"[<a href=\"#clearsearch\" onclick=\"doQuickSearch(null, true); return false\">clear search</a>]";
+		tableContents += "<div class=\"list-notification\"><strong>Search results for &#8220;"
+			+ result.search + "&#8221;</strong> "
+			+ "[<a href=\"#clearsearch\" onclick=\"doQuickSearch(null, true);return false\">clear search</a>]</div>";
 	}
 
 //	if ( window.khtml ) {
@@ -283,10 +284,8 @@ function list_createPageBar( resultObj, isTopBar ) {
 	// 	if ( pageCount - thisPage > 1 ) {
 	// 		newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (pageCount-1) + "); return false\">last</a>";
 	// 	}
-	} else {
-		if ( resultObj.numbermessages > 0 ) {
-			newPageBar += "showing 1 to " + resultObj.numbermessages + " of " + resultObj.numbermessages;
-		}
+	} else if ( resultObj.numbermessages > 0 && !isTopBar ) {
+		newPageBar += "showing 1 to " + resultObj.numbermessages + " of " + resultObj.numbermessages;
 	}
 
 	newPageBar += "</div></div>";

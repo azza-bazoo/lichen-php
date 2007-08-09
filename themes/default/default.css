@@ -37,6 +37,7 @@ tr.even td { background: #ffffff; }
 .new { font-weight: bold; }
 
 td.list-nothing { padding: 20px; text-align: center; }
+.list-notification { padding: 4px; font-size: smaller; background: #fff0f0; }
 
 .mcol-checkbox { width: 22px; }
 .mcol-flag { width: 26px; }
@@ -100,8 +101,25 @@ form.login { background: url('login.jpg') no-repeat; font-size: smaller; }
 .msg-head-date, .msg-head-sender { font-weight: bold; }
 
 #msg-switch-view { font-size: 11px; float: right; margin: 10px; }
- .msg-notification { padding: 6px; border-top: solid 1px #999999; font-style: italic; }
+.msg-notification { padding: 6px; border-top: solid 1px #999999; font-style: italic; }
 .msg-notification, .msg-notification a { color: #999999; }
+
+/* New message form */
+
+#compose { font-size: smaller; width: 850px; margin-top: 12px; }
+.comp-header { font-weight: bold; padding: 12px; }
+
+.comp-add-fields { font-size: 11px; }
+.comp-add-fields a { color: #999999; }
+
+.sidebar-panel { padding: 3px; border: solid 1px #000000; font-size: 11px; }
+.sidebar-head { margin: 0; font-size: 13px; }
+.sidebar-head img { vertical-align: middle; }
+
+#comp-attachlist li { margin-bottom: 6px; }
+#comp-attachfile, .comp-attach-submit input { font-size: inherit; }
+#comp-uploadform { padding-top: 2px; margin-top: 5px; border-top: solid 1px #f0f0f0; }
+.comp-attach-submit { padding: 2px; background: #f0f0f0; }
 
 /* Options panel */
 
