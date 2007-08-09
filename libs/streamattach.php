@@ -421,7 +421,7 @@ function streamLargeAttachment($server, $port, $usessl, $user, $pass, $mailbox, 
 		header( "Content-Type: " . $contentType );
 
 		if ( !$getMessageSource ) {
-			if ( $searchCID != "" ) {
+			if ( $searchCID == "" ) {
 				// Tell the browser to save it.
 				header( "Content-Disposition: attachment; filename=\"" . $filename . "\"" );
 				// TODO: Content length. ?? Hard one - can only estimate the size.
