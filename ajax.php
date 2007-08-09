@@ -1121,7 +1121,6 @@ function request_sendMessage() {
 		// Create the connection to the remote SMTP server.
 		// TODO: Add TLS support.
 		$smtpConnection = null;
-		$SMTP_DOAUTH;
 		if ( $SMTP_USE_SSL ) {
 			$smtpConnection =& new Swift_Connection_SMTP( $SMTP_SERVER, $SMTP_PORT, SWIFT_SMTP_ENC_SSL );
 		} else {
