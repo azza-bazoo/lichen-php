@@ -157,8 +157,8 @@ class HTMLPurifier_DefinitionCache_Serializer extends
         if (!is_dir($dir)) {
             // generally, you'll want to handle this beforehand
             // so a more specific error message can be given
-            trigger_error('Directory '.$dir.' does not exist',
-                E_USER_ERROR);
+            //trigger_error('Directory '.$dir.' does not exist',
+            //    E_USER_ERROR);
             return false;
         }
         if (function_exists('posix_getuid')) {
@@ -174,14 +174,14 @@ class HTMLPurifier_DefinitionCache_Serializer extends
                 // need to give global permissions
                 $chmod = '777';
             }
-            trigger_error('Directory '.$dir.' not writable, '.
-                'please chmod to ' . $chmod,
-                E_USER_ERROR);
+            //trigger_error('Directory '.$dir.' not writable, '.
+            //    'please chmod to ' . $chmod,
+            //    E_USER_ERROR);
         } else {
             // generic error message
-            trigger_error('Directory '.$dir.' not writable, '.
-                'please alter file permissions',
-                E_USER_ERROR);
+            //trigger_error('Directory '.$dir.' not writable, '.
+            //    'please alter file permissions',
+            //    E_USER_ERROR);
         }
         return false;
     }
