@@ -257,33 +257,39 @@ function list_createPageBar( resultObj, isTopBar ) {
 		newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (thisPage-2) + "); return false\">previous</a> | ";
 	}
 
-	newPageBar += "<select onchange=\"list_show(null, this.value);\">";
-	var pageSize = resultObj.pagesize.toInt();
-	var maxMessages = resultObj.numbermessages.toInt();
-	var pageCounter = 0;
-	for ( var i = 1; i < resultObj.numbermessages.toInt(); i += pageSize ) {
-		newPageBar += "<option value=\"" + pageCounter + "\"";
-		if ( thisPage == (pageCounter + 1) ) newPageBar += " selected=\"selected\"";
-		newPageBar += ">" + i + " to ";
-		if ( (pageCounter + 1) * pageSize > maxMessages ) {
-			newPageBar += maxMessages;
-		} else {
-			newPageBar += (pageCounter + 1) * pageSize;
+	if ( resultObj.numberpages > 1 ) {
+		newPageBar += "<select onchange=\"list_show(null, this.value);\">";
+		var pageSize = resultObj.pagesize.toInt();
+		var maxMessages = resultObj.numbermessages.toInt();
+		var pageCounter = 0;
+		for ( var i = 1; i < resultObj.numbermessages.toInt(); i += pageSize ) {
+			newPageBar += "<option value=\"" + pageCounter + "\"";
+			if ( thisPage == (pageCounter + 1) ) newPageBar += " selected=\"selected\"";
+			newPageBar += ">" + i + " to ";
+			if ( (pageCounter + 1) * pageSize > maxMessages ) {
+				newPageBar += maxMessages;
+			} else {
+				newPageBar += (pageCounter + 1) * pageSize;
+			}
+			newPageBar += "</option>";
+			pageCounter++;
 		}
-		newPageBar += "</option>";
-		pageCounter++;
-	}
-	newPageBar += "</select>";
+		newPageBar += "</select>";
 
-	// (resultObj.thispage.toInt() * resultObj.pagesize.toInt() + 1) + " to " + lastMsgThisPage
-	newPageBar += " of " + resultObj.numbermessages.toInt();
+		// (resultObj.thispage.toInt() * resultObj.pagesize.toInt() + 1) + " to " + lastMsgThisPage
+		newPageBar += " of " + resultObj.numbermessages.toInt();
 
-	if ( pageCount - thisPage > 0 ) {
-		newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + thisPage + "); return false\">next</a>";
+		if ( pageCount - thisPage > 0 ) {
+			newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + thisPage + "); return false\">next</a>";
+		}
+	// 	if ( pageCount - thisPage > 1 ) {
+	// 		newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (pageCount-1) + "); return false\">last</a>";
+	// 	}
+	} else {
+		if ( resultObj.numbermessages > 0 ) {
+			newPageBar += "1 - " + resultObj.numbermessages;
+		}
 	}
-// 	if ( pageCount - thisPage > 1 ) {
-// 		newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (pageCount-1) + "); return false\">last</a>";
-// 	}
 
 	newPageBar += "</div></div>";
 
