@@ -90,7 +90,7 @@ var MessageDisplay = new Class({
 			if ( adjacentMessages.next ) {
 				messageNavBar += "</a> | ";
 			} else {
-				messageNavBar += "message</a>";
+				messageNavBar += " message</a>";
 			}
 		}
 		if ( adjacentMessages.next ) {

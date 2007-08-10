@@ -63,7 +63,7 @@ function comp_send( currentlyShownUID, saveDraft ) {
 	if_remoteRequestStart();
 	var parameters = "request=sendMessage&";
 	if ( saveDraft ) parameters += "draft=save&";
-	parameters += $('composer').toQueryString();
+	parameters += $('compose').toQueryString();
 	new Ajax( 'ajax.php', {
 		postBody: parameters,
 		onComplete : function( responseText ) {

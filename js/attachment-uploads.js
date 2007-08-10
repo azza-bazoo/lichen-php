@@ -85,14 +85,14 @@ function asyncUploadCompleted( frameName ) {
 	uploadedFile.type = 'hidden';
 	uploadedFile.name = 'comp-attach[]';
 	uploadedFile.value = result.filename;
-	$('composer').adopt( uploadedFile );
+	$('compose').adopt( uploadedFile );
 
 	$('comp-attachfile').value = "";
 }
 
 function comp_removeAttachment( filename ) {
 	// Remove an attachment from the composer.
-	var attachmentFilenames = $A( $('composer').getElementsByTagName('input') );
+	var attachmentFilenames = $A( $('compose').getElementsByTagName('input') );
 	var attachmentListElements = $A( $('comp-attachlist').getElementsByTagName('li') );
 
 	var foundFilename = false;
