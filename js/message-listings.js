@@ -266,7 +266,7 @@ function list_createPageBar( resultObj, isTopBar ) {
 		var pageSize = resultObj.pagesize.toInt();
 		var maxMessages = resultObj.numbermessages.toInt();
 		var pageCounter = 0;
-		for ( var i = 1; i < resultObj.numbermessages.toInt(); i += pageSize ) {
+		for ( var i = 1; i <= resultObj.numbermessages.toInt(); i += pageSize ) {
 			newPageBar += "<option value=\"" + pageCounter + "\"";
 			if ( thisPage == (pageCounter + 1) ) newPageBar += " selected=\"selected\"";
 			newPageBar += ">" + i + " to ";
