@@ -46,7 +46,7 @@ var FlashArea = new Class({
 			this.onscreen = true;
 		}
 
-		this.timeouts.push( window.setTimeout( this.clearFlash.bind( this ), 5000 ) );
+		this.timeouts.push( window.setTimeout( this.clearFlash.bind( this ), 7500 ) );
 	},
 	renderFlash: function () {
 		var flashHTML = this.messages.join( "<br />" );

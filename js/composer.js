@@ -60,7 +60,16 @@ function comp_showCB( responseText ) {
 // Check the input data in the new message form, and then
 // issue an XHR to send the message.
 function comp_send( currentlyShownUID, saveDraft ) {
-	if_remoteRequestStart();
+//	if_remoteRequestStart();
+
+	// Temporary hack to give sending or saving feedback, until
+	// interface feedback is properly rewritten.
+	if ( saveDraft ) {
+		Flash.flashMessage( "Saving draft ..." );
+	} else {
+		Flash.flashMessage( "Sending message ..." );
+	}
+
 	var parameters = "request=sendMessage&";
 	if ( saveDraft ) parameters += "draft=save&";
 	parameters += $('compose').toQueryString();
