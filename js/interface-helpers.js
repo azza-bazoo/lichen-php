@@ -29,9 +29,10 @@ function if_returnToList( leavingUID ) {
 //		$('mr-'+leavingUID).removeClass('new');
 //	}
 
-	// For now, just hide the message without fading
+	// For now, just hide the current pane without fading
 	// TODO: change after caching code rewrite
-	$('msg-wrapper').style.display = 'none';
+	if_hideWrappers();
+
 //	if_remoteRequestStart();
 	if_hideToolbars();
 	$('list-bar').style.display = 'block';

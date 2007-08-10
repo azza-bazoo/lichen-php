@@ -33,7 +33,7 @@ var FlashArea = new Class({
 	},
 	flashMessage: function ( message, submessage ) {
 		if ( submessage ) {
-			this.messages.push( message + "<br /><span class=\"flash-submessage\">" + submessage + "</span>" );
+			this.messages.push( message + "<div class=\"flash-submessage\">" + submessage + "</div>" );
 		} else {
 			this.messages.push( message );
 		}
@@ -50,7 +50,7 @@ var FlashArea = new Class({
 	},
 	renderFlash: function () {
 		var flashHTML = this.messages.join( "<br />" );
-		flashHTML += "<br /><a href=\"#\" onclick=\"Flash.hideFlash(); return false\">Hide</a>";
+//		flashHTML += "<br /><a href=\"#\" onclick=\"Flash.hideFlash(); return false\">Hide</a>";
 		$(this.wrapper).setHTML( flashHTML );
 	},
 	clearFlash: function () {

@@ -139,5 +139,5 @@ form.opts-tab { margin-top: 8px; width: 720px; font-size: smaller; }
 
 /* Notification messages */
 
-.flash { background-color: #ffffcc; padding: 5px; border: solid 1px black; text-align: right }
-.flash-submessage { font-size: smaller; color: #C0C0C0; }
+#notification { background-color: #fff0f0; padding: 5px; border: solid 1px black; font-size: 13px; }
+#notification .detail { font-size: 11px; color: #C0C0C0; }

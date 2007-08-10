@@ -192,16 +192,17 @@ function request_moveMessage() {
 	// If we're deleting, move to trash.
 	if ( $destinationBox == "LICHENTRASH" ) {
 		$destinationBox = $SPECIAL_FOLDERS['trash'];
-		if (! imapCheckMailboxExistence( $SPECIAL_FOLDERS['trash'] ) ) {
-			die( remoteRequestFailure( 'MOVE', _('Unable to create trash mailbox. Messages not deleted.') ) );
+		if ( !imapCheckMailboxExistence( $SPECIAL_FOLDERS['trash'] ) ) {
+			die( remoteRequestFailure( 'MOVE', _('Error: cannot create trash mailbox') ) );
 		}
 	}
+
 	if ( $mailbox == $SPECIAL_FOLDERS['trash'] ) {
-		// If the source mailbox was the trash folder, then really delete.
+		// TODO: if the source mailbox was the trash folder, then really delete.
 	}
 
 	if ( $destinationBox == "" || count( $messages ) == 0 ) {
-		echo remoteRequestFailure( 'MOVE', _("Did not specify destination mailbox or message uid(s).") );
+		echo remoteRequestFailure( 'MOVE', _("Error: no message UIDs or destination mailbox provided") );
 	} else {
 		// Move the message(s)...
 		$failureCounter = 0;
@@ -210,21 +211,14 @@ function request_moveMessage() {
 			$message = trim( $message );
 			if ( $message == "" ) continue;
 
-			if ( $destinationBox == "LICHENDELETE" ) {
-				if (! imapCheckMailboxExistence( $SPECIAL_FOLDERS['trash'] ) ) {
-					die( remoteRequestFailure( 'MOVE', _('Unable to create trash mailbox. Messages not deleted.') ) );
-				}
-				// TODO: Move to trash, not delete... but there needs to be some form of final deletion...
-				$result = imap_delete( $mbox, $message, CP_UID );
-			} else {
-				$result = imap_mail_move( $mbox, $message, $destinationBox, CP_UID );
-			}
+			$result = imap_mail_move( $mbox, $message, $destinationBox, CP_UID );
+
 			if ( !$result ) $failureCounter++;
 			if (  $result ) $successCounter++;
 		}
 		imap_expunge( $mbox ); // TODO: applies to all mailboxes, not just the one we worked on. ??
 		if ( $failureCounter == 0 ) {
-			$msg = sprintf( _("Moved %d message(s) to %s successfully."), $successCounter, $destinationBox );
+			$msg = sprintf( _("Moved %d message(s) to %s"), $successCounter, $destinationBox );
 			echo remoteRequestSuccess( array( 'message' => $msg ) );
 		} else {
 			$msg = sprintf( _("Unable to move %d messages(s): "), $failureCounter );
@@ -1183,10 +1177,10 @@ function request_sendMessage() {
 		if ( $numberRecipients == 0 ) {
 			ob_start();
 			$messageSender->log->dump();
-			$msg = sprintf( _("Unable to send message. Log:\n%s"), ob_get_clean() );
+			$msg = sprintf( _("Unable to send message: %s"), ob_get_clean() );
 			echo remoteRequestFailure( 'SMTP', $msg );
 		} else {
-			$msg = sprintf( _("Sent message to %d recipient(s)."), $numberRecipients );
+			$msg = sprintf( _("Sent message to %d recipient(s)"), $numberRecipients );
 			echo remoteRequestSuccess( array( 'message' => $msg ) );
 
 			// Delete attachments - TODO: still a little unsafe.

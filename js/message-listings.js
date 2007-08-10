@@ -75,6 +75,15 @@ function list_show( mailbox, page ) {
 }
 
 
+// Activate loading feedback and change the page
+// of the currently-displayed mailbox
+function list_switchPage( page ) {
+	// Disabled for 0.3: doesn't play nice with the caching class
+//	if_remoteRequestStart();
+	list_show( listCurrentMailbox, page );
+}
+
+
 // Callback function to draw a message listing after
 // fetching a JSON string for the mailbox.
 function list_showCB( responseText ) {
@@ -100,11 +109,7 @@ function list_showCB( responseText ) {
 			+ "[<a href=\"#clearsearch\" onclick=\"doQuickSearch(null, true);return false\">clear search</a>]</div>";
 	}
 
-//	if ( window.khtml ) {
-//		tableContents += "<table style=\"width:" + (window.getWidth()-118) + "px\">";
-//	} else {
-		tableContents += "<table>";
-//	}
+	tableContents += "<table>";
 
 	tableContents += "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" style=\"width:" + (window.getWidth()-515) + "px\" /><col class=\"mcol-date\" /></colgroup>";
 
@@ -251,13 +256,13 @@ function list_createPageBar( resultObj, isTopBar ) {
 
 	if ( resultObj.numberpages > 1 ) {
 	// 	if ( thisPage > 2 ) {
-	// 		newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, 0); return false\">first</a> | ";
+	// 		newPageBar += "<a href=\"#\" onclick=\"list_switchPage(0); return false\">first</a> | ";
 	// 	}
 		if ( thisPage > 1 ) {
-			newPageBar += "<a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (thisPage-2) + "); return false\">previous</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"list_switchPage(" + (thisPage-2) + "); return false\">previous</a> | ";
 		}
 
-		newPageBar += "<select onchange=\"list_show(null, this.value);\">";
+		newPageBar += "<select onchange=\"list_switchPage(this.value);\">";
 		var pageSize = resultObj.pagesize.toInt();
 		var maxMessages = resultObj.numbermessages.toInt();
 		var pageCounter = 0;
@@ -279,10 +284,10 @@ function list_createPageBar( resultObj, isTopBar ) {
 		newPageBar += " of " + resultObj.numbermessages.toInt();
 
 		if ( pageCount - thisPage > 0 ) {
-			newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + thisPage + "); return false\">next</a>";
+			newPageBar += " | <a href=\"#\" onclick=\"list_switchPage(" + thisPage + "); return false\">next</a>";
 		}
 	// 	if ( pageCount - thisPage > 1 ) {
-	// 		newPageBar += " | <a href=\"#\" onclick=\"list_show(listCurrentMailbox, " + (pageCount-1) + "); return false\">last</a>";
+	// 		newPageBar += " | <a href=\"#\" onclick=\"list_switchPage(" + (pageCount-1) + "); return false\">last</a>";
 	// 	}
 	} else if ( resultObj.numbermessages > 0 && !isTopBar ) {
 		newPageBar += "showing 1 to " + resultObj.numbermessages + " of " + resultObj.numbermessages;
