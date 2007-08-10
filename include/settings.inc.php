@@ -335,7 +335,7 @@ function generateSettingsForm() {
 	// OK/cancel buttons
 	$result .= "<p class=\"opts-buttons\">";
 
-	$result .= "<button><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_ok.png\" alt=\"\" /> " . _( "save changes" ) . "</button>";
+	$result .= "<button type=\"submit\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_ok.png\" alt=\"\" /> " . _( "save changes" ) . "</button>";
 
 	$result .= "<button onclick=\"OptionsEditor.closePanel();return false\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</button>";
 

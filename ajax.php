@@ -201,7 +201,7 @@ function request_moveMessage() {
 			$msg = sprintf( _("Moved %d message(s) to %s"), count( $messages ), $destinationBox );
 			echo remoteRequestSuccess( array( 'message' => $msg ) );
 		} else {
-			$msg = sprintf( _("Unable to move %d messages(s): "), $failedCount );
+			$msg = sprintf( _("Unable to move %d message(s): "), $failedCount );
 			echo remoteRequestFailure( 'MOVE', $msg . imap_last_error() );
 		}
 	}
@@ -231,9 +231,7 @@ function request_deleteMessage() {
 	}
 
 	if ( count( $messages ) == 0 ) {
-		echo remoteRequestFailure( 'MOVE', _("You haven&#8217;t selected any messages to move.") );
-	} elseif ( $destinationBox == "" ) {
-		echo remoteRequestFailure( 'MOVE', _("Error: no destination mailbox provided") );
+		echo remoteRequestFailure( 'MOVE', _("You haven&#8217;t selected any messages to delete.") );
 	} else {
 
 		$failedCount = moveMessages( $destinationBox, $messages );
@@ -242,7 +240,7 @@ function request_deleteMessage() {
 			$msg = sprintf( _("Moved %d message(s) to %s"), count( $messages ), $destinationBox );
 			echo remoteRequestSuccess( array( 'message' => $msg ) );
 		} else {
-			$msg = sprintf( _("Unable to move %d messages(s): "), $failedCount );
+			$msg = sprintf( _("Unable to move %d message(s): "), $failedCount );
 			echo remoteRequestFailure( 'MOVE', $msg . imap_last_error() );
 		}
 	}
