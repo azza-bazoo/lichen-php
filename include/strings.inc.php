@@ -24,19 +24,17 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// This function generates what should be a unique id for
-// uploaded attachment filenames. Given the same filename, it
-// will generate the same UID.
-function genUID( $filename ) {
-	// Append the file's original extention on the end;
-	// helps to determine the MIME type later.
+// Returns a hash generated from an attachment's file name, plus the file's
+// extension on the end, to identify attachments when composing messages.
+function hashifyFilename( $filename ) {
 	$fileBits = explode( ".", $filename );
-	$extention = "";
+	$extension = "";
 	if ( count( $fileBits ) > 1 ) {
-		$extention = "." . $fileBits[ count( $fileBits ) - 1 ];
-		$extention = str_replace( array( "/", "\\" ), "", $extention );
+		$extension = "." . $fileBits[ count( $fileBits ) - 1 ];
+		$extension = str_replace( array( "/", "\\" ), "", $extension );
 	}
-        return sha1( $filename ) . $extention;
+
+	return sha1( $filename ) . $extension;
 }
 
 
@@ -263,7 +261,9 @@ function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags 
 		if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
 			$string = html_entity_decode_utf8( $string );
 		} else {
-			$string = html_entity_decode( $string, ENT_COMPAT, 'UTF-8' ); // For mailers (ie Slashdot) that have entities in text email.
+			// UTF-8 here is for mailers (e.g. Slashdot) that put UTF-8
+			// characters in supposedly ASCII messages.
+			$string = html_entity_decode( $string, ENT_COMPAT, 'UTF-8' );
 		}
 
 		// Now reinsert the entities, keeping in mind the charset.

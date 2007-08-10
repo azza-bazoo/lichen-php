@@ -608,7 +608,7 @@ function request_uploadAttachment() {
 			echo remoteRequestFailure( 'UPLOAD', _('PHP Upload error ') . $_FILES['comp-attachfile']['error'] );
 		} else {
 			$destinationDirectory = getUserDirectory() . "/attachments";
-			$serverFilename = genUID( $_FILES['comp-attachfile']['name'] );
+			$serverFilename = hashifyFilename( $_FILES['comp-attachfile']['name'] );
 			if (move_uploaded_file( $_FILES['comp-attachfile']['tmp_name'], "{$destinationDirectory}/$serverFilename" ) ) {
 				echo remoteRequestSuccess( array(
 					"filename" => $_FILES['comp-attachfile']['name'],
@@ -634,7 +634,7 @@ function request_removeAttachment() {
 	// TODO: Still a little unsafe.
 	$userDir = getUserDirectory();
 	if ( isset( $_POST['filename'] ) && !empty( $_POST['filename'] ) ) {
-		$serverFilename = genUID( $_POST['filename'] );
+		$serverFilename = hashifyFilename( $_POST['filename'] );
 		$serverFilename = "{$userDir}/attachments/{$serverFilename}";
 
 		if ( file_exists( $serverFilename ) ) {
@@ -787,7 +787,7 @@ function request_sendMessage() {
 		// Filenames to add...
 		$uploadDir = getUserDirectory() . "/attachments";
 		foreach ( $_POST['comp-attach'] as $attachmentFile ) {
-			$serverFilename = genUID( $attachmentFile );
+			$serverFilename = hashifyFilename( $attachmentFile );
 			$mimeType = mime_content_type( "{$uploadDir}/{$serverFilename}" );
 			if ( substr( $mimeType, 0, 7 ) == "message" ) {
 				// For certain types, don't base64 encode.
@@ -913,7 +913,7 @@ function request_sendMessage() {
 				// Filenames to add...
 				$uploadDir = getUserDirectory() . "/attachments";
 				foreach ( $_POST['comp-attach'] as $attachmentFile ) {
-					$serverFilename = genUID( $attachmentFile );
+					$serverFilename = hashifyFilename( $attachmentFile );
 					unlink( "{$uploadDir}/{$serverFilename}" );
 				}
 			}

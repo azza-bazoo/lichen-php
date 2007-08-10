@@ -278,7 +278,7 @@ function generateMessageCompose() {
 
 			if ( $attachment['filename'] == "" ) continue; // Skip attachments that are inline-only.
 
-			$serverFilename = genUID( $attachment['filename'] );
+			$serverFilename = hashifyFilename( $attachment['filename'] );
 			$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
 			streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
 				$mailbox, $_POST['uid'], $attachment['filename'], $attachmentHandle );
@@ -296,7 +296,7 @@ function generateMessageCompose() {
 		$userDir = getUserDirectory() . "/attachments";
 		$attachmentFilename = "{$headerObj->subject}.eml";
 		$attachmentFilename = str_replace( array( "/", "\\" ), array( "-", "-" ), $attachmentFilename );
-		$serverFilename = genUID( $attachmentFilename );
+		$serverFilename = hashifyFilename( $attachmentFilename );
 		$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
 		streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
 			$mailbox, $_POST['uid'], "LICHENSOURCE", $attachmentHandle );
