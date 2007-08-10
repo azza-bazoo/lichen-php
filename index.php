@@ -128,8 +128,8 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 
 	echo <<<ENDJS
 <script type="text/javascript" src="js/mootools.v1.11.js"></script>
-<!-- <script type="text/javascript" src="js/lichen.r21.js"></script> -->
-<script type="text/javascript" src="js/initialisation.js"></script>
+<script type="text/javascript" src="js/lichen.r63.js"></script>
+<!-- <script type="text/javascript" src="js/initialisation.js"></script>
 <script type="text/javascript" src="js/interface-feedback.js"></script>
 <script type="text/javascript" src="js/interface-helpers.js"></script>
 <script type="text/javascript" src="js/mailbox-manager.js"></script>
@@ -142,7 +142,7 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 <script type="text/javascript" src="js/message-actions.js"></script>
 <script type="text/javascript" src="js/composer.js"></script>
 <script type="text/javascript" src="js/attachment-uploads.js"></script>
-<script type="text/javascript" src="js/settings.js"></script>
+<script type="text/javascript" src="js/settings.js"></script> -->
 ENDJS;
 
 	echo "<ul id=\"corner-bar\" class=\"toolbar\">";
