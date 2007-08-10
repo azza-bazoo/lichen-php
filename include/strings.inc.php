@@ -219,6 +219,7 @@ function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags 
 		@$config->set( 'HTML', 'Strict', true );
 		@$config->set( 'HTML', 'Mode', array('correctional') );
 		@$config->set( 'HTML', 'TidyLevel', 'medium' );
+		@$config->set( 'Core', 'DefinitionCache', null );
 
 		// Based loosely on the HTML elements accepted by Mark Pilgrim's feedparser
 		// Disabled on all elements: event handlers,
