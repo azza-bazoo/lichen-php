@@ -242,7 +242,7 @@ function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags 
 							$string, -1 );
 		} else {
 			$string = preg_replace( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', "<img$1src=\"http://_$2\" class=\"remoteimg\"",
-							$string, -1, &$replacementCount );
+							$string, -1, $replacementCount );
 		}
 		if ( is_array( $outMsgFlags ) && $replacementCount > 0 ) {
 			$outMsgFlags['htmlhasremoteimages'] = true;

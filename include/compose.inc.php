@@ -263,14 +263,7 @@ function generateMessageCompose() {
 		echo "<p><a href=\"#\" onclick=\"comp_showForm('forwardasattach',lastShownUID); return false\">", _("&raquo; forward message as attachment"), "</a></p>";
 	}
 
-	echo "</form>";
-
-	echo "<div class=\"sidebar-panel\" id=\"comp-attachments\">";
-	echo "<h2 class=\"sidebar-head\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/attach.png\" alt=\"\" /> attachments</h2>";
-
-	// Build the attachments list...
-	echo "<ul id=\"comp-attachlist\">";
-
+	$attachListHtml = "";
 	if ( $action == "forwardinline" || $action == "forwardasattach" || $action == "draft" ) {
 		// Save out the attachments to the users attachment dir.
 		$userDir = getUserDirectory() . "/attachments";
@@ -283,9 +276,9 @@ function generateMessageCompose() {
 			streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
 				$mailbox, $_POST['uid'], $attachment['filename'], $attachmentHandle );
 			fclose( $attachmentHandle );
-			echo "<li>{$attachment['filename']} ({$attachment['type']}, {$attachment['size']})";
+			$attachListHtml .= "<li>{$attachment['filename']} ({$attachment['type']}, {$attachment['size']})";
 
-			echo " <a href=\"#\" onclick=\"comp_removeAttachment('".addslashes($attachment['filename'])."');return false\">", _("[remove]"), "</a></li>";
+			$attachListHtml .= " <a href=\"#\" onclick=\"comp_removeAttachment('".addslashes($attachment['filename'])."');return false\">". _("[remove]"). "</a></li>";
 
 			echo "<input type=\"hidden\" name=\"comp-attach[]\" value=\"" . htmlentities( $attachment['filename'] ) . "\" />";
 		}
@@ -302,16 +295,24 @@ function generateMessageCompose() {
 			$mailbox, $_POST['uid'], "LICHENSOURCE", $attachmentHandle );
 		fclose( $attachmentHandle );
 
-		echo "<li>{$attachmentFilename} (message/rfc822, " . formatNumberBytes( filesize( "{$userDir}/{$serverFilename}" ) ) . ")";
+		$attachListHtml .= "<li>{$attachmentFilename} (message/rfc822, " . formatNumberBytes( filesize( "{$userDir}/{$serverFilename}" ) ) . ")";
 //		echo "<a href=\"#\" onclick=\"comp_removeAttachment('".addslashes($attachmentFilename)."');return false\">", _("[remove]"), "</a>";
 
 		// TODO: this resets any data entered!
-		echo " <a href=\"#\" onclick=\"comp_showForm('forwardinline',lastShownUID); return false\">", _("[forward inline]"), "</a>";
-		echo "</li>";
+		$attachListHtml .= " <a href=\"#\" onclick=\"comp_showForm('forwardinline',lastShownUID); return false\">". _("[forward inline]"). "</a>";
+		$attachListHtml .= "</li>";
 
 		echo "<input type=\"hidden\" name=\"comp-attach[]\" value=\"" . htmlentities( $attachmentFilename ) . "\" />";
 	}
 
+	echo "</form>";
+
+	echo "<div class=\"sidebar-panel\" id=\"comp-attachments\">";
+	echo "<h2 class=\"sidebar-head\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/attach.png\" alt=\"\" /> attachments</h2>";
+
+	// Build the attachments list...
+	echo "<ul id=\"comp-attachlist\">";
+	echo $attachListHtml;
 	echo "</ul>";
 
 	echo "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return asyncUploadFile($('comp-uploadform'))\">";
