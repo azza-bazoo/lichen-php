@@ -236,8 +236,9 @@ function generateOptionsPanel() {
 	// this is best done with display:none on the client side
 	// (though it might slow PHP due to all of the concatenation)
 
+	// Right-side float here is to prevent IE7 collapsing the div
 	$panel = "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" class=\"top-corner\" />";
-//	$panel .= "<div class=\"header-right\">&nbsp;</div>";
+	$panel .= "<div class=\"header-right\">&nbsp;</div>";
 
 	// Boring, repetitive 'if's for the tab bar
 	$panel .= "<div class=\"opts-tabbar\"><a href=\"#\" onclick=\"OptionsEditor.showEditor('settings');return false\"";

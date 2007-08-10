@@ -102,7 +102,9 @@ function generateMessageCompose() {
 
 	// Capture the output.
 	ob_start();
-	echo "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"comp-header\">New message</div></div>";
+
+	// Right-side float here is to prevent IE7 from collapsing the div
+	echo "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">New message</div></div>";
 
 	echo "<form action=\"$LICHEN_URL\" method=\"post\" id=\"compose\" onsubmit=\"comp_send();return false\">";
 

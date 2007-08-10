@@ -31,7 +31,7 @@ Distributed under the GNU General Public License
 
 #list-wrapper table { clear: both; table-layout: fixed; width: 100%; }
 
-.subject, .sender, .date { white-space: nowrap; overflow: hidden; }
+.subject, .sender, .size, .date { white-space: nowrap; overflow: hidden; }
 
 .mcol-checkbox { width: 22px; }
 .mcol-flag { width: 26px; }

@@ -177,13 +177,13 @@ function list_showCB( responseText ) {
 		}
 		thisRow += "</div></td>";
 
-		thisRow += "<td class=\"subject\" onclick=\"showMsg('"+listCurrentMailbox+"','"+thisMsg.uid+"',0)\">" + thisMsg.subject;
+		thisRow += "<td class=\"subject\" onclick=\"showMsg('"+listCurrentMailbox+"','"+thisMsg.uid+"',0)\"><div class=\"subject\">" + thisMsg.subject;
 
 		if ( userSettings.list_showpreviews ) {
 			thisRow += "<span class=\"messagePreview\">" + thisMsg.preview + "</span>";
 		}
 
-		thisRow += "</td>";
+		thisRow += "</div></td>";
 
 		if ( userSettings.list_showsize ) {
 			thisRow += "<td class=\"size\"><div class=\"size\">" + thisMsg.size + "</div></td>";
