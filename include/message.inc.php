@@ -37,8 +37,7 @@ function retrieveMessage( $msgNo, $preview=false ) {	// $preferredType='plain',
 	$msgStruct = imap_fetchstructure( $mbox, $msgNo );
 
 	if ( $msgStruct === false ) {
-		// Invalid message number.
-		// Inform upstream by returning NULL.
+		// Invalid message number, so return NULL.
 		return null;
 	}
 
@@ -50,42 +49,11 @@ function retrieveMessage( $msgNo, $preview=false ) {	// $preferredType='plain',
 
 	} else {
 
-/*		if ( $preview ) {
-			$message = imap_body( $mbox, $msgUID, FT_UID + FT_PEEK );
-		} else {
-			$message = imap_body( $mbox, $msgUID, FT_UID );
-		}
-
-		// Although this isn't a MIME message, fetchstructure should
-		// still have given us information about it.
-		$_contentType = $phpMimeTypeCodes[ $msgStruct->type ] . '/' . strtolower( $msgStruct->subtype );
-		$_transferEncoding = $phpMimeEncodingCodes[ $msgStruct->encoding ];
-
-		$charset = "";
-		foreach ( $msgStruct->parameters as $thisParam ) {
-			if ( $thisParam->attribute == "charset" ) {
-				$_charset = $thisParam->value;
-			}
-		}
-
-		$processedResult['text/html'] = array();
-		$separatedParts['attachments'] = array();
-		$processedResult['text/plain'] = decodeText( $message, $charset, $transferEncoding ); */
-
 		// Use our MIME-separation function but feed it an array with
 		// the whole message's structure (so it loops once)
 		$processedResult = separateMsgParts( array( $msgStruct ), $msgNo, '', $preview );
 
 	}
-
-	// Record the full headers of this message and its mailbox name.
-	// TODO: we shouldn't need either.
-//	if ( $preview ) {
-//		$processedResult['headers'] = imap_fetchheader( $mbox, $msgUID, FT_PEEK + FT_UID );
-//	} else {
-//		$processedResult['headers'] = imap_fetchheader( $mbox, $msgUID, FT_UID );
-//	}
-//	$processedResult['mailbox'] = $mailbox;
 
 	return $processedResult;
 }
@@ -143,10 +111,10 @@ function separateMsgParts( $partsObject, $msgNo, $partPrefix, $preview=false ) {
 		}
 
 		if ( $contentType == "text/plain" || $contentType == "text/html" ) {
-			if ( $approxSize > 500000 ) { // 500,000 bytes
+			if ( $approxSize > 524288 ) { // 512 kilobytes
 				// It's a little big to include directly.
-				// We need to stream it out...
-				$separatedParts[ $contentType ][] = _("This part is too large to incorporate directly. Bug the developers to fix this.");
+				// TODO: we need to stream it out...
+				$separatedParts[ $contentType ][] = _("[error: message part too large to display]");
 			} else {
 				// Fetch the content of this part and add to the return array.
 				if ( $preview ) {
@@ -154,9 +122,6 @@ function separateMsgParts( $partsObject, $msgNo, $partPrefix, $preview=false ) {
 				} else {
 					$partContents = imap_fetchbody( $mbox, $msgNo, $partPrefix.($partNo+1) );
 				}
-
-				// Not true: we use peek-only here because the caller function retrieveMessage
-				// will (if needed) mark the message as read when fetching headers.
 
 				$separatedParts[ $contentType ][] = decodeText( $partContents, $charset, $transferEncoding );
 			}
@@ -171,9 +136,8 @@ function separateMsgParts( $partsObject, $msgNo, $partPrefix, $preview=false ) {
 
 		} else {
 			// This is probably an attachment; fetch its filename.
-			// The GOTCHA here is that filename is split into multiple headers
-			// if it is too long - each header is "filename*N" in this case,
-			// where N is the number of the part, to assist reassembly.
+			// If the filename is long, PHP splits it into multiple headers
+			// of the form "filename*N" where N is part number
 			$filename = array();
 			if ( isset( $thisPart->dparameters ) ) {
 				foreach ( $thisPart->dparameters as $thisParam ) {
@@ -195,6 +159,11 @@ function separateMsgParts( $partsObject, $msgNo, $partPrefix, $preview=false ) {
 					$id = substr( $id, 1, -1 );
 				}
 			}
+
+			// In some (all?) cases, UW-IMAP doesn't return an attachment file name.
+			// mt_rand here is because $filename is used to identify attachments
+			// TODO: this requires more detailed investigation
+			if ( $filename == "" ) { $filename = _("(unnamed attachment)") . "-" . mt_rand(0,10000); }
 
 			$separatedParts['attachments'][] = array(
 				"type" => $contentType,

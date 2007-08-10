@@ -33,7 +33,7 @@ var FlashArea = new Class({
 	},
 	flashMessage: function ( message, submessage ) {
 		if ( submessage ) {
-			this.messages.push( message + "<div class=\"flash-submessage\">" + submessage + "</div>" );
+			this.messages.push( message + "<div class=\"detail\">" + submessage + "</div>" );
 		} else {
 			this.messages.push( message );
 		}
@@ -94,23 +94,27 @@ var PaneTransition = new Class({
 		// Stop the animation and reset opacity back to 1, but hide the element
 		this.fadeOut.stop();
 		$( this.elementID ).style.display='none';
-		new Fx.Style( this.elementID, 'opacity' ).set( 1 );
+		$( this.elementID ).setStyle( 'opacity', 1 );	// mootools will use filter() for IE
 	}
 });
 
 
 // Remote request started; display some sort of loading feedback.
+// TODO: this needs to be replaced with a more organised feedback class
 function if_remoteRequestStart() {
-	var wrapElements = new Array( 'list-wrapper', 'msg-wrapper', 'opts-wrapper',
-					'comp-wrapper', 'addr-wrapper' );
+	// TODO: debug in IE, problem seems be execution order of this function's callers
+	if ( !window.ie ) {
+		var wrapElements = new Array( 'msg-wrapper', 'opts-wrapper', 'comp-wrapper',
+						'addr-wrapper', 'list-wrapper' );
 
-	for ( var i = 0; i < wrapElements.length; i ++ ) {
-		if ( $( wrapElements[i] ).style.display != 'none' ) {
-			break;
+		for ( var i = 0; i < wrapElements.length; i ++ ) {
+			if ( $( wrapElements[i] ).style.display != 'none' ) {
+				break;
+			}
 		}
-	}
 
-	activeFadeEffect = new PaneTransition( wrapElements[i] );
+		activeFadeEffect = new PaneTransition( wrapElements[i] );
+	}
 }
 
 
@@ -167,7 +171,11 @@ function if_checkRemoteResult( remoteText ) {
 			$('relogin_pass').focus();
 		} else {
 			// Just alert the message we're given.
-			Flash.flashMessage( result.errorMessage, "Imap errors: " + result.imapNotices );
+			if ( result.imapNotices != "" ) {
+				Flash.flashMessage( result.errorMessage, "IMAP messages: " + result.imapNotices );
+			} else {
+				Flash.flashMessage( result.errorMessage, "" );
+			}
 			//alert( "Server says: " + result.errorMessage + "\nImap errors: " + result.imapNotices );
 			return null;
 		}

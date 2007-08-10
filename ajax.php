@@ -201,8 +201,10 @@ function request_moveMessage() {
 		// TODO: if the source mailbox was the trash folder, then really delete.
 	}
 
-	if ( $destinationBox == "" || count( $messages ) == 0 ) {
-		echo remoteRequestFailure( 'MOVE', _("Error: no message UIDs or destination mailbox provided") );
+	if ( count( $messages ) == 0 ) {
+		echo remoteRequestFailure( 'MOVE', _("You haven&#8217;t selected any messages to move.") );
+	} elseif ( $destinationBox == "" ) {
+		echo remoteRequestFailure( 'MOVE', _("Error: no destination mailbox provided") );
 	} else {
 		// Move the message(s)...
 		$failureCounter = 0;
@@ -694,10 +696,10 @@ function request_createComposer() {
 	}
 
 	// Build to To: area, including buttons to display CC and BCC fields
-	echo "<div class=\"comp-label\"><label for=\"comp-to\">", _("To:"), "</label><br />";
+	echo "<div class=\"comp-label\"><label for=\"comp-to\">", _("To:"), "</label>";
 
-	echo "<p class=\"comp-add-fields\"><a id=\"comp-ccshow\" href=\"#\" style=\"display: ". ( $showCC ? "none" : "inline" ) .";\" onclick=\"$('comp-cceditor').style.display='block';$('comp-ccshow').style.display='none';return false\">", _("add CC"), "</a>";
-	echo " <a id=\"comp-bccshow\" href=\"#\" style=\"display: ". ( $showBCC ? "none" : "inline" ) .";\" onclick=\"$('comp-bcceditor').style.display='block';$('comp-bccshow').style.display='none';return false\">", _("add BCC"), "</a></p>";
+	echo "<p class=\"comp-add-fields\"><a id=\"comp-ccshow\" href=\"#\"" . ( $showCC ? " style=\"display:none\"" : "" ) . " onclick=\"$('comp-cceditor').style.display='block';$('comp-ccshow').style.display='none';return false\">", _("add CC"), "</a>";
+	echo " <a id=\"comp-bccshow\" href=\"#\"". ( $showBCC ? " style=\"display:none\"" : "" ) . " onclick=\"$('comp-bcceditor').style.display='block';$('comp-bccshow').style.display='none';return false\">", _("add BCC"), "</a></p>";
 
 	echo "</div> <textarea name=\"comp-to\" id=\"comp-to\">";
 	switch ($action) {
@@ -727,7 +729,7 @@ function request_createComposer() {
 	echo "</textarea>";
 
 	echo "<div id=\"comp-cceditor\" style=\"display: ". ( $showCC ? "block" : "none" ) .";\">";
-	echo "<label class=\"comp-label\" for=\"comp-cc\">", _("CC:"), "</label> <textarea name=\"comp-cc\"  id=\"comp-cc\">";
+	echo "<label class=\"comp-label\" for=\"comp-cc\">", _("CC:"), "</label> <textarea name=\"comp-cc\" id=\"comp-cc\">";
 	if ( $showCC && isset( $headerObj ) && isset( $headerObj->cc ) ) {
 		echo htmlentities( formatIMAPAddress( $headerObj->cc ) );
 	}
@@ -766,7 +768,7 @@ function request_createComposer() {
 			}
 			break;
 	}
-       	echo "\" /></p>";
+       	echo "\" />";
 
 	// Build the text area. Text only at the moment.
 	echo "<textarea name=\"comp-msg\" id=\"comp-msg\">";

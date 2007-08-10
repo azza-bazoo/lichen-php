@@ -145,7 +145,7 @@ var MessageDisplay = new Class({
 		}
 
 		if ( message.attachments.length > 0 && forceType != "source" ) {
-			htmlFragment += "Attachments: <ul class=\"attachments\">";
+			htmlFragment += "<ul class=\"attachments\">";
 
 			for ( var i = 0; i < message.attachments.length; i++ ) {
 				var thisAttach = message.attachments[i];
@@ -156,7 +156,7 @@ var MessageDisplay = new Class({
 					"&uid=" + encodeURIComponent( message.uid ) + "&filename=" + encodeURIComponent( thisAttach.filename );
 				htmlFragment += "<a href=\"" + attachUrl + "\" onclick=\"return if_newWin('" + attachUrl + "')\">";
 				htmlFragment += thisAttach.filename + "</a>";
-				htmlFragment += " (type " + thisAttach.type + ", size ~" + thisAttach.size + " bytes)";
+				htmlFragment += " <span class=\"msg-attach-meta\">type " + thisAttach.type + ", size ~" + thisAttach.size + " bytes</span>";
 
 				if ( thisAttach.type.substr( 0, 5 ) == "image" ) {
 					htmlFragment += "<br />";

@@ -25,7 +25,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function list_sort( sortField ) {
 	// Clear the old sort image
-	if ( listCurrentSort.substr( -2 ) == "_r" ) {
+	if ( listCurrentSort.substr( listCurrentSort.length-2, 2 ) == "_r" ) {
 		$( 'list-sort-' + listCurrentSort.substring( 0, listCurrentSort.length-2 ) ).getParent().getElementsByTagName('img')[0].remove()
 	} else {
 		$('list-sort-'+listCurrentSort).getParent().getElementsByTagName('img')[0].remove();
@@ -33,7 +33,7 @@ function list_sort( sortField ) {
 
 	if ( sortField == listCurrentSort ) {
 		// Already sorting by this field, so reverse direction.
-		if ( listCurrentSort.substr( -2 ) == "_r" ) {
+		if ( listCurrentSort.substr( listCurrentSort.length-2, 2 ) == "_r" ) {
 			// Already in reverse. Go forward.
 			listCurrentSort = sortField;
 		} else {
@@ -191,7 +191,7 @@ function list_showCB( responseText ) {
 	$('list-wrapper').setHTML( tableContents );
 
 	// Set an icon to indicate the current sort.
-	if ( listCurrentSort.substr( -2 ) == "_r" ) {
+	if ( listCurrentSort.substr( listCurrentSort.length-2, 2 ) == "_r" ) {
 		var sortImg = new Element( 'img', { 'class': 'list-sort-marker',
 				'src': 'themes/' + userSettings.theme + '/icons/sort_decrease.png' } );
 		$( 'list-sort-' + listCurrentSort.substring( 0, listCurrentSort.length-2 ) ).getParent().adopt( sortImg );
@@ -242,9 +242,9 @@ function list_createPageBar( resultObj, isTopBar ) {
 	}
 
 	newPageBar += "</select>";
-	newPageBar += " &nbsp; <button onclick=\"if_moveMessages('LICHENTRASH');return false\">delete</button>";
-	newPageBar += " &nbsp; <button onclick=\"list_withSelected(null, 'flag');return false\">flag</button>";
-	newPageBar += " &nbsp; <button onclick=\"list_withSelected(null, 'markseen');return false\">mark read</button><br />";
+	newPageBar += " &nbsp; <input type=\"button\" onclick=\"if_moveMessages('LICHENTRASH');return false\" value=\"delete\" />";
+	newPageBar += " &nbsp; <input type=\"button\" onclick=\"list_withSelected(null, 'flag');return false\" value=\"flag\" />";
+	newPageBar += " &nbsp; <input type=\"button\" onclick=\"list_withSelected(null, 'markseen');return false\" value=\"mark read\" /><br />";
 
 	if ( !isTopBar ) {
 		newPageBar += "select: <a href='#' onclick='list_selectMessages(\"all\"); return false'>all</a> | ";
