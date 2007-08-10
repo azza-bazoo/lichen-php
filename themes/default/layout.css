@@ -36,9 +36,11 @@ Distributed under the GNU General Public License
 .mcol-checkbox { width: 22px; }
 .mcol-flag { width: 26px; }
 .mcol-sender { width: 200px; }
+.mcol-size { width: 75px; }
 .mcol-date { width: 125px; }
 
 div.sender { width: 190px; }
+div.size { width: 65px; margin-left: 10px; }
 div.date { width: 115px; margin-left: 10px; }
 
 /* Login screen */

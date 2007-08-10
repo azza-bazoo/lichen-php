@@ -111,7 +111,19 @@ function list_showCB( responseText ) {
 
 	tableContents += "<table>";
 
-	tableContents += "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" style=\"width:" + (window.getWidth()-515) + "px\" /><col class=\"mcol-date\" /></colgroup>";
+	// To work around imperfect CSS layout implementations, we manually
+	// calculate the width of the subject column.
+	// TODO: respond to the window being resized
+	var subjColWidth = window.getWidth() - 515;
+	if ( userSettings.list_showsize ) {
+		subjColWidth = window.getWidth() - 590;
+	}
+
+	tableContents += "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" style=\"width:" + subjColWidth + "px\" />";
+	if ( userSettings.list_showsize ) {
+		tableContents += "<col class=\"mcol-size\" />";
+	}
+	tableContents += "<col class=\"mcol-date\" /></colgroup>";
 
 	tableContents += "<thead><tr class=\"list-sortrow\"><th></th><th></th>";
 
@@ -174,7 +186,7 @@ function list_showCB( responseText ) {
 		thisRow += "</td>";
 
 		if ( userSettings.list_showsize ) {
-			thisRow += "<td>" + thisMsg.size + "</td>";
+			thisRow += "<td class=\"size\"><div class=\"size\">" + thisMsg.size + "</div></td>";
 		}
 
 		thisRow += "<td class=\"date\"><div class=\"date\">" + thisMsg.dateString + "</div></td>";
