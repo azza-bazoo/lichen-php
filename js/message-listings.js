@@ -242,7 +242,7 @@ function list_createPageBar( resultObj, isTopBar ) {
 	}
 
 	newPageBar += "</select>";
-	newPageBar += " &nbsp; <input type=\"button\" onclick=\"if_moveMessages('LICHENTRASH');return false\" value=\"delete\" />";
+	newPageBar += " &nbsp; <input type=\"button\" onclick=\"if_deleteMessages();return false\" value=\"delete\" />";
 	newPageBar += " &nbsp; <input type=\"button\" onclick=\"list_withSelected(null, 'flag');return false\" value=\"flag\" />";
 	newPageBar += " &nbsp; <input type=\"button\" onclick=\"list_withSelected(null, 'markseen');return false\" value=\"mark read\" /><br />";
 

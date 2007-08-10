@@ -222,6 +222,29 @@ function imapTwiddleFlag( $uid, $flag, $state, $thisMailbox = "" ) {
 	return array( 'success' => $success, 'errormessage' => imap_last_error(), 'flagstate' => $computedState );
 }
 
+
+// Move the message UIDs in $uidArray to the mailbox in $destination
+// and return the number of messages for which the operation failed.
+function moveMessages( $destination, $uidArray ) {
+	global $mbox;
+
+	$failureCounter = 0;
+
+	foreach ( $uidArray as $message ) {
+		$message = trim( $message );
+		if ( $message == "" ) continue;
+
+		$result = imap_mail_move( $mbox, $message, $destination, CP_UID );
+
+		if ( !$result ) $failureCounter++;
+	}
+
+	imap_expunge( $mbox ); // TODO: applies to all mailboxes, not just the one we worked on. ??
+
+	return $failureCounter;
+}
+
+
 // TODO: this code is the first to throw an error if the PHP IMAP library
 // isn't installed; there should be a check before this code is parsed.
 // Also, the array should move into the function below if not needed outside?

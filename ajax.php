@@ -189,12 +189,41 @@ function request_moveMessage() {
 		$messages = explode( ",", $_POST['uid'] );
 	}
 
-	// If we're deleting, move to trash.
-	if ( $destinationBox == "LICHENTRASH" ) {
-		$destinationBox = $SPECIAL_FOLDERS['trash'];
-		if ( !imapCheckMailboxExistence( $SPECIAL_FOLDERS['trash'] ) ) {
-			die( remoteRequestFailure( 'MOVE', _('Error: cannot create trash mailbox') ) );
+	if ( count( $messages ) == 0 ) {
+		echo remoteRequestFailure( 'MOVE', _("You haven&#8217;t selected any messages to move.") );
+	} elseif ( $destinationBox == "" ) {
+		echo remoteRequestFailure( 'MOVE', _("Error: no destination mailbox provided") );
+	} else {
+
+		$failedCount = moveMessages( $destinationBox, $messages );
+
+		if ( $failedCount == 0 ) {
+			$msg = sprintf( _("Moved %d message(s) to %s"), count( $messages ), $destinationBox );
+			echo remoteRequestSuccess( array( 'message' => $msg ) );
+		} else {
+			$msg = sprintf( _("Unable to move %d messages(s): "), $failedCount );
+			echo remoteRequestFailure( 'MOVE', $msg . imap_last_error() );
 		}
+	}
+}
+
+// ------------------------------------------------------------------------
+//
+// Move a message to the Trash, or (TODO) delete if it's already in Trash
+//
+function request_deleteMessage() {
+	global $mbox, $SPECIAL_FOLDERS, $mailbox;
+	// Move a message to Trash.
+	// The mailbox= param is the SOURCE mailbox.
+	$destinationBox = $SPECIAL_FOLDERS['trash'];
+	if ( !imapCheckMailboxExistence( $SPECIAL_FOLDERS['trash'] ) ) {
+		die( remoteRequestFailure( 'MOVE', _('Error: cannot create trash mailbox') ) );
+	}
+
+	$messages = array();
+	if ( isset( $_POST['uid'] ) && !empty( $_POST['uid'] ) ) {
+		// TODO: Assumes "," doesn't appear in uids.
+		$messages = explode( ",", $_POST['uid'] );
 	}
 
 	if ( $mailbox == $SPECIAL_FOLDERS['trash'] ) {
@@ -206,24 +235,14 @@ function request_moveMessage() {
 	} elseif ( $destinationBox == "" ) {
 		echo remoteRequestFailure( 'MOVE', _("Error: no destination mailbox provided") );
 	} else {
-		// Move the message(s)...
-		$failureCounter = 0;
-		$successCounter = 0;
-		foreach ( $messages as $message ) {
-			$message = trim( $message );
-			if ( $message == "" ) continue;
 
-			$result = imap_mail_move( $mbox, $message, $destinationBox, CP_UID );
+		$failedCount = moveMessages( $destinationBox, $messages );
 
-			if ( !$result ) $failureCounter++;
-			if (  $result ) $successCounter++;
-		}
-		imap_expunge( $mbox ); // TODO: applies to all mailboxes, not just the one we worked on. ??
-		if ( $failureCounter == 0 ) {
-			$msg = sprintf( _("Moved %d message(s) to %s"), $successCounter, $destinationBox );
+		if ( $failedCount == 0 ) {
+			$msg = sprintf( _("Moved %d message(s) to %s"), count( $messages ), $destinationBox );
 			echo remoteRequestSuccess( array( 'message' => $msg ) );
 		} else {
-			$msg = sprintf( _("Unable to move %d messages(s): "), $failureCounter );
+			$msg = sprintf( _("Unable to move %d messages(s): "), $failedCount );
 			echo remoteRequestFailure( 'MOVE', $msg . imap_last_error() );
 		}
 	}

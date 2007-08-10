@@ -104,14 +104,13 @@ function if_moveMessages( target ) {
 
 
 // Send AJAX request to delete the selected messages (which is a special case of moving)
-function if_deleteMessages( target ) {
+function if_deleteMessages() {
 	var selectedMessages = list_getSelectedMessages();
 	var selectedCount = selectedMessages.length;
 	selectedMessages = selectedMessages.join(",");
 
 	new Ajax( 'ajax.php', {
 		postBody: 'request=deleteMessage&mailbox=' + encodeURIComponent(listCurrentMailbox) +
-			'&destbox=' + encodeURIComponent(target) +
 			'&uid=' + encodeURIComponent(selectedMessages),
 		onComplete : function( responseText ) {
 			if_moveMessagesCB( responseText );
