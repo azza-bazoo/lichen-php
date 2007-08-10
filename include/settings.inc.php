@@ -356,13 +356,14 @@ function generateIdentityEditor() {
 
 	$result = "<form class=\"opts-tab\" id=\"opts-identities\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
 
-	$result .= "<div id=\"opts-identity-sel\"><select size=\"10\" id=\"opts-identity-list\">";
+	$result .= "<div id=\"opts-identity-sel\"><select size=\"10\" id=\"opts-identity-list\" onchange=\"OptionsEditor.identity_edit()\">";
 
 	foreach ( $USER_SETTINGS['identities'] as $thisIdentity ) {
 
 		$result .= "<option value=\"" . htmlentities( $thisIdentity['address'] ) . "," . htmlentities( $thisIdentity['name'] ) . "\" ";
 		if ( $thisIdentity['isdefault'] ) { $result .= "selected=\"selected\" "; }
-		$result .= " onclick=\"OptionsEditor.identity_edit()\">";
+//		$result .= " onclick=\"OptionsEditor.identity_edit()\">";
+		$result .= ">";
 
 		$result .= htmlentities( $thisIdentity['name'] ) . " &lt;" . htmlentities( $thisIdentity['address'] ) . "&gt;";
 
