@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<title>Lichen ReadMe</title>
+<style type="text/css">
+/* <![CDATA[ */
+#logo { position: absolute; top: 29px; left: 5px; }
+
+#toc { position: absolute; top: 100px; left: 2px; width: 130px; margin: 0; padding: 0; }
+#toc li { margin-left: 0; display: block; font-size: 11px; }
+#toc li a { color: #0000cc; }
+
+body { background: #f0f0f0; }
+.text { position: absolute; top: 0; left: 0; width: 70%; background: #ffffff; padding: 0 0 20px 150px; font-family: 'Lucida Grande', 'DejaVu Sans', Verdana, sans-serif; }
+.text p, .text ul, .text dl { margin-left: 10px; margin-right: 30px; }
+
+h2, h3 { font-weight: normal; }
+h2 { padding: 6px; margin: 30px 0 15px 0; background: #f0f0f0; }
+h4 { font-size: 100%; font-style: italic; }
+
+dt { font-weight: bold; }
+li, dd { margin-bottom: 0.5em; }
+code, blockquote { background: #ffffe3; }
+/* ]]> */
+</style>
+</head><body>
+
+<div class="text">
+<img src="themes/default/lichen-corner.png" alt="" id="logo" />
+
+<ul id="toc">
+<li><a href="#requirements">Server requirements</a></li>
+<li><a href="#install">Getting started</a></li>
+<li><a href="#advanced">Advanced settings</a></li>
+<li><a href="#todo">Known issues / TODOs</a></li>
+<li><a href="#contact">Questions, patches, bug reports</a></li>
+</ul>
+
+<h2>Welcome to Lichen 0.3!</h2>
+
+<p>Lichen aims to be a sophisticated but easy-to-use IMAP client, powered by AJAX and PHP.</p>
+<p>We wrote Lichen because we wanted to check e-mail from a Web browser, but with the fun and excitement of fashionable techniques like AJAX. To avoid over-complicating our lives, we&#8217;ve tried to make it as easy to set up as possible, while providing an experience just as good as commercial e-mail services, and all released under <a href="license.html">the GPL</a>.</p>
+<p><strong>This is a pre-release version of Lichen</strong>; you shouldn&#8217;t install it on a production server.</p>
+
+<a name="requirements"></a><h2>Server requirements</h2>
+
+<ul>
+<li>An IMAP server that has your mail (such as <a href="http://www.dovecot.org/">Dovecot</a>)</li>
+<li>A Web server (such as <a href="http://httpd.apache.org/">Apache</a>)</li>
+<li><a href="http://www.php.net/">PHP</a> version 4.4 or higher; we recommend using PHP 5.2</li>
+<li>Your PHP must have IMAP support built-in. On most Linux distributions, this means installing the package called <code>php-imap</code> (e.g. on Debian, run <code>apt-get install php-imap</code> as root).</li>
+
+</ul>
+
+<a name="install"></a><h2>Getting started</h2>
+
+<p>To install Lichen, you&#8217;ll need:</p>
+<ul>
+<li>A Web server and IMAP server meeting the requirements above.</li>
+<li>Some method of getting Lichen on to your Web server, such as an FTP client.</li>
+<li>A text editor, to edit the configuration file.</li>
+<li>A modern Web browser: Firefox 1.5+, Safari 2+, and Internet Explorer 6+ are supported in this release. (Opera and Konqueror support is forthcoming.)</li>
+</ul>
+
+<h3>1. Download and unpack Lichen</h3>
+<p>If you&#8217;re reading this, you&#8217;ve probably already done this step. The latest release can be downloaded from <a href="http://lichen-mail.org">lichen-mail.org</a> and can be decompressed with any program that handles bzip2 (in a shell, just type <code>tar -jxf lichen-0.3.tar.bz2</code>).</p>
+<p>
+
+<h3>2. Create a data directory</h3>
+
+<p>Lichen needs somewhere to store your settings and any attachments you send. (Without a data directory, Lichen may still run, but with PHP warnings and no sending ability.)</p>
+<p>You should choose a directory that isn&#8217;t inside your Web root &#8212; i.e. it should not be visible to someone visiting your site. If you&#8217;re running Lichen on a dedicated system, you could create a directory such as <code>/var/run/lichen</code>.</p>
+<p>If you must put Lichen&#8217;s data in a subdirectory that is visible to your site&#8217;s visitors (for instance, if your shared hosting only provides access to the Web root), then you should take steps to hide your configuration files. If you&#8217;re using Apache (most shared hosts are), create a file called <code>.htaccess</code> inside the data directory, with this in the file:</p>
+<blockquote style="width:20em"><code>Order Deny, Allow<br />Deny from all</code></blockquote>
+
+<p>After saving the file, visit the directory you created with your Web browser to make sure access is denied.</p>
+<p><strong>Either way, you must change permissions on the directory</strong> to allow the Web server to write there. This is usually done by changing the permissions on the directory to 777 with your FTP client (or by typing <code>chmod 777 /path/to/data</code> in a shell). Alternatively, if you know which user your Web server process runs under (such as <code>httpd</code>), set that user as the owner of the directory (e.g. with <code>chown httpd:httpd /path/to/data</code>).</p>
+
+<h3>3. Edit lichen-config.php</h3>
+<p>Rename the file <code>lichen-config-example.php</code> to <code>lichen-config.php</code>, and open it in a text editor.</p>
+<p>Of the options in this file, the most important are the four at the top:</p>
+
+<dl>
+<dt>$SMTP_SERVER</dt>
+<dd>This is the outgoing SMTP server with which you send e-mail. If you&#8217;re using a shared Web host, it&#8217;ll probably be <code>localhost</code>.</dd>
+<dt>$SMTP_DOMAIN</dt>
+<dd>This is the domain name of your e-mail server as it appears to the Internet. <strong>Generally, you should set this manually to be the part after @ in your e-mail address.</strong> The default value is to auto-detect the domain of your Web server and assume your e-mail domain is the same, but this won&#8217;t apply in all cases.</dd>
+<dt>$LICHEN_DATA</dt>
+<dd>This is the directory that you chose for data storage in step 2 above. It&#8217;s safer to enter a full path if you have it, but a path relative to the Lichen install will usually also work.</dd>
+<dt>$IMAP_SERVER</dt>
+<dd>This is the IMAP server that stores e-mail sent to you. If you&#8217;re using a shared Web host, this will also probably be <code>localhost</code>.</dd>
+</dl>
+
+<p>When you&#8217;re done, save the file. If you have special needs, or encounter problems, check the section on <a href="#advanced">advanced settings</a> below.</p>
+
+<h3>4. Move Lichen to its permanent home</h3>
+
+<p>If you normally upload files to your host via FTP, log in with your FTP client and upload the <code>lichen-0.3</code> directory into your normal location for Web pages. If you&#8217;re working directly on the server, <code>mv</code> the directory into your Web root.</p>
+<p>After moving Lichen into place, you might like to rename the directory (e.g. to <code>lichen</code> or <code>webmail</code>).</p>
+
+<h3>5. Visit the URL and log in</h3>
+
+<p>Pop open your Web browser and visit the URL of the location where you installed Lichen. For instance, if you renamed the directory with Lichen&#8217;s files to <code>lichen</code> and uploaded it to your highest-level Web directory, visit <code>http://yoursite.com/lichen/</code></p>
+<p>You should see a login screen with a picture of an envelope; type in your e-mail username and password and hit Login. If you can see your mailboxes and messages, then you&#8217;re done!</p>
+
+<a name="advanced"></a><h2>Advanced settings</h2>
+
+<p>By default, Lichen will use an unencrypted SMTP connection on port 25 to send mail. To read mail, it defaults to an SSL-encrypted IMAP connection if your IMAP server is not <code>localhost</code>, and an unencrypted IMAP connection if it is. You can change this behaviour by editing the advanced settings in <code>lichen-config.php</code>:</p>
+
+<dl>
+<dt>$SPECIAL_FOLDERS</dt>
+<dd>This array stores the names of the mailboxes that Lichen will use to save your sent messages, unsent drafts, and deleted messages, respectively.</dd>
+
+<dt>$IMAP_PORT</dt>
+<dd>If this value is non-zero, Lichen will connect to your IMAP server on this port. Otherwise, the port is automatically set to 993 for SSL connections and 143 for unencrypted connections.</dd>
+<dt>$IMAP_FORCE_NO_SSL</dt>
+<dd>If you set this to true, Lichen will not use SSL to connect to your IMAP server. If it&#8217;s false, Lichen will automatically disable SSL for local connections, and enable it for non-local connections.</dd>
+<dt>$IMAP_USE_TLS</dt>
+<dd>If this is set to true, Lichen will encrypt all connections to the IMAP server with TLS, even to the local host. You should also set $IMAP_PORT (generally to 143) if you turn on TLS.</dd>
+<dt>$IMAP_CHECK_CERTS</dt>
+<dd>PHP&#8217;s IMAP extension will check the trust level of encryption certificates by default if SSL or TLS are in use. Set this to false if you have a self-signed certificate (or just want to disable trust checking).</dd>
+
+<dt>$SMTP_PORT</dt>
+<dd>This is the port on which Lichen will connect to your SMTP server. If you use SMTP over SSL you&#8217;ll need to set this to 465, and if you use Lichen on a home Internet connection you may need to set it to some value other than 25.</dd>
+<dt>$SMTP_USE_SSL</dt>
+<dd>If this is set to true, Lichen will use SSL when sending mail through your SMTP server.</dd>
+<dt>$SMTP_AUTH</dt>
+<dd>In most cases, SMTP servers require you to send your username and password before you can send mail. If your server doesn&#8217;t require this, set $SMTP_AUTH to false. (If you&#8217;re setting up an SMTP server and disable authentication, be careful not to create an <a href="http://www.spamhelp.org/shopenrelay/">open relay</a>.)</dd>
+
+<dt>$DATE_FORMAT_NEW</dt>
+<dd>This is the <a href="http://php.net/manual/en/function.date.php">PHP date format string</a> used for messages less than three days old, when displaying a list of messages in a mailbox. (However, this isn&#8217;t currently used.)</dd>
+<dt>$DATE_FORMAT_OLD</dt>
+<dd>As above, used in the list for messages older than three days.</dd>
+<dt>$DATE_FORMAT_LONG</dt>
+<dd>The full date format used when you view the contents of a message.</dd>
+
+<dt>$UPLOAD_ATTACHMENT_MAX</dt>
+<dd>This value is inserted into the &#8220;compose new message&#8221; form as a hint to the browser indicating the maximum accepted size of uploaded files. However, it is a recommendation only &#8212; the actual upload limits are set by the values in your server&#8217;s <a href="http://www.php.net/manual/en/ini.core.php#ini.post-max-size"><code>php.ini</code> file</a>.</dd>
+
+<dt>$DEFAULT_SETTINGS</dt>
+<dd>This array value allows you to override Lichen&#8217;s default settings for new users, such as if you&#8217;re running a large custom mail server. See the source of <code>include/settings.inc.php</code> for possible values to insert here.</dd>
+</dl>
+
+<a name="todo"></a><h2>Known issues / TODOs</h2>
+
+<ul>
+<li>Switching between mailboxes too quickly causes the interface to lose track of which mailbox you&#8217;re viewing (you&#8217;ll have to navigate to another page).</li>
+<li>The window flickers when you switch mailboxes.</li>
+<li>TLS support is incomplete &#8212; viewing attachments and sending messages won&#8217;t work.</li>
+<li>There is no address book.</li>
+<li>We have rudimentary theme support, but it&#8217;s neither finished nor documented.</li>
+<li>i18n is incomplete; the interface is English-only for now.</li>
+<li>In the settings screen, the sending identities editor and the mailbox manager are incomplete and not particularly robust.</li>
+<li>The clickable list of mailboxes hides mailbox names that are too long.</li>
+<li>There are still a few display issues with high-byte characters that aren&#8217;t UTF-8.</li>
+<li>Large parts of the code, such as the PHP that generates the new message composer, are temporary hacks that need to be reorganised or cleaned up.</li>
+<li>Your browser&#8217;s Back button won&#8217;t work in Lichen.</li>
+</ul>
+
+<a name="contact"></a><h2>Questions, patches, bug reports</h2>
+
+<p>Send queries and bug reports to <a href="mailto:lichen@lichen-mail.org">lichen@lichen-mail.org</a>.</p>
+<p>A list of current bugs, along with a browser for recent code changes, is available at <a href="http://trac.lichen-mail.org/report/1">trac.lichen-mail.org</a>.</p>
+<p>You can also get the latest version of Lichen by anonymous Subversion &#8212; if you have the client installed, just type <code>svn checkout http://lichen-mail.org/svn/trunk</code> in a terminal.</p>
+
+</div></body></html>
