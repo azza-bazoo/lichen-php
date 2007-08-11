@@ -237,7 +237,7 @@ function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags 
 			// PHP < 5.1.0's preg_replace doesn't have the ability to count the matches.
 			// So we do this beforehand with a preg_match_all, and then do the replacement.
 			// (This is really a hack)
-			$replacementCount = preg_match_all( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', $string );
+			$replacementCount = preg_match_all( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', $string, $matches );
 			$string = preg_replace( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', "<img$1src=\"http://_$2\" class=\"remoteimg\"",
 							$string, -1 );
 		} else {
