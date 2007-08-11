@@ -739,7 +739,21 @@ function request_sendMessage() {
 	//die( print_r( parseRecipientList( $_POST['comp-to'] ) ) );
 
 	// Set the Various recipient addresses.
+	/* Long diatribe about why we do the following twice, to end up with $messageRecipients and $mimeMessageRecipients.
+	   PHP5: Creating a single $messageRecipients and using it for creating the appropriate headers in
+	   the message (with $mimeMessage->setTo( $messageRecipients->getTo() ) works fine, and then we use
+	   the same $messageRecipients object for the Swift::send() call, to let it know where to send the email.
+	   PHP4: This doesn't work, Swift::send() dies with a fatal error. Cause: when we call
+	   $mimeMessage->setTo( $messageRecipients->getTo() ) what happens is that $messageRecipients->getTo() returns
+	   a reference to the internal array of Swift_Address objects that $messageRecipients stores. $mimeMessage->setTo()
+	   then proceeds to iterate over the array, replacing each key in the array with the results of calling the build()
+	   function of each element of the array (which returns a string representation of the email address stored by the
+	   Swift_Address object). Because getTo() returns a reference, setTo()'s actions do this in place, changing 
+	   $messageRecipients internal state. And then when it comes time to call Swift:send(), it's expecting
+	   $messageRecipients to have an array of Swift_Address objects, not strings. I hope that's confusing enough.
+	*/
 	$messageRecipients =& new Swift_RecipientList();
+	$mimeMessageRecipients =& new Swift_RecipientList();
 	// TO:
 	$toRecipients = parseRecipientList( $_POST['comp-to'] );
 
@@ -749,6 +763,7 @@ function request_sendMessage() {
 
 	foreach ( $toRecipients as $recipient ) {
 		$messageRecipients->addTo( $recipient['address'], $recipient['name'] );
+		$mimeMessageRecipients->addTo( $recipient['address'], $recipient['name'] );
 	}
 
 	// CC:
@@ -757,6 +772,7 @@ function request_sendMessage() {
 	if ( count( $ccRecipients ) != 0 ) {
 		foreach ( $ccRecipients as $recipient ) {
 			$messageRecipients->addCc( $recipient['address'], $recipient['name'] );
+			$mimeMessageRecipients->addCc( $recipient['address'], $recipient['name'] );
 		}
 	}
 
@@ -766,6 +782,7 @@ function request_sendMessage() {
 	if ( count( $bccRecipients ) != 0 ) {
 		foreach ( $bccRecipients as $recipient ) {
 			$messageRecipients->addBcc( $recipient['address'], $recipient['name'] );
+			$mimeMessageRecipients->addBcc( $recipient['address'], $recipient['name'] );
 		}
 	}
 
@@ -774,9 +791,9 @@ function request_sendMessage() {
 	// The Swift docs say that these don't need to be set to send a message,
 	// but it does seem to be harmless - if we don't set them, then when we save
 	// a draft we have no idea what these addresses are.
-	$mimeMessage->setTo( $messageRecipients->getTo() );
-	$mimeMessage->setCc( $messageRecipients->getCc() );
-	$mimeMessage->setBcc( $messageRecipients->getBcc() );
+	$mimeMessage->setTo( $mimeMessageRecipients->getTo() );
+	$mimeMessage->setCc( $mimeMessageRecipients->getCc() );
+	$mimeMessage->setBcc( $mimeMessageRecipients->getBcc() );
 
 	// Add attachments.
 	if ( isset( $_POST['comp-attach'] ) && count( $_POST['comp-attach'] ) > 0 ) {
