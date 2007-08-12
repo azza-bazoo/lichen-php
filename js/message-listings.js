@@ -317,6 +317,7 @@ function list_getSelectedMessages() {
 	var inputElements = $A( $('list-wrapper').getElementsByTagName('input') );
 
 	for ( var i = 0; i < inputElements.length; i++ ) {
+		if ( inputElements[i].type != 'checkbox' ) continue;
 		if ( inputElements[i].checked ) {
 			selectedMessages.push( inputElements[i].value );
 		}

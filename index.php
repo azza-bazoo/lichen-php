@@ -128,22 +128,22 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 
 	echo <<<ENDJS
 <script type="text/javascript" src="js/mootools.v1.11.js"></script>
-<script type="text/javascript" src="js/lichen.r63.js"></script>
+<!-- <script type="text/javascript" src="js/lichen.r63.js"></script> -->
+<script type="text/javascript" src="js/initialisation.js"></script>
+<script type="text/javascript" src="js/interface-feedback.js"></script>
+<script type="text/javascript" src="js/interface-helpers.js"></script>
+<script type="text/javascript" src="js/mailbox-manager.js"></script>
+<script type="text/javascript" src="js/mailboxes-list.js"></script>
+<script type="text/javascript" src="js/mailbox-data.js"></script>
+<script type="text/javascript" src="js/cache.js"></script>
+<script type="text/javascript" src="js/server-connector.js"></script>
+<script type="text/javascript" src="js/message-listings.js"></script>
+<script type="text/javascript" src="js/message-display.js"></script>
+<script type="text/javascript" src="js/message-actions.js"></script>
+<script type="text/javascript" src="js/composer.js"></script>
+<script type="text/javascript" src="js/attachment-uploads.js"></script>
+<script type="text/javascript" src="js/settings.js"></script>
 ENDJS;
-// <script type="text/javascript" src="js/initialisation.js"></script>
-// <script type="text/javascript" src="js/interface-feedback.js"></script>
-// <script type="text/javascript" src="js/interface-helpers.js"></script>
-// <script type="text/javascript" src="js/mailbox-manager.js"></script>
-// <script type="text/javascript" src="js/mailboxes-list.js"></script>
-// <script type="text/javascript" src="js/mailbox-data.js"></script>
-// <script type="text/javascript" src="js/cache.js"></script>
-// <script type="text/javascript" src="js/server-connector.js"></script>
-// <script type="text/javascript" src="js/message-listings.js"></script>
-// <script type="text/javascript" src="js/message-display.js"></script>
-// <script type="text/javascript" src="js/message-actions.js"></script>
-// <script type="text/javascript" src="js/composer.js"></script>
-// <script type="text/javascript" src="js/attachment-uploads.js"></script>
-// <script type="text/javascript" src="js/settings.js"></script>
 
 	echo "<ul id=\"corner-bar\" class=\"toolbar\">";
 
