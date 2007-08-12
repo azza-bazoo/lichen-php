@@ -389,7 +389,7 @@ function streamLargeAttachment($server, $port, $usessl, $user, $pass, $mailbox, 
 		$messageParts = retrieveMessage( imap_msgno( $mbox, $uid ) );
 
 		foreach ( $messageParts['attachments'] as $attachment ) {
-			if ( $attachment['filename'] == $filename || $searchCID == $attachment['id'] ) {
+			if ( $attachment['filename'] == $filename || ( $searchCID != "" && $searchCID == $attachment['id'] ) ) {
 				$partToExtract = $attachment['part'];
 				$contentType = $attachment['type'];
 				$encoding = $attachment['encoding'];
