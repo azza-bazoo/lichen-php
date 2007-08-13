@@ -57,12 +57,17 @@ var MessageLister = new Class({
 		return this.sort + ( this.sortAsc ? "" : "_r" );
 	},
 	parseSort: function ( newSort ) {
-		if ( newSort.substr( newSort.length - 2, 2  ) == "_r" ) {
-			this.sort = newSort.substr( 0, newSort.length - 2 );
-			this.sortAsc = false;
+		if ( newSort ) {
+			if ( newSort.substr( newSort.length - 2, 2  ) == "_r" ) {
+				this.sort = newSort.substr( 0, newSort.length - 2 );
+				this.sortAsc = false;
+			} else {
+				this.sort = newSort;
+				this.sortAsc = true;
+			}
 		} else {
-			this.sort = newSort;
-			this.sortAsc = true;
+			this.sort = "date";
+			this.sortAsc = false;
 		}
 	},
 
