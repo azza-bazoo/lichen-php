@@ -599,6 +599,15 @@ function request_createComposer() {
 
 // ------------------------------------------------------------------------
 //
+// Get data for the composer, so the client can build a composer.
+//
+function request_getComposeData() {
+	$composeData = generateComposerData();
+	echo remoteRequestSuccess( array( 'composedata' => $composeData ) );
+}
+
+// ------------------------------------------------------------------------
+//
 // Upload an attachment.
 //
 function request_uploadAttachment() {

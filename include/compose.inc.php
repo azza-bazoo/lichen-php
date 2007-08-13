@@ -328,4 +328,237 @@ function generateMessageCompose() {
 }
 
 
+// Generate all the data required to build a composer window.
+// At the moment, this gets returned to the client which can then build a composer.
+// In future, it can be passed through a modified version of the above function
+// to put out a HTML version.
+// TODO: Stop using all these global variables and $_POST vars.
+function generateComposerData() {
+	global $mbox, $IMAP_CONNECT, $mailbox;
+	global $IMAP_PORT, $IMAP_SERVER, $IS_SSL;
+	global $SMTP_SERVER, $SMTP_PORT, $USER_SETTINGS;
+	global $LICHEN_URL, $LICHEN_VERSION;
+	global $SPECIAL_FOLDERS, $UPLOAD_ATTACHMENT_MAX;
+
+	include ( 'libs/streamattach.php' );
+
+	$compData = array();
+
+	$message = null;
+	if ( isset( $_POST['uid'] ) ) {
+		// It's in reply/forward of...
+		// Load that message.
+		$msgNo = imap_msgno( $mbox, $_POST['uid'] );
+
+		$msgArray = retrieveMessage( $msgNo, false );
+
+		if ( $msgArray == null ) {
+			// TODO: Don't die here. That's just bad form.
+			die( remoteRequestFailure( 'COMPOSER', _("Error: cannot find message to reply to or forward.") ) );
+		}
+		$headerObj = imap_headerinfo( $mbox, $msgNo );
+	}
+
+	$mailtoDetails = array();
+	if ( isset( $_POST['mailto'] ) ) {
+		// Parse a string that was in an email.
+		// Probably just a raw email address, but may be
+		// something like "mailto:foo@bar.com?subject=Baz"
+		$bits = explode( "?", $_POST['mailto'] );
+
+		if ( count( $bits ) > 1 ) {
+			// Parse the later part.
+			parse_str( $bits[1], $mailtoDetails );
+		}
+		$mailtoDetails['email-to'] = $bits[0];
+	}
+
+	$action = "new";
+	if ( isset( $_POST['mode'] ) ) {
+		$action = $_POST['mode'];
+	}
+
+	if ( $action == "forward_default" ) {
+		// Determine the default forward mode from the configuration, and
+		// then allow the user to override it later.
+		if ( $USER_SETTINGS['forward_as_attach'] ) {
+			$action = "forwardasattach";
+		} else {
+			$action = "forwardinline";
+		}
+	}
+
+	$understoodActions = array( "reply", "replyall", "forwardinline", "forwardasattach", "draft", "mailto", "new" );
+	if ( !in_array( $action, $understoodActions ) ) {
+		$action = "new";
+	}
+
+	$compData['comp-mode'] = $action;
+	if ( isset( $_POST['uid'] ) ) {
+		$compData['comp-quoteuid'] = $_POST['uid'];
+		$compData['comp-quotemailbox'] = $_POST['mailbox'];
+	}
+	if ( $action == "draft" ) {
+		$compData['comp-draftuid'] = $_POST['uid'];
+	}
+
+	$compData['identities'] = $USER_SETTINGS['identities'];
+
+	if ( isset( $headerObj->from ) ) {
+		$compData['comp-from'] = formatIMAPAddress( $headerObj->from );
+	}
+
+	// TODO: Much of this data is htmlentity encoded before it goes to the client, which is intended
+	// to save the client doing it. That works as we're building innerHTML contents on the client.
+	// Maybe in future this won't be true...
+
+	// Determine the "to" address.
+	$compData['comp-to'] = "";
+	switch ($action) {
+		case 'reply':
+			// This is probably not the right thing to do.
+			if ( isset( $headerObj->reply_to ) ) {
+				$compData['comp-to'] = formatIMAPAddress( $headerObj->reply_to );
+			} else {
+				$compData['comp-to'] = formatIMAPAddress( $headerObj->from );
+			}
+			break;
+		case 'replyall':
+			// TODO: pick the right header
+			if ( isset( $headerObj->reply_to ) ) {
+				$compData['comp-to'] = formatIMAPAddress( $headerObj->reply_to );
+			} else {
+				$compData['comp-to'] = formatIMAPAddress( $headerObj->from );
+			}
+			break;
+		case 'draft':
+			$compData['comp-to'] = formatIMAPAddress( $headerObj->to );
+			break;
+		case 'mailto':
+			$compData['comp-to'] = $mailtoDetails['email-to'];
+			break;
+	}
+	$compData['comp-to'] = htmlentities( $compData['comp-to'] );
+
+	// Determine CC address(es), if we need them.
+	$compData['comp-cc'] = "";
+	if ( isset( $headerObj ) && isset( $headerObj->cc ) ) {
+		$compData['comp-cc'] .= htmlentities( formatIMAPAddress( $headerObj->cc ) );
+	}
+	if ( isset( $mailtoDetails['cc'] ) ) {
+		$compData['comp-cc'] .= htmlentities( $mailtoDetails['cc'] );
+	}
+	$compData['show-cc'] = !empty( $compData['comp-cc'] );
+
+	// Determine BCC address(es), if we need them.
+	$compData['comp-bcc'] = "";
+	if ( isset( $headerObj ) && isset( $headerObj->bcc ) ) {
+		$compData['comp-bcc'] .= htmlentities( formatIMAPAddress( $headerObj->bcc ) );
+	}
+	if ( isset( $mailtoDetails['bcc'] ) ) {
+		$compData['comp-bcc'] .= htmlentities( $mailtoDetails['bcc'] );
+	}
+	$compData['show-bcc'] = !empty( $compData['comp-bcc'] );
+
+	// Determine the subject of the message.
+	$compData['comp-subj'] = "";
+	switch ($action) {
+		case 'reply':
+		case 'replyall':
+			$compData['comp-subj'] = _("Re:") . " " . $headerObj->subject;
+			break;
+		case 'forwardinline':
+		case 'forwardasattach':
+			$compData['comp-subj'] = _("Fwd:") . " ". $headerObj->subject;
+			break;
+		case 'draft':
+			$compData['comp-subj'] = $headerObj->subject;
+			break;
+		case 'mailto':
+			if ( isset( $mailtoDetails['subject'] ) ) {
+				$compData['comp-subj'] = $mailtoDetails['subject'];
+			}
+			break;
+	}
+	$compData['comp-subj'] = htmlentities( $compData['comp-subj'] );
+
+	// Determine the initial body of the message.
+	// TODO: Handle HTML properly.
+	$compData['comp-msg'] = "";
+	switch ($action) {
+		case 'reply':
+		case 'replyall':
+			$compData['comp-msg']  = markupQuotedMessage( $msgArray['text/html'], 'text/html', 'reply' );
+			$compData['comp-msg'] .= "\n";
+			$compData['comp-msg'] .= markupQuotedMessage( $msgArray['text/plain'], 'text/plain', 'reply' );
+			break;
+		case 'forwardinline':
+			$compData['comp-msg']  = "--- ". _("Forwarded message"). " ---\n";
+			$compData['comp-msg'] .= _("From"). ": " . formatIMAPAddress( $headerObj->from ) . "\n";
+			$compData['comp-msg'] .= _("To"). ": " . formatIMAPAddress( $headerObj->to ) . "\n";
+			$compData['comp-msg'] .= _("Subject"). ": " . $headerObj->subject  . "\n";
+			$compData['comp-msg'] .= "\n";
+			$compData['comp-msg'] .= markupQuotedMessage( $msgArray['text/html'], 'text/html', 'forward' );
+			$compData['comp-msg'] .= "\n";
+			$compData['comp-msg'] .= markupQuotedMessage( $msgArray['text/plain'], 'text/plain', 'forward' );
+			break;
+		case 'draft':
+			$compData['comp-msg']  = implode( "", $msgArray['text/plain'] );
+			break;
+		case 'mailto':
+			if ( isset( $mailtoDetails['body'] ) ) {
+				$compData['comp-msg'] = $mailtoDetails['body'];
+			}
+	}
+	$compData['comp-msg'] = htmlentities( $compData['comp-msg'] );
+
+	// Collect data on all the attachments.
+	$compData['comp-attach'] = array();
+	
+	if ( $action == "forwardasattach" ) {
+		// TODO: Lots of copied code from below - don't copy and paste!
+		$userDir = getUserDirectory() . "/attachments";
+		$attachmentFilename = "{$headerObj->subject}.eml";
+		$attachmentFilename = str_replace( array( "/", "\\" ), array( "-", "-" ), $attachmentFilename );
+		$serverFilename = hashifyFilename( $attachmentFilename );
+		$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
+		streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
+			$mailbox, $_POST['uid'], "LICHENSOURCE", $attachmentHandle );
+		fclose( $attachmentHandle );
+
+		$compData['comp-attach'][] = array(
+			"filename" => $attachmentFilename,
+			"type" => "message/rfc822",
+			"size" => filesize( "{$userDir}/{$serverFilename}" ),
+			"isforwardedmessage" => true
+		);
+	}
+
+	if ( $action == "forwardinline" || $action == "forwardasattach" || $action == "draft" ) {
+		// Save out the attachments to the users attachment dir.
+		$userDir = getUserDirectory() . "/attachments";
+		foreach ( $msgArray['attachments'] as $attachment ) {
+
+			if ( $attachment['filename'] == "" ) continue; // Skip attachments that are inline-only.
+
+			$serverFilename = hashifyFilename( $attachment['filename'] );
+			$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
+			streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
+				$mailbox, $_POST['uid'], $attachment['filename'], $attachmentHandle );
+			fclose( $attachmentHandle );
+			$compData['comp-attach'][] = array(
+				"filename" => $attachment['filename'],
+				"type" => $attachment['type'],
+				"size" => filesize( "{$userDir}/{$serverFilename}" ),
+				"isforwardedmessage" => false
+			);
+		}
+	}
+
+	$compData['maxattachmentsize'] = $UPLOAD_ATTACHMENT_MAX;
+
+	return $compData;
+}
+
+
 ?>

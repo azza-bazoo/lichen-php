@@ -406,6 +406,56 @@ function convertLinksCallback( $matches ) {
 	return "$leader<a href=\"$fullUrl\" onclick=\"return if_newWin('$fullUrl')\">$originalText</a>$trailer";
 }
 
+// Function used by markupQuotedMessage() to insert a ">" before all the lines of replies.
+function quoteReplyMarkup( $line ) {
+	return "> {$line}";
+}
+
+// Prepare a block of text to be suitable as a quoted reply.
+// This does things like strip HTML, insert ">" marks, and so forth.
+// All kinda crude, and currently only outputs as plain text.
+// $inputType should be either "text/html" or "text/plain".
+// $mode should be either "reply" or "forward"
+function markupQuotedMessage( $input, $inputType, $mode ) {
+
+	$message = $input;
+
+	if ( !is_array( $message ) ) {
+		$message = array( $message );
+	}
+
+	// The input is likely an array of text or html sections,
+	// stick them all together.
+	$message = implode( "", $message );
+
+	// If it's HTML...
+	if ( $inputType == "text/html" ) {
+		// Strip the HTML tags.
+		$message = trim( strip_tags( $message ) );
+
+		// Decode all the HTML entities.
+		if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
+			$message = html_entity_decode_utf8( $message );
+		} else {
+			$message = html_entity_decode( $message, ENT_COMPAT, 'UTF-8' );
+		}
+
+		// Wordwrap at 80 chars.
+		$message = wordwrap( $message, 80 );
+	} else if ( $inputType == "text/plain" ) {
+		// Just trim excess whitespace.
+		$message = trim( $message );
+	}
+
+	if ( $mode == "reply" ) {
+		// Insert ">" into each line of the reply.
+		// TODO: This line does too much in one go.
+		$message = implode( "\n", array_map( "quoteReplyMarkup", explode( "\n", $message ) ) );
+	}
+
+	return $message;
+}
+
 
 // Takes the e-mail header Date: and converts it to the user's local
 // time zone, formatted according to their preferences.

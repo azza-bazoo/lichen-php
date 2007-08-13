@@ -31,6 +31,10 @@ var MessageDisplay = new Class({
 		this.lastShownUID = "";
 	},
 
+	getViewedUID: function () {
+		return this.lastShownUID;
+	},
+
 	showMessage: function( mailbox, uid, mode ) {
 		// Rather than having fetchMessage send us the mode back,
 		// cache it in our instance data. We have to mark which UID we were

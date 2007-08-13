@@ -78,7 +78,7 @@ function asyncUploadCompleted( frameName ) {
 
 	var displayAttach = new Element('li');
 	displayAttach.setHTML( result.filename + " (" + result.type + ", " + result.size + " bytes)" +
-		" (<a href=\"#\" onclick=\"comp_removeAttachment('" + escape(result.filename) + "');return false\">remove</a>)" );
+		" (<a href=\"#\" onclick=\"MessageCompose.removeAttachment('" + escape(result.filename) + "');return false\">remove</a>)" );
 	$('comp-attachlist').adopt( displayAttach );
 
 	var uploadedFile = new Element('input');
@@ -90,52 +90,3 @@ function asyncUploadCompleted( frameName ) {
 	$('comp-attachfile').value = "";
 }
 
-function comp_removeAttachment( filename ) {
-	// Remove an attachment from the composer.
-	var attachmentFilenames = $A( $('compose').getElementsByTagName('input') );
-	var attachmentListElements = $A( $('comp-attachlist').getElementsByTagName('li') );
-
-	var foundFilename = false;
-
-	// We encoded filename in the removal link, so undo that now.
-	filename = unescape( filename );
-
-	for ( var i = 0; i < attachmentFilenames.length; i++ ) {
-		var thisfile = attachmentFilenames[i];
-
-		if ( thisfile.type == "hidden" && thisfile.value == filename ) {
-			// This is the hidden form element for this file.
-			// Destroy it.
-			foundFilename = true;
-			thisfile.remove();
-		}
-	}
-
-
-	for ( var i = 0; i < attachmentListElements.length; i++ ) {
-		var thisfile = attachmentListElements[i];
-
-		if ( thisfile.getText().contains( filename ) ) {
-			// TODO: This is not foolproof.
-			thisfile.remove();
-		}
-	}
-
-	// Ask the server to remove the file.
-	if ( foundFilename ) {
-		new Ajax( 'ajax.php', {
-			postBody: 'request=removeAttachment&filename='+encodeURIComponent(filename),
-			onComplete : function ( responseText ) {
-				comp_attachmentDeleted( responseText );
-			},
-			onFailure : function( responseText ) {
-				if_remoteRequestFailed( responseText );
-			}
-			} ).request();
-	}
-}
-
-// This is a stub - so errors get reported, but that's it.
-function comp_attachmentDeleted( responseText ) {
-	var result = if_checkRemoteResult( responseText );
-}
