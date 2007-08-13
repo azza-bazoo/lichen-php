@@ -614,7 +614,32 @@ function request_uploadAttachment() {
 
 	if ( isset( $_FILES['comp-attachfile'] ) ) {
 		if ( $_FILES['comp-attachfile']['error'] != 0 ) {
-			echo remoteRequestFailure( 'UPLOAD', _('PHP Upload error ') . $_FILES['comp-attachfile']['error'] );
+			$errorMessage = _("Unknown upload error.");
+			switch ( $_FILES['comp-attachfile']['error'] ) {
+				case UPLOAD_ERR_INI_SIZE:
+					$errorMessage = _("Uploaded file exceeds what is allowed by the server.");
+					break;
+				case UPLOAD_ERR_FORM_SIZE:
+					$errorMessage = _("Uploaded file exceeds what is allowed by Lichen.");
+					break;
+				case UPLOAD_ERR_PARTIAL:
+					$errorMessage = _("The file was only partially uploaded.");
+					break;
+				case UPLOAD_ERR_NO_FILE:
+					$errorMessage = _("No file was uploaded.");
+					break;
+				case UPLOAD_ERR_NO_TMP_DIR:
+					$errorMessage = _("Server misconfiguration: no temporary directory to upload file to.");
+					break;
+				case UPLOAD_ERR_CANT_WRITE:
+					$errorMessage = _("Server error: unable to save the uploaded file on the server.");
+					break;
+				// TODO: Test below on PHP4!
+				case UPLOAD_ERR_EXTENSION:
+					$errorMessage = _("File upload disabled by file extension.");
+					break;
+			}
+			echo remoteRequestFailure( 'UPLOAD', $errorMessage );
 		} else {
 			$destinationDirectory = getUserDirectory() . "/attachments";
 			$serverFilename = hashifyFilename( $_FILES['comp-attachfile']['name'] );
