@@ -170,7 +170,7 @@ var MessageComposer = new Class({
 		
 
 		// Create the upload form.
-		composer += "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return asyncUploadFile($('comp-uploadform'))\">";
+		composer += "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return MessageCompose.asyncUploadFile($('comp-uploadform'))\">";
 		composer += "<input type=\"hidden\" name=\"request\" id=\"request\" value=\"uploadAttachment\" />";
 		composer += "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"" + compData['maxattachmentsize'] + "\" />";
 		composer += "<label for=\"comp-attachfile\">add new</label><br />";
@@ -279,6 +279,72 @@ var MessageComposer = new Class({
 	// This is a stub - so errors get reported, but that's it.
 	attachmentDeleted: function( responseText ) {
 		var result = if_checkRemoteResult( responseText );
+	},
+
+	// AJAX File upload using a iframe.
+	// Based on an example at http://www.webtoolkit.info/ajax-file-upload.html
+	asyncUploadFile: function( sourceForm ) {
+		// Create a hidden iframe to do the work.
+		var iframeName = 'asyncUpload' + Math.floor(Math.random() * 99999);
+
+		var hiddenDiv = new Element('div');
+		$(hiddenDiv).setHTML("<iframe style='display: none;' src='about:blank' id='" + iframeName +
+			"' name='" + iframeName +
+			"' onload='MessageCompose.asyncUploadCompleted(\"" + iframeName +  "\")'></iframe>");
+
+		$('comp-wrapper').adopt( hiddenDiv );
+
+		// Now retarget the form to this new iFrame.
+		$(sourceForm).setProperty( 'target', iframeName );
+
+	//	if_remoteRequestStart();
+
+		// Force the form to upload.
+		return true;
+	},
+
+	asyncUploadCompleted: function( frameName ) {
+		var hiddenIframe = $(frameName);
+
+		// It seems IE calls this function twice, the second
+		// time the iframe doesn't exist anymore, and thus it bombs.
+		// So short circuit this
+		if ( hiddenIframe == null ) return;
+
+		if ( hiddenIframe.contentWindow != null ) {
+			hiddenIframe = hiddenIframe.contentWindow.document;
+		} else if ( hiddenIframe.contentDocument != null ) {
+			hiddenIframe = hiddenIframe.contentDocument;
+		} else {
+			hiddenIframe = window.frames[frameName].document;
+		}
+
+		if (hiddenIframe.location.href == "about:blank") return;
+
+		// Workaround for Firefox: point the iframe at a harmless URI
+		// so it doesn't seem like it's still loading.
+		hiddenIframe.location.href = "about:blank";
+
+		// Parse the result.
+		var result = if_checkRemoteResult( hiddenIframe.body.innerHTML );
+		if (!result) return;
+
+		// Destroy the iframe (by removing its parent DIV)
+		// and update our list of attachments.
+		$(frameName).getParent().remove();
+
+		var displayAttach = new Element('li');
+		displayAttach.setHTML( result.filename + " (" + result.type + ", " + result.size + " bytes)" +
+			" (<a href=\"#\" onclick=\"MessageCompose.removeAttachment('" + escape(result.filename) + "');return false\">remove</a>)" );
+		$('comp-attachlist').adopt( displayAttach );
+
+		var uploadedFile = new Element('input');
+		uploadedFile.type = 'hidden';
+		uploadedFile.name = 'comp-attach[]';
+		uploadedFile.value = result.filename;
+		$('compose').adopt( uploadedFile );
+
+		$('comp-attachfile').value = "";
 	}
 });
 
