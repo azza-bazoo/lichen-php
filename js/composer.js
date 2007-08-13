@@ -28,7 +28,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 function comp_showForm( mode, quoteUID, mailto ) {
 	clearTimeout( refreshTimer );
 
-	var postbody = "request=createComposer&mailbox=" + encodeURIComponent(listCurrentMailbox);
+	var postbody = "request=createComposer&mailbox=" + encodeURIComponent(MessageList.getMailbox());
 	if ( mode )     postbody += "&mode=" + mode;
 	if ( quoteUID ) postbody += "&uid=" + encodeURIComponent(quoteUID);
 	if ( mailto )   postbody += "&mailto=" + encodeURIComponent(mailto);

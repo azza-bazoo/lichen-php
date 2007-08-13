@@ -26,7 +26,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 function list_twiddleFlag( uid, flag, state ) {
 	var postbody = "request=setFlag";
 	postbody += "&flag=" + encodeURIComponent( flag );
-	postbody += "&mailbox=" + listCurrentMailbox;
+	postbody += "&mailbox=" + MessageList.getMailbox();
 	postbody += "&uid=" + encodeURIComponent( uid );
 	if ( state ) {
 		postbody += "&state=" + state;
@@ -85,12 +85,12 @@ function list_twiddleFlagCB( responseText ) {
 
 
 function if_moveMessages( target ) {
-	var selectedMessages = list_getSelectedMessages();
+	var selectedMessages = MessageList.getSelectedMessages();
 	var selectedCount = selectedMessages.length;
 	selectedMessages = selectedMessages.join(",");
 
 	new Ajax( 'ajax.php', {
-		postBody: 'request=moveMessage&mailbox=' + encodeURIComponent(listCurrentMailbox) +
+		postBody: 'request=moveMessage&mailbox=' + encodeURIComponent(MessageList.getMailbox()) +
 			'&destbox=' + encodeURIComponent(target) +
 			'&uid=' + encodeURIComponent(selectedMessages),
 		onComplete : function( responseText ) {
@@ -105,12 +105,12 @@ function if_moveMessages( target ) {
 
 // Send AJAX request to delete the selected messages (which is a special case of moving)
 function if_deleteMessages() {
-	var selectedMessages = list_getSelectedMessages();
+	var selectedMessages = MessageList.getSelectedMessages();
 	var selectedCount = selectedMessages.length;
 	selectedMessages = selectedMessages.join(",");
 
 	new Ajax( 'ajax.php', {
-		postBody: 'request=deleteMessage&mailbox=' + encodeURIComponent(listCurrentMailbox) +
+		postBody: 'request=deleteMessage&mailbox=' + encodeURIComponent(MessageList.getMailbox()) +
 			'&uid=' + encodeURIComponent(selectedMessages),
 		onComplete : function( responseText ) {
 			if_moveMessagesCB( responseText );
@@ -129,5 +129,5 @@ function if_moveMessagesCB( responseText ) {
 	Flash.flashMessage( result.message );
 
 	// Update the lists...
-	list_show();
+	MessageList.listUpdate();
 }

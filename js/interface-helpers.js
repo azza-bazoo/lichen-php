@@ -36,7 +36,7 @@ function if_returnToList( leavingUID ) {
 //	if_remoteRequestStart();
 	if_hideToolbars();
 	$('list-bar').style.display = 'block';
-	list_show();
+	MessageList.listUpdate();
 }
 
 

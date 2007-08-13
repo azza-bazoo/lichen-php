@@ -44,7 +44,7 @@ var MessagesDatastore = new Class({
 
 		if ( result ) {
 			// From cache: just directly use the data.
-			list_showCB( result );
+			MessageList.listUpdateCB( result );
 		}
 
 		// Now fall through and ask the server anyway. It will tell us if we need new data.
@@ -81,7 +81,7 @@ var MessagesDatastore = new Class({
 
 		// Pass the data off to the callback.
 		if ( cacheonly != "true" ) {
-			list_showCB( result );
+			MessageList.listUpdateCB( result );
 		}
 	},
 
@@ -168,10 +168,9 @@ var MessagesDatastore = new Class({
 
 		// Was this message not on the current page? If so, preload the list so that it will
 		// be on the correct page, and force a preload of the data for that list view.
-		// TODO: Looking at a global variable (listCurrentPage) to make this happen here...
-		if ( messagePage != -1 && messagePage != listCurrentPage ) {
-			// Update listCurrentPage.
-			listCurrentPage = messagePage;
+		if ( messagePage != -1 && messagePage != MessageList.getMailbox() ) {
+			// Update the current page.
+			MessageList.setPage( messagePage, true );
 
 			if ( this.online ) {
 				if ( messagePage != 0 ) {
@@ -211,7 +210,7 @@ var MessagesDatastore = new Class({
 	fetchMailboxListCB: function( mailboxList ) {
 		// Got the response from the server, check it and store as appropriate.
 		var result = this.cache.storeMailboxList( mailboxList.data, mailboxList.validity );
-		list_countCB( result );
+		MailboxList.listUpdateCB( result );
 	},
 
 	fetchMessage: function( mailbox, uid, mode ) {

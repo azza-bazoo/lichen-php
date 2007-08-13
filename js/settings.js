@@ -120,7 +120,7 @@ var OptionsEditorClass = new Class({
 		}
 
 		opts_getCB( result );
-		list_show();
+		MessageList.listUpdate();
 	},
 
 	identity_add: function () {

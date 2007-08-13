@@ -28,6 +28,7 @@ var MessageDisplay = new Class({
 		this.wrapperdiv = wrapperdiv;
 		this.displayMode = "";
 		this.displayModeUID = "";
+		this.lastShownUID = "";
 	},
 
 	showMessage: function( mailbox, uid, mode ) {
@@ -45,6 +46,8 @@ var MessageDisplay = new Class({
 
 		// Go off and fetch the data.
 		Messages.fetchMessage( mailbox, uid, requestMode );
+
+		return false;
 	},
 
 	showMessageCB: function( message, mode ) {
@@ -64,12 +67,12 @@ var MessageDisplay = new Class({
 		$(this.wrapperdiv).setHTML( this._render( message, mode ) );
 		$(this.wrapperdiv).style.display = 'block';
 		$('msg-bar').style.display = 'block';
-		lastShownUID = message.uid;
+		this.lastShownUID = message.uid;
 
 		// This is a hack to display the "edit as draft" button
 		// only if the user is viewing the drafts folder.
 		var draftButton = $('btn-draft');
-		if ( listCurrentMailbox == specialFolders['drafts'] ) {
+		if ( MessageList.getMailbox() == specialFolders['drafts'] ) {
 			draftButton.setStyle('display', 'inline');
 		} else {
 			draftButton.setStyle('display', 'none');
@@ -78,15 +81,15 @@ var MessageDisplay = new Class({
 
 	_render: function( message, forceType ) {
 		// Find the next/previous messages.
-		var adjacentMessages = Messages.fetchAdjacentMessages( listCurrentMailbox, listCurrentSearch, listCurrentPage, listCurrentSort, message.uid );
+		var adjacentMessages = Messages.fetchAdjacentMessages( MessageList.getMailbox(), MessageList.getSearch(), MessageList.getPage(), MessageList.getSortStr(), message.uid );
 
 		var htmlFragment = "<div class=\"list-header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" />";
 
-		var messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"#inbox\" onclick=\"if_returnToList(lastShownUID);return false\">back to " + listCurrentMailbox + "</a></div>";
+		var messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"#inbox\" onclick=\"if_returnToList(false);return false\">back to " + MessageList.getMailbox() + "</a></div>";
 
 		messageNavBar += "<div class=\"header-right\">";
 		if ( adjacentMessages.previous ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + adjacentMessages.previous.uid + "')\">previous";
+			messageNavBar += "<a href=\"#\" onclick=\"return MessageDisplayer.showMessage('" + message.mailbox + "','" + adjacentMessages.previous.uid + "')\">previous";
 			if ( adjacentMessages.next ) {
 				messageNavBar += "</a> | ";
 			} else {
@@ -94,7 +97,7 @@ var MessageDisplay = new Class({
 			}
 		}
 		if ( adjacentMessages.next ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return showMsg('" + message.mailbox + "','" + adjacentMessages.next.uid + "')\">next message</a>";
+			messageNavBar += "<a href=\"#\" onclick=\"return MessageDisplayer.showMessage('" + message.mailbox + "','" + adjacentMessages.next.uid + "')\">next message</a>";
 		}
 
 		messageNavBar += "</div></div>";
@@ -176,19 +179,19 @@ var MessageDisplay = new Class({
 		// Respond to a user's click on the "switch view" dropdown
 		switch( $('msg-switch-view').value ) {
 			case 'html':
-				showMsg( listCurrentMailbox, lastShownUID, 'html' );
+				this.showMessage( MessageList.getMailbox(), this.lastShownUID, 'html' );
 				break;
 			case 'text':
-				showMsg( listCurrentMailbox, lastShownUID, 'text' );
+				this.showMessage( MessageList.getMailbox(), this.lastShownUID, 'text' );
 				break;
 			case 'text-mono':
-				showMsg( listCurrentMailbox, lastShownUID, 'monospace' );
+				this.showMessage( MessageList.getMailbox(), this.lastShownUID, 'monospace' );
 				break;
 			case 'source':
 				if_newWin(
 					'message.php?source&mailbox='
-					+ encodeURIComponent( listCurrentMailbox ) + '&uid='
-					+ encodeURIComponent( lastShownUID ) );
+					+ encodeURIComponent( MessageList.getMailbox() ) + '&uid='
+					+ encodeURIComponent( this.lastShownUID ) );
 				break;
 		}
 
@@ -213,10 +216,3 @@ var MessageDisplay = new Class({
 	}
 });
 
-
-// TODO: This is a hack to make it work for now ...
-function showMsg( mailbox, uid, mode ) {
-	if_remoteRequestStart();
-	MessageDisplayer.showMessage( mailbox, uid, mode );
-	return false;
-}

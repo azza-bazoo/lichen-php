@@ -26,13 +26,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 window.onload = if_init;
 
 var msgCount = 0;
-var lastUIDconst = "";
-var lastShownUID = "";
-var listCurrentMailbox = 'INBOX';
-var listCurrentPage = 0;
-var listCurrentSearch = '';
-var listCurrentSort = userSettings['list_sortmode'];
-var mailboxCount = 0;
+//var lastUIDconst = "";
+//var lastShownUID = "";
+//var listCurrentMailbox = 'INBOX';
+//var listCurrentPage = 0;
+//var listCurrentSearch = '';
+//var listCurrentSort = userSettings['list_sortmode'];
+//var mailboxCount = 0;
 var activeFadeEffect = false;
 var refreshTimer;
 var userSettings;
@@ -44,6 +44,7 @@ var Flash;
 var MailboxManager;
 var OptionsEditor;
 var Messages;
+var MessageList;
 
 
 // Interface initialisation, set mailbox autorefresh
@@ -65,7 +66,7 @@ function if_init() {
 	refreshTimer = setTimeout( list_checkCount, 5 * 60 * 1000 );
 
 	// Load default mailbox (inbox)
-	list_show();
+	MessageList.listUpdate();
 
 	// Workaround for a bug in KHTML
 	if ( window.khtml ) {
