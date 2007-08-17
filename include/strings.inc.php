@@ -337,13 +337,13 @@ function convertToUTF8( $string, $charset ) {
 function convertLinks( $string ) {
 
 	// Regexp to deal with http[s] links on a single line
-	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)http([s]?)\:\/\/(.+?)\s/i', 'convertLinksCallback', $string );
+	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)http([s]{0,1})\:\/\/(.+?)\s/i', 'convertLinksCallback', $string );
 
 	// This version is meant to find links spanning multiple lines, delimited by < and >
 	$string = preg_replace_callback( '/(<|&lt;)http([s]{0,1})\:\/\/(.+?)(>|&gt;)/is', 'convertLinksCallback', $string );
 
 	// Simpler regexp to find www.foo without an http://
-	$string = preg_replace_callback( '/(?<!http\:\/\/)www\.(.+?)(>|\"|\s)/i', 'convertLinksCallback', $string );
+	$string = preg_replace_callback( '/(?<!http\:\/\/|https\:\/\/)www\.(.+?)(>|\"|\s)/i', 'convertLinksCallback', $string );
 
 	// Convert e-mail addresses to composer links
 	$string = preg_replace( '/(\<|\>|\;|\s|\"|\,)([\w\d]+[\w\d\.\_\-\+]*\@[\w\d]+[\w\d\.\_\-]+)(\,|\>|\&|\"|\s)/',
