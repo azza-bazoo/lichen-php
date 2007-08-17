@@ -140,6 +140,14 @@ var MessageLister = new Class({
 			return;
 		}
 
+		// Is this a non-existant page? Likely because we moved all the messages from
+		// this page.
+		// View the last page.
+		if ( result.thispage.toInt() >= result.numberpages || result.thispage.toInt() == -1 ) {
+			this.setPage( result.numberpages - 1 );
+			return;
+		}
+
 		// Go ahead and render the messages.
 		this._render( result.messages, result );
 		
