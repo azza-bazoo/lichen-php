@@ -190,10 +190,14 @@ var MessagesDatastore = new Class({
 		return result;
 	},
 
-	fetchMailboxList: function( ) {
+	fetchMailboxList: function( fromCacheOnly ) {
 		// Ask the data store for the data.
 		var validity = this.cache.getMailboxListValidity();
 		var result = this.cache.getMailboxList( validity );
+
+		if ( fromCacheOnly ) {
+			return result;
+		}
 
 		if ( this.online ) {
 			// Ask the server to return us the most valid data.

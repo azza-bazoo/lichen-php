@@ -36,7 +36,6 @@ var MailboxLister = new Class({
 
 	listUpdateCB: function ( mailboxes ) {
 		var msgCounts = mailboxes;
-		mailboxCache = mailboxes; // This is a hack to allow list_createPageBar() to have a mailbox list.
 
 		if (this.mailboxCount != msgCounts.length) {
 			// A mailbox has been added/removed.

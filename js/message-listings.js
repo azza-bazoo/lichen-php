@@ -299,15 +299,21 @@ var MessageLister = new Class({
 		newPageBar += "<select onchange=\"MessageList.withSelected(this)\">";
 		newPageBar += "<option value=\"noop\" selected=\"selected\">move selected to ...</option>";
 
-		// TODO: Make this work properly - currently using a global var
-		// specially created in mailboxes-list.js
-		for ( var i = 0; i < mailboxCache.length; i++ ) {
-			newPageBar += "<option value=\"move-" + mailboxCache[i].fullboxname + "\">";
-			for ( var j = 0; j < mailboxCache[i].folderdepth; j++ ) {
-				newPageBar += "-";
+		// Build a list of mailboxes.
+		// Only use a version that the MessagesDatastore has cached.
+		// TODO: Figure out how to make it synchonously request and return this data
+		// if needed. For the moment, we're relying on the fact that it's already
+		// been requested.
+		mailboxes = Messages.fetchMailboxList( true );
+		if ( mailboxes ) {
+			for ( var i = 0; i < mailboxes.length; i++ ) {
+				newPageBar += "<option value=\"move-" + mailboxes[i].fullboxname + "\">";
+				for ( var j = 0; j < mailboxes[i].folderdepth; j++ ) {
+					newPageBar += "-";
+				}
+				newPageBar += mailboxes[i].mailbox;
+				newPageBar += "</option>";
 			}
-			newPageBar += mailboxCache[i].mailbox;
-			newPageBar += "</option>";
 		}
 
 		newPageBar += "</select>";

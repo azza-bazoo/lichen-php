@@ -37,8 +37,6 @@ var activeFadeEffect = false;
 var refreshTimer;
 var userSettings;
 
-var mailboxCache = Array();	// a hack
-
 var MessageDisplayer;		// also a hack
 var Flash;
 var MailboxManager;
