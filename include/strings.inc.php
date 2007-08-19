@@ -254,7 +254,7 @@ function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags 
 
 		// Convert "mailto:" links into composer links.
 		// This leaves the href intact, and inserts an onclick= part to the link.
-		$string = preg_replace( '/<a(.*?)href=\"mailto:(.*?)\"/is', "<a$1href=\"mailto:$2\" onclick=\"comp_showForm('mailto',null,'$2');return false\"", $string );
+		$string = preg_replace( '/<a(.*?)href=\"mailto:(.*?)\"/is', "<a$1href=\"mailto:$2\" onclick=\"Lichen.action('compose','MessageCompose','showComposer',['mailto',null,'$2']);return false\"", $string );
 
 	} else {
 		// Assume we're dealing with plain text.
@@ -347,7 +347,7 @@ function convertLinks( $string ) {
 
 	// Convert e-mail addresses to composer links
 	$string = preg_replace( '/(\<|\>|\;|\s|\"|\,)([\w\d]+[\w\d\.\_\-\+]*\@[\w\d]+[\w\d\.\_\-]+)(\,|\>|\&|\"|\s)/',
-		"$1<a href=\"#compose\" onclick=\"comp_showForm('mailto',null,'$2');return false\">$2</a>$3", $string );
+		"$1<a href=\"#compose\" onclick=\"Lichen.action('compose','MessageCompose','showComposer',['mailto',null,'$2']);return false\">$2</a>$3", $string );
 
 	return $string;
 }
