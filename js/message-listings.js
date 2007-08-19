@@ -562,8 +562,23 @@ var MessageLister = new Class({
 
 		// Update the lists...
 		this.listUpdate();
-	}
+	},
+		
+	/* Testing code; not in use */
+	threadTest: function () {
+		new Ajax( 'ajax.php', {
+			postBody: "request=getThreadedList&mailbox=" + encodeURIComponent(this.getMailbox()),
+			onComplete : this.threadTestCB.bind( this ),
+			onFailure : if_remoteRequestFailed
+			} ).request();
+	},
 
+	threadTestCB: function( responseText ) {
+		var result = if_checkRemoteResult( responseText );
+		if (!result) return;
+
+		$(this.wrapper).setHTML( result.htmlFragment );
+	}
 });
 
 //var MessageList = new MessageLister( 'list-wrapper' );

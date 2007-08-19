@@ -170,6 +170,26 @@ function request_mailboxContentsList() {
 	echo remoteRequestSuccess( array( "validityKey" => $validityKey, "data" => $listData, "cacheonly" => $_POST['cacheonly'] ) );
 }
 
+// Testing code.
+function request_getThreadedList() {
+	global $mbox;
+
+	ob_start();
+	// Based on the example at http://au3.php.net/manual/en/function.imap-thread.php
+	$threads = imap_thread( $mbox );
+	foreach ($threads as $key => $val) {
+		$tree = explode('.', $key);
+		if ($tree[1] == 'num') {
+			$header = imap_headerinfo($mbox, $val);
+			echo "<ul>\n\t<li>" . $header->fromaddress . "\n";
+		} elseif ($tree[1] == 'branch') {
+			echo "\t</li>\n</ul>\n";
+		}
+	}
+
+	echo remoteRequestSuccess( array( "htmlFragment" => ob_get_clean() ) );
+}
+
 // ------------------------------------------------------------------------
 //
 // Move a message between folders.
