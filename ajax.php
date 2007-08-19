@@ -180,8 +180,12 @@ function request_getThreadedList() {
 	foreach ($threads as $key => $val) {
 		$tree = explode('.', $key);
 		if ($tree[1] == 'num') {
-			$header = imap_headerinfo($mbox, $val);
-			echo "<ul>\n\t<li>" . $header->fromaddress . "\n";
+			if ( $val == 0 ) {
+				echo "<ul>\n\t<li>Invalid Message??\n";
+			} else {
+				$header = imap_headerinfo($mbox, $val);
+				echo "<ul>\n\t<li>" . $header->fromaddress . "\n";
+			}
 		} elseif ($tree[1] == 'branch') {
 			echo "\t</li>\n</ul>\n";
 		}
