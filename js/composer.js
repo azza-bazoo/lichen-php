@@ -25,6 +25,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 var MessageComposer = new Class({
 	initialize: function ( wrapper ) {
 		this.wrapper = wrapper;
+		this.messageFormat = "text/plain";
 	},
 
 	// Show the form for a new message. If provided, prefill the
@@ -47,6 +48,19 @@ var MessageComposer = new Class({
 		if (!result) return;
 	
 		this._render( result.composedata );
+	},
+
+	makeHTMLMail: function () {
+		// Change the editor to HTML.
+		this.messageFormat = "text/html";
+		tinyMCE.execCommand( 'mceAddControl', false, 'comp-msg' );
+	},
+
+	makePlainMail: function () {
+		// Change the editor to Plain.
+		// TODO... strip HTML?
+		this.messageFormat = "text/plain";
+		tinyMCE.execCommand( 'mceRemoveControl', false, 'comp-msg' );
 	},
 
 	_render: function ( compData ) {
@@ -121,6 +135,9 @@ var MessageComposer = new Class({
 		composer += "<label class=\"comp-label\" for=\"comp-subj\">Subject:</label> <input type=\"text\" name=\"comp-subj\" id=\"comp-subj\" value=\"";
 		composer += compData['comp-subj'] + "\" />";
 
+		composer += "<div><a href=\"#\" onclick=\"Lichen.MessageCompose.makeHTMLMail();return false\">HTML Message</a> | ";
+		composer += "<a href=\"#\" onclick=\"Lichen.MessageCompose.makePlainMail();return false\">Plain Message</a></div>";
+
 		// Build the text area. Text only at the moment.
 		composer += "<textarea name=\"comp-msg\" id=\"comp-msg\">";
 		composer += compData['comp-msg'];
@@ -190,7 +207,15 @@ var MessageComposer = new Class({
 
 		var parameters = "request=sendMessage&";
 		if ( saveDraft ) parameters += "draft=save&";
+		parameters += "format=" + encodeURIComponent( this.messageFormat ) + "&";
 		parameters += $('compose').toQueryString();
+		if ( this.messageFormat == "text/html" ) {
+			// Seems as though comp-msg is not seen as a form element, and
+			// is blank. Manually append it. Note: this is a hack, because
+			// comp-msg is actually in the string after toQueryString(),
+			// we rely on PHP overriding later instances of the same variable.
+			parameters += "&comp-msg=" + encodeURIComponent( tinyMCE.getContent( 'comp-msg' ) );
+		}
 		new Ajax( 'ajax.php', {
 			postBody: parameters,
 			onComplete : this.sendMessageCB.bind( this ),
@@ -222,8 +247,16 @@ var MessageComposer = new Class({
 		} else {
 			// TODO: determine if we're returning to a message list or
 			// back to a particular message.
+			this.cleanupComposer();
 			Lichen.action( 'list', 'MessageList', 'listUpdate' );
 			Lichen.Flash.flashMessage( result.message );
+		}
+	},
+
+	cleanupComposer: function () {
+		if ( this.messageFormat == "text/html" ) {
+			// Delete the tinyMCE editor: http://tinymce.moxiecode.com/punbb/viewtopic.php?pid=22977
+			tinyMCE.execCommand( 'mceRemoveControl', false, 'comp-msg' );
 		}
 	},
 

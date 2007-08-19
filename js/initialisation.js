@@ -45,6 +45,8 @@ var userSettings;
 //var MessageList;
 var Lichen;
 
+tinyMCE.init({mode: 'none', theme: 'advanced'});
+
 // Interface initialisation, set mailbox autorefresh
 function if_init() {
 	//opts_get();

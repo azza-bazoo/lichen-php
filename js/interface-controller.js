@@ -22,7 +22,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-
 var InterfaceController = new Class({
 	initialize: function () {
 		// Available modes: "list", "compose", "display", "options"
@@ -97,6 +96,10 @@ var InterfaceController = new Class({
 	},
 
 	action: function ( mode, controller, action, data ) {
+		if ( mode && this.mode == 'compose' && mode != this.mode ) {
+			// A hack, clean up the composer if we're exiting the composer.
+			this.MessageCompose.cleanupComposer();
+		}
 		if ( mode && mode != this.mode ) {
 			// Changing mode.
 			// TODO: Fade effect thingy.

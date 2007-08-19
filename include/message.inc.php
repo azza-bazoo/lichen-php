@@ -77,7 +77,7 @@ function separateMsgParts( $partsObject, $msgNo, $partPrefix, $preview=false ) {
 	$phpMimeTypeCodes = array( 'text', 'multipart', 'message', 'application',
 					'audio', 'image', 'video', 'other', 'other', 'other' );
 	$phpMimeEncodingCodes = array( '7bit', '8bit', 'binary', 'base64',
-					'quoted-printable', 'other' );
+					'quoted-printable', 'other', 'utf-8' ); // ?? 6 = utf-8??
 
 	// Deal with each part in turn.
 	foreach ( $partsObject as $partNo => $thisPart ) {

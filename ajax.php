@@ -829,12 +829,38 @@ function request_sendMessage() {
 	$mimeMessage->setCc( $mimeMessageRecipients->getCc() );
 	$mimeMessage->setBcc( $mimeMessageRecipients->getBcc() );
 
+	// Do the body of the email.
+	// TODO: The body coming back should be UTF-8... so set this as the encoding...
+	if ( $_POST['format'] == "text/plain" ) {
+		// Just a plain text email.
+		$mimeMessage->attach( new Swift_Message_Part( $_POST['comp-msg'], "text/plain", "utf-8" ) );
+	} else {
+		// It's a HTML email. This is fun!
+		// First part of the message is the HTML version of the email.
+		// The HTML we get from the client is just the body of the HTML, add our headers to it!
+		$source = $_POST['comp-msg'];
+
+		$htmlVersion  = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+		$htmlVersion .= "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n";
+		$htmlVersion .= "<html><head>\n";
+		$htmlVersion .= "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n";
+		$htmlVersion .= "<meta http-equiv=\"Generator\" content=\"Lichen Webmail / TinyMCE\" />\n";
+		$htmlVersion .= "<title>{$_POST['comp-subj']}</title>\n";
+		$htmlVersion .= "</head>\n";
+		$htmlVersion .= "<body>\n";
+		$htmlVersion .= $source;
+		$htmlVersion .= "\n</body>\n";
+		$htmlVersion .= "</html>\n";
+
+		// Now generate a text version. TODO: This is crude.
+		$textVersion = strip_tags( $source );
+		
+		$mimeMessage->attach( new Swift_Message_Part( $htmlVersion, "text/html", "utf-8" ) );
+		$mimeMessage->attach( new Swift_Message_Part( $textVersion, "text/plain", "utf-8" ) );
+	}
+
 	// Add attachments.
 	if ( isset( $_POST['comp-attach'] ) && count( $_POST['comp-attach'] ) > 0 ) {
-		// Set the body, as a seperate part.
-		// TODO: Only handles plain text.
-		$mimeMessage->attach( new Swift_Message_Part( $_POST['comp-msg'] ) );
-
 		// Filenames to add...
 		$uploadDir = getUserDirectory() . "/attachments";
 		foreach ( $_POST['comp-attach'] as $attachmentFile ) {
@@ -853,10 +879,6 @@ function request_sendMessage() {
 					$mimeType ) );
 			}
 		}
-	} else {
-		// Set the body.
-		// TODO: Only handles plain text.
-		$mimeMessage->setBody( $_POST['comp-msg'] );
 	}
 
 	// Pregenerate the message ID.
