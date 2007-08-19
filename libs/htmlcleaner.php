@@ -60,7 +60,11 @@ function cleanHtml( $htmlInput ) {
 		$output .= substr( $htmlInput, $processPos, $nextOpenTag - $processPos );
 		$processPos = $nextOpenTag;
 
+		// If we have a next tag...
 		if ( $nextOpenTag !== false && $nextCloseTag !== false ) {
+			$processPos = $nextCloseTag + 1;
+
+			// If the tags appear to be nested correctly.
 			if ( $nextCloseTag > $nextOpenTag ) {
 				// Extract the tag.
 				$tagData = substr( $htmlInput, $nextOpenTag, $nextCloseTag - $nextOpenTag );
@@ -76,12 +80,26 @@ function cleanHtml( $htmlInput ) {
 				} else {
 					$tagName = substr( trim( $tagData ), 0, $tagNameEnd );
 				}
+
+				if ( $tagName == "!DOCTYPE" ) {
+					// Pass this out directly; no modification.
+					$output .= "<{$tagData}>";
+					continue;
+				}
+
 				$tagName = strtolower( $tagName );
 
 				// Is this a closing tag?
 				$isClosingTag = false;
+				$selfClosedTag = false;
 				if ( $tagName[0] == "/" ) {
 					$isClosingTag = true;
+					$tagName = trim( substr( $tagName, 1 ) );
+				}
+				// Or a self-closed tag?
+				if ( $tagData[ strlen( $tagData ) - 1 ] == "/" ) {
+					$tagData = substr( $tagData, 0, strlen( $tagData ) - 1 );
+					$selfClosedTag = true;
 				}
 
 				// Is the tag allowed?
@@ -91,42 +109,148 @@ function cleanHtml( $htmlInput ) {
 					// No, it is not.
 				}
 
-				// Validate attributes.
-				// TODO: Attribute parser.
+				// Parse attributes into an array.
+				if ( !$isClosingTag ) {
+					$attributes = array();
+					$attBits = explode( " ", trim( substr( $tagData, strlen( $tagName ) ) ) );
+					$halfAtt = "";
+					$quoteOpen = "";
+					foreach ( $attBits as $attBit ) {
+						// Got any quotes in this bit?
+						$singleQuote = strpos( $attBit, "'" );
+						$doubleQuote = strpos( $attBit, '"' );
+
+						if ( $quoteOpen == "" ) {
+							// The "set to 1M" is a hack.
+							// What we're trying to accomplish here is to determine
+							// which quotes started this attribute.
+							// Ie, this code handles these cases:
+							//   bar='foo'
+							//   bar="foo"
+							//   bar='"foo"'
+							//   bar="'foo'"
+							if ( $singleQuote === false ) $singleQuote = 1000000;
+							if ( $doubleQuote === false ) $doubleQuote = 1000000;
+
+							if ( $singleQuote != 1000000 && $singleQuote < $doubleQuote ) {
+								$quoteOpen = "'";
+							}
+							if ( $doubleQuote != 1000000 && $doubleQuote < $singleQuote ) {
+								$quoteOpen = '"';
+							}
+							$halfAtt = $attBit;
+							if ( $quoteOpen != "" ) {
+								// If the quotes are contained inside this bit,
+								// then this is our attribute.
+								if ( substr_count( $attBit, $quoteOpen ) == 2 ) {
+									$quoteOpen = "";
+								}
+							}
+						} else {
+							if ( $quoteOpen == '"' && $doubleQuote !== false ) {
+								$halfAtt .= $attBit;
+								$quoteOpen = "";
+							} else if ( $quoteOpen == "'" && $singleQuote !== false ) {
+								$halfAtt .= $attBit;
+								$quoteOpen = "";
+							}
+						}
+
+						if ( $quoteOpen == "" ) {
+							// $halfAtt contains a complete attribute. Parse it.
+							$seperator = strpos( $halfAtt, "=" );
+							$halfAtt = trim( $halfAtt );
+	
+							if ( $seperator === false ) {
+								// It's an attribute with no parameter.
+								$attributes[strtolower($halfAtt)] = $halfAtt;
+							} else {
+								// Split out the name and value.
+								$attName  = strtolower( substr( $halfAtt, 0, $seperator ) );
+								$attValue = substr( $halfAtt, $seperator + 1 );
+								if ( $attValue[0] == '"' || $attValue[0] == "'" ) {
+									$attValue = substr( $attValue, 1, strlen( $attValue ) - 2 );
+								}
+	
+								// Store it.
+								$attributes[$attName] = $attValue;
+							}
+						}
+					}
+				}
 				
 				// Does the tag need to be modified?
-				if ( isset( $MODIFIED_TAGS[ $tagName ] ) ) {
-					// TODO: This function should modify attributes array,
-					// but to do that we have to give it that.
-					$bazArray = array();
-					$tagData = $MODIFIED_TAGS[$tagName]( $tagName, $tagData, $bazArray );
+				if ( !$isClosingTag ) {
+					if ( isset( $MODIFIED_TAGS[ $tagName ] ) ) {
+						$tagData = $MODIFIED_TAGS[$tagName]( $tagName, $tagData, $attributes );
+					}
 				}
 
-				//echo "Tag: ".htmlentities($tagName)." Data: ". htmlentities($tagData). "<br />";
-
-				$output .= "<{$tagData}>";
+				//echo "Tag: ".htmlentities($tagName)." Data: ". htmlentities($tagData). " {$isClosingTag}<br />";
+				if ( !$isClosingTag ) {
+					$output .= rebuildTag( $tagName, $selfClosedTag, $attributes );
+				} else {
+					$output .= "<{$tagData}>";
+				}
 			}
-
-			$processPos = $nextCloseTag + 1;
 		}
 	}
 
 	return $output;
 }
 
-// TODO: Make these work properly. At the moment, they don't get
-// the attributes passed to them...
-function mailImageTag( $tagName, $rawTag, &$attributes ) {
-	$imgUrl = "message.php?mailbox=INCOMPLETE&uid=INCOMPLETE&filename=";
-	$rawTag = preg_replace( '/src=\"(cid:.*?)\"/is', "src=\"{$imgUrl}$1\"", $rawTag );
-	$rawTag = preg_replace( '/src=\"http:\/\/(.*?)\"/is', "src=\"http://_$1\" class=\"remoteimg\"", $rawTag );
-	return $rawTag;
+// Reassemble the tag - given its name and the attributes of the tag.
+// Result should be XHTML.
+function rebuildTag( $tagName, $isSelfClosed, $attributes ) {
+	$tag = "<" . $tagName;
+	$outAtts = array();
+
+	//echo "--<br />";
+	//echo $tagName . "<br />";
+	//print_r($attributes);
+	//echo $isSelfClosed;
+
+	foreach ( $attributes as $att => $value ) {
+		$outAtts[] = "{$att}=\"" . htmlentities( $value ) . "\"";
+	}
+
+	if ( count( $outAtts ) > 0 ) {
+		$tag .= " " . implode( " ", $outAtts );
+	}
+
+	if ( $isSelfClosed ) {
+		$tag .= " /";
+	}
+
+	$tag .= ">";
+
+	//echo htmlentities($tag);
+	//echo "--<br />";
+
+	return $tag;
 }
 
+// Function to modify an image tag.
+function mailImageTag( $tagName, $rawTag, &$attributes ) {
+	if ( isset( $attributes['src'] ) ) {
+		if ( substr( $attributes['src'], 0, 4 ) == "cid:" ) {
+			$attributes['src'] = "message.php?mailbox=INCOMPLETE&uid=INCOMPLETE&filename=" . $attributes['href'];
+		} else {
+			$attributes['src'] = str_replace( "http://", "http://_", $attributes['src'] );
+			$attributes['class'] = "remoteimg";
+		}
+	}
+}
+
+// Function to modify an anchor (a) tag.
 function mailAnchorTag( $tagName, $rawTag, &$attributes ) {
-	$rawTag = preg_replace( '/href=\"http:\/\/(.*?)\"/is', "href=\"http://$1\" onclick=\"return if_newWin('http://$1');\"", $rawTag );
-	$rawTag = preg_replace( '/href=\"mailto:(.*?)\"/is', "href=\"mailto:$1\" onclick=\"comp_showForm('mailto',null,'$1');return false\"", $rawTag );
-	return $rawTag;
+	if ( isset( $attributes['href'] ) ) {
+		if ( substr( $attributes['href'], 0, 7 ) == "mailto:" ) {
+			$attributes['onclick'] = "comp_showForm('mailto',null,'".$attributes['href']."');return false";
+		} else {
+			$attributes['onclick'] = "return if_newWin('". $attributes['href'] . "');";
+		}
+	}
 }
 
 ?>
