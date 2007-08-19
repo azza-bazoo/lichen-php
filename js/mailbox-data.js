@@ -44,26 +44,18 @@ var MessagesDatastore = new Class({
 
 		if ( result ) {
 			// From cache: just directly use the data.
-			MessageList.listUpdateCB( result );
+			Lichen.action( "list", "MessageList", "listUpdateCB", [result] );
 		}
 
 		// Now fall through and ask the server anyway. It will tell us if we need new data.
 		if ( this.online ) {
 			// This step is optionally asynchronous, so let it call us back.
 			this.server.messageList( mailbox, search, page, sort, validityKey );
-
-			// While we're at it, also ask for the next/previous page.
-			if ( page != 0 ) {
-				this.server.messageList( mailbox, search, page - 1, sort,
-					this.cache.getMessageListValidity( mailbox, search, page - 1, sort ), true );
-			}
-			this.server.messageList( mailbox, search, page + 1, sort,
-					this.cache.getMessageListValidity( mailbox, search, page + 1, sort ), true );
 		}
 
 		if ( !this.online && !result ) {
 			// Cache miss + not online! Unable to do as the user wishes.
-			Flash.flashMessage( "Not online, and that data is not cached." );
+			Lichen.Flash.flashMessage( "Not online, and that data is not cached." );
 		}
 	},
 
@@ -81,7 +73,21 @@ var MessagesDatastore = new Class({
 
 		// Pass the data off to the callback.
 		if ( cacheonly != "true" ) {
-			MessageList.listUpdateCB( result );
+			Lichen.action( "list", "MessageList", "listUpdateCB", [result] );
+		}
+
+		// Semi-agressive cache: ask for the next and previous pages, and cache them.
+		// If we already have something, don't request it, because it gets checked when
+		// its actually required.
+		if ( this.online && cacheonly != "true" ) {
+			if ( page != 0 && !this.cache.haveCachedMessageList( mailbox, search, page - 1, sort ) ) {
+				this.server.messageList( mailbox, search, page - 1, sort,
+					this.cache.getMessageListValidity( mailbox, search, page - 1, sort ), true );
+			}
+			if ( result.numberpages > (page + 1) && !this.cache.haveCachedMessageList( mailbox, search, page + 1, sort ) ) {
+				this.server.messageList( mailbox, search, page + 1, sort,
+					this.cache.getMessageListValidity( mailbox, search, page + 1, sort ), true );
+			}
 		}
 	},
 
@@ -168,17 +174,24 @@ var MessagesDatastore = new Class({
 
 		// Was this message not on the current page? If so, preload the list so that it will
 		// be on the correct page, and force a preload of the data for that list view.
-		if ( messagePage != -1 && messagePage != MessageList.getMailbox() ) {
+		if ( messagePage != -1 && messagePage != Lichen.MessageList.getPage() ) {
 			// Update the current page.
-			MessageList.setPage( messagePage, true );
+			Lichen.MessageList.setPage( messagePage, true );
 
+			// Fetch the adjacent pages. Only if we don't already have them.
+			// We don't care too much if they are invalid; so long as we have something.
+			// They will get validated when we return to the list.
 			if ( this.online ) {
 				if ( messagePage != 0 ) {
-					this.server.messageList( mailbox, search, messagePage - 1, sort,
-						this.cache.getMessageListValidity( mailbox, search, messagePage - 1, sort ), true );
+					var validity = this.cache.getMessageListValidity( mailbox, search, messagePage - 1, sort );
+					if ( !this.cache.getMessageList( mailbox, search, messagePage - 1, sort, validity ) ) {
+						this.server.messageList( mailbox, search, messagePage - 1, sort, validity, true );
+					}
 				}
-				this.server.messageList( mailbox, search, messagePage + 1, sort,
-						this.cache.getMessageListValidity( mailbox, search, messagePage + 1, sort ), true );
+				var validity = this.cache.getMessageListValidity( mailbox, search, messagePage + 1, sort );
+				if ( !this.cache.getMessageList( mailbox, search, messagePage + 1, sort, validity ) ) {
+					this.server.messageList( mailbox, search, messagePage + 1, sort, validity, true );
+				}
 			}
 		}
 
@@ -204,17 +217,17 @@ var MessagesDatastore = new Class({
 			this.server.mailboxList( validity );
 		} else if ( result ) {
 			// It was cached and we're not online, return the data immediately.
-			list_countCB( result );
+			Lichen.MailboxList.listUpdateCB( result );
 		} else {
 			// Not online, not in cache.
-			Flash.flashMessage( "Unable to fetch mailbox list: not online and not cached." );
+			Lichen.Flash.flashMessage( "Unable to fetch mailbox list: not online and not cached." );
 		}
 	},
 
 	fetchMailboxListCB: function( mailboxList ) {
 		// Got the response from the server, check it and store as appropriate.
 		var result = this.cache.storeMailboxList( mailboxList.data, mailboxList.validity );
-		MailboxList.listUpdateCB( result );
+		Lichen.MailboxList.listUpdateCB( result );
 	},
 
 	fetchMessage: function( mailbox, uid, mode ) {
@@ -224,24 +237,24 @@ var MessagesDatastore = new Class({
 		// Return from the cache if we can.
 		// mode is the type of data we want: the server only sends us what we want by default.
 		// mode can be: "html", "text", "source", "all"
-//		var result = this.cache.getMessage( mailbox, uid, mode, true ); // TODO: The "true" is hack to never invalidate the cache.
-//		if ( result ) {
-//			MessageDisplayer.showMessageCB( result );
-//		} else {
+		var result = this.cache.getMessage( mailbox, uid, mode, true ); // TODO: The "true" is hack to never invalidate the cache.
+		if ( result ) {
+			Lichen.action( 'display', 'MessageDisplayer', 'showMessageCB', [result] );
+		} else {
 			// Cache Miss, ask the server.
 			if ( this.online ) {
 				this.server.messageBody( mailbox, uid, mode );
 			} else {
 				// We're not online.
-				Flash.flashMessage( "Unable to view message: in offline mode, and not cached." );
+				Lichen.Flash.flashMessage( "Unable to view message: in offline mode, and not cached." );
 			}
-//		}
+		}
 	},
 
 	fetchMessageCB: function( message, mailbox, uid ) {
 		// Cache this message.
 		var result = this.cache.storeMessage( mailbox, uid, message.data );
 
-		MessageDisplayer.showMessageCB( message.data );
+		Lichen.action( "display", "MessageDisplayer", "showMessageCB", [message.data] );
 	}
 });

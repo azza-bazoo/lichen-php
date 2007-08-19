@@ -312,6 +312,7 @@ function listMailboxContents( $searchq, $sort, $page, $metadataOnly = false ) {
 		if ($msgNumsToShow === false) {
 			$msgNumsToShow = array();
 		}
+		$msgCount = count( $msgNumsToShow );
 	} else {
 		// Maybe use imap_check instead?
 		if ( !$metadataOnly ) {
@@ -334,6 +335,9 @@ function listMailboxContents( $searchq, $sort, $page, $metadataOnly = false ) {
 	$pageSize = $USER_SETTINGS['list_pagesize'];
 	$msgStart = 0;
 	$numberPages = ceil( ( $msgCount / $pageSize ) );
+	if ( $numberPages == 0 ) {
+		$numberPages = 1; // Always have one page, even if it's blank.
+	}
 	$thisPage = 0;
 
 	if ( $page < 0 || ( $page * $pageSize ) > $msgCount ) {
@@ -364,11 +368,11 @@ function listMailboxContents( $searchq, $sort, $page, $metadataOnly = false ) {
 	return array(
 			"mailbox" => $mailbox,
 			"messages" => $messageArray,
-			"pagesize" => $pageSize,
-			"numberpages" => $numberPages,
-			"thispage" => $thisPage,
-			"numbermessages" => $msgCount,
-			"mailboxmessages" => $mailboxTotalCount,
+			"pagesize" => (integer)$pageSize,
+			"numberpages" => (integer)$numberPages,
+			"thispage" => (integer)$thisPage,
+			"numbermessages" => (integer)$msgCount,
+			"mailboxmessages" => (integer)$mailboxTotalCount,
 			"search" => stripslashes( $searchq ),
 			"sort" => $sort
 		);

@@ -25,8 +25,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var MailboxManagerClass = new Class({
 
-	initialize: function () {
+	initialize: function ( dataStore ) {
 		this.mailboxCache = null;
+		this.dataStore = dataStore;
 	},
 
 	renameInline: function ( fullboxname, boxname ) {
@@ -34,7 +35,7 @@ var MailboxManagerClass = new Class({
 		// plus a button to submit it.
 		if ( $('mbm-namearea-' + fullboxname) ) {
 			var editHtml = "<input id=\"mbm-rename-" + fullboxname + "\" type=\"text\" size=\"20\" value=\"" + boxname + "\" />";
-			editHtml += "<button onclick=\"MailboxManager.renameDone('" + fullboxname + "', '" + boxname + "');return false\">save</button> <button onclick=\"MailboxManager.renameCancel('" + fullboxname + "');return false\">cancel</button> ";
+			editHtml += "<button onclick=\"Lichen.MailboxManager.renameDone('" + fullboxname + "', '" + boxname + "');return false\">save</button> <button onclick=\"Lichen.MailboxManager.renameCancel('" + fullboxname + "');return false\">cancel</button> ";
 
 			$('mbm-namearea-' + fullboxname).setHTML( editHtml );
 
@@ -101,8 +102,8 @@ var MailboxManagerClass = new Class({
 		if ( nameArea ) {
 			var childHtml = "<div id=\"mbm-newchild-wrapper-" + fullboxname + "\">";
 			childHtml += "New Subfolder: <input id=\"mbm-newchild-" + fullboxname + "\" type=\"text\" size=\"20\" />";
-			childHtml += "<button onclick=\"MailboxManager.newChildSubmit('" + fullboxname + "'); return false\">Add</button>";
-			childHtml += "<button onclick=\"MailboxManager.newChildCancel('" + fullboxname + "'); return false\">Cancel</button>";
+			childHtml += "<button onclick=\"Lichen.MailboxManager.newChildSubmit('" + fullboxname + "'); return false\">Add</button>";
+			childHtml += "<button onclick=\"Lichen.MailboxManager.newChildCancel('" + fullboxname + "'); return false\">Cancel</button>";
 			childHtml += "</div>";
 
 			nameArea.setHTML( childHtml );
@@ -163,8 +164,8 @@ var MailboxManagerClass = new Class({
 			}
 			childHtml += "</select>";
 
-			childHtml += "<button onclick=\"MailboxManager.changeParentSubmit('" + fullboxname + "', '" + boxname + "'); return false\">Move</button>";
-			childHtml += "<button onclick=\"MailboxManager.changeParentCancel('" + fullboxname + "', '" + boxname + "'); return false\">Cancel</button>";
+			childHtml += "<button onclick=\"Lichen.MailboxManager.changeParentSubmit('" + fullboxname + "', '" + boxname + "'); return false\">Move</button>";
+			childHtml += "<button onclick=\"Lichen.MailboxManager.changeParentCancel('" + fullboxname + "', '" + boxname + "'); return false\">Cancel</button>";
 			childHtml += "</div>";
 
 			nameArea.setHTML( childHtml );
@@ -201,7 +202,7 @@ var MailboxManagerClass = new Class({
 
 		// Since the manager tab appears with an AJAX call
 		// (for now), repeating that call will regenerate the list.
-		OptionsEditor.showEditor('mailboxes');
+		Lichen.action( 'options', 'OptionsEditor', 'showEditor', ['mailboxes'] );
 
 // 		switch ( result.action ) {
 // 			case 'rename':

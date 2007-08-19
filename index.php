@@ -142,37 +142,37 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 <script type="text/javascript" src="js/message-display.js"></script>
 <script type="text/javascript" src="js/message-actions.js"></script>
 <script type="text/javascript" src="js/composer.js"></script>
-<script type="text/javascript" src="js/attachment-uploads.js"></script>
 <script type="text/javascript" src="js/settings.js"></script>
+<script type="text/javascript" src="js/interface-controller.js"></script>
 ENDJS;
 
 	echo "<ul id=\"corner-bar\" class=\"toolbar\">";
 
-	drawToolbarButton( "settings", "configure", "#settings", "settings", "OptionsEditor.showEditor('settings')" );
+	drawToolbarButton( "settings", "configure", "#settings", "settings", "Lichen.action('options','OptionsEditor','showEditor',['settings'])" );
 	drawToolbarButton( "log out", "exit", $LICHEN_URL."?logout", "logout", "" );
 
 	echo "</ul><ul id=\"list-bar\" class=\"toolbar\">";
 
-	drawToolbarButton( "compose", "mail_new", "#compose", "compose", "MessageCompose.showComposer()" );
+	drawToolbarButton( "compose", "mail_new", "#compose", "compose", "Lichen.action('compose','MessageCompose','showComposer')" );
 
 	// TODO: fix HTML hacks in the search form.
-	echo "<li id=\"btn-search\"><form action=\"$LICHEN_URL\" onsubmit=\"doQuickSearch();return false\" style=\"display:inline;margin:0;\"><label for=\"qsearch\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/mail_find.png\" alt=\"\" title=\"", _("Search messages"), "\" /></label> <input type=\"text\" name=\"qsearch\" id=\"qsearch\" style=\"display:inline;vertical-align:middle\" /> <input type=\"submit\" value=\"", _("search"), "\" style=\"display:inline;vertical-align:middle\" /></form></li>";
+	echo "<li id=\"btn-search\"><form action=\"$LICHEN_URL\" onsubmit=\"Lichen.action('list','MessageList','setSearch',[$('qsearch').value]);return false\" style=\"display:inline;margin:0;\"><label for=\"qsearch\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/mail_find.png\" alt=\"\" title=\"", _("Search messages"), "\" /></label> <input type=\"text\" name=\"qsearch\" id=\"qsearch\" style=\"display:inline;vertical-align:middle\" /> <input type=\"submit\" value=\"", _("search"), "\" style=\"display:inline;vertical-align:middle\" /></form></li>";
 
 	echo "</ul><ul id=\"comp-bar\" class=\"toolbar\">";
 
-	drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "MessageCompose.sendMessage()" );
-	drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "MessageCompose.sendMessage(true)" );
-	drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopcomp", "if_returnToList(false)" );
+	drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "Lichen.action('compose','MessageCompose','sendMessage')" );
+	drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "Lichen.action('compose','MessageCompose','sendMessage',[true])" );
+	drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopcomp", "Lichen.action('list','MessageList','listUpdate')" );
 
 	echo "</ul><ul id=\"msg-bar\" class=\"toolbar\">";
 
 //	drawToolbarButton( "back to list", "back", "#inbox", "back", "if_returnToList(lastShownUID)" );
 
 	// TODO: lastShownUID is not the correct place to get the UID from.
-	drawToolbarButton( "reply", "mail_reply", "#compose", "reply", "MessageCompose.showComposer('reply',MessageDisplayer.getViewedUID())" );
-	drawToolbarButton( "reply all", "mail_replyall", "#compose", "replyall", "MessageCompose.showComposer('replyall',MessageDisplayer.getViewedUID())" );
-	drawToolbarButton( "forward", "mail_forward", "#compose", "forward", "MessageCompose.showComposer('forward_default',MessageDisplayer.getViewedUID())" );
-	drawToolbarButton( "edit as draft", "editcopy", "#compose", "draft", "MessageCompose.showComposer('draft',MessageDisplayer.getViewedUID())" );
+	drawToolbarButton( "reply", "mail_reply", "#compose", "reply", "Lichen.action('compose','MessageCompose','showComposer',['reply',Lichen.MessageDisplayer.getViewedUID()])" );
+	drawToolbarButton( "reply all", "mail_replyall", "#compose", "replyall", "Lichen.action('compose','MessageCompose','showComposer',['replyall',Lichen.MessageDisplayer.getViewedUID()])" );
+	drawToolbarButton( "forward", "mail_forward", "#compose", "forward", "Lichen.action('compose','MessageCompose','showComposer',['forward_default',Lichen.MessageDisplayer.getViewedUID()])" );
+	drawToolbarButton( "edit as draft", "editcopy", "#compose", "draft", "Lichen.action('compose','MessageCompose','showComposer',['draft',Lichen.MessageDisplayer.getViewedUID()])" );
 
 	// TODO: anchor target here should be to message.php
 //	drawToolbarButton( "change view", "view_text", "#inbox", "view", "if_newWin('message.php?source&amp;mailbox='+listCurrentMailbox+'&amp;uid='+encodeURIComponent(lastShownUID))" );

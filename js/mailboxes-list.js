@@ -31,7 +31,7 @@ var MailboxLister = new Class({
 	},
 
 	listUpdate: function () {
-		Messages.fetchMailboxList();
+		Lichen.Messages.fetchMailboxList();
 	},
 
 	listUpdateCB: function ( mailboxes ) {
@@ -47,20 +47,20 @@ var MailboxLister = new Class({
 		var i = 0;
 
 		for (i = 0; i < msgCounts.length; i++) {
-			if ( MessageList.getMailbox() == msgCounts[i].fullboxname ) {
+			if ( Lichen.MessageList.getMailbox() == msgCounts[i].fullboxname ) {
 				// Do we need to update the list?
 				if ( this.lastUIDconst != "" && lastUIDconst != msgCounts[i].uidConst ) {
-					MessageList.listUpdate();
+					Lichen.action( 'list', 'MessageList', 'listUpdate' );
 				} else if ( this.msgCount != 0 && this.msgCount != msgCounts[i].messages ) {
 					// TODO: this should be a less intrusive "add new
 					// message rows", not a complete refresh.
-					MessageList.listUpdate();
+					Lichen.action( 'list', 'MessageList', 'listUpdate' );
 				}
 				this.lastUIDconst = msgCounts[i].uidConst;
 				this.msgCount = msgCounts[i].messages;
 
 				// Update the highlight in the mailbox list, and the page title
-				$('mb-'+MessageList.getMailbox()).addClass('mb-active');
+				$('mb-'+Lichen.MessageList.getMailbox()).addClass('mb-active');
 				document.title = msgCounts[i].mailbox +' ('+msgCounts[i].unseen+' unread, '+msgCounts[i].messages+' total)';
 			}
 
@@ -88,18 +88,18 @@ var MailboxLister = new Class({
 	_render: function ( mailboxes ) {
 		$(this.wrapper).empty();
 
-		var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"#manage-mailboxes\" onclick=\"OptionsEditor.showEditor('mailboxes');return false\">edit</a>]</li>";
+		var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"#manage-mailboxes\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\">edit</a>]</li>";
 
 		for ( var i = 0; i < mailboxes.length; i++ ) {
 
 			containerContents += "<li id=\"mb-" + mailboxes[i].fullboxname;
-			if ( MessageList.getMailbox() == mailboxes[i].fullboxname ) {
+			if ( Lichen.MessageList.getMailbox() == mailboxes[i].fullboxname ) {
 				containerContents += "\" class=\"mb-active";
 			}
 			containerContents += "\">";
 
 			if ( mailboxes[i].selectable ) {
-				containerContents += "<a href=\"#\" onclick=\"return MailboxList.selectMailbox('" + mailboxes[i].fullboxname + "')\" class=\"mb-click\">";
+				containerContents += "<a href=\"#\" onclick=\"return Lichen.action('list', 'MailboxList', 'selectMailbox', ['" + mailboxes[i].fullboxname + "'])\" class=\"mb-click\">";
 			}
 
 			// This is a really bad way to indent.
@@ -134,33 +134,22 @@ var MailboxLister = new Class({
 		this.msgCount = 0;
 
 		// Remove the current mailbox's selection highlight in the listing
-		$('mb-'+MessageList.getMailbox()).removeClass('mb-active');
+		$('mb-'+Lichen.MessageList.getMailbox()).removeClass('mb-active');
 
-		if ( $('list-wrapper').style.display == 'none' ) {
-			// If something other than a message list is being displayed,
-			// hide it and show the list instead.
-			// TODO: this flickers the old mailbox; instead, it should
-			// show loading feedback and display in the callback
-			if_hideWrappers();
-			if_hideToolbars();
-	//		$('list-wrapper').style.display = 'block';
-			$('list-bar').style.display = 'block';
-		}
-
-		MessageList.setMailbox( mailbox );
+		Lichen.action( 'list', 'MessageList', 'setMailbox', [mailbox] );
 				
 		// Hilight the appropriate row in the message list.
-		$('mb-'+MessageList.getMailbox()).addClass('mb-active');
+		$('mb-'+Lichen.MessageList.getMailbox()).addClass('mb-active');
 
 		return false;
 	}
 });
 
 // Refresh the mailbox listing and set a timeout to do it again in five minutes
-function list_checkCount() {
-	Messages.fetchMailboxList();
-	refreshTimer = setTimeout( list_checkCount, 5 * 60 * 1000 );
-}
+//function list_checkCount() {
+//	Messages.fetchMailboxList();
+//	refreshTimer = setTimeout( list_checkCount, 5 * 60 * 1000 );
+//}
 
-var MailboxList = new MailboxLister( 'mailboxes' );
+//var MailboxList = new MailboxLister( 'mailboxes' );
 

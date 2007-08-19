@@ -37,17 +37,20 @@ var activeFadeEffect = false;
 var refreshTimer;
 var userSettings;
 
-var MessageDisplayer;		// also a hack
-var Flash;
-var MailboxManager;
-var OptionsEditor;
-var Messages;
-var MessageList;
-
+//var MessageDisplayer;		// also a hack
+//var Flash;
+//var MailboxManager;
+//var OptionsEditor;
+//var Messages;
+//var MessageList;
+var Lichen;
 
 // Interface initialisation, set mailbox autorefresh
 function if_init() {
 	//opts_get();
+
+	Lichen.onLoadInit();
+	return;
 
 	// Instantiate new objects for display and storage
 	Messages = new MessagesDatastore( true );

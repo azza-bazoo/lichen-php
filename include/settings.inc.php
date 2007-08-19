@@ -241,11 +241,11 @@ function generateOptionsPanel() {
 	$panel .= "<div class=\"header-right\">&nbsp;</div>";
 
 	// Boring, repetitive 'if's for the tab bar
-	$panel .= "<div class=\"opts-tabbar\"><a href=\"#\" onclick=\"OptionsEditor.showEditor('settings');return false\"";
+	$panel .= "<div class=\"opts-tabbar\"><a href=\"#\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['settings'])\"";
 	if ( $_POST['tab'] == 'settings' ) { $panel .= " class=\"opts-activetab\""; }
-	$panel .= ">" . _("Lichen settings") . "</a> <a href=\"#\" onclick=\"OptionsEditor.showEditor('identities');return false\"";
+	$panel .= ">" . _("Lichen settings") . "</a> <a href=\"#\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['identities'])\"";
 	if ( $_POST['tab'] == 'identities' ) { $panel .= " class=\"opts-activetab\""; }
-	$panel .= ">" . _("Sending identities") . "</a> <a href=\"#\" onclick=\"OptionsEditor.showEditor('mailboxes');return false\"";
+	$panel .= ">" . _("Sending identities") . "</a> <a href=\"#\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\"";
 	if ( $_POST['tab'] == 'mailboxes' ) { $panel .= " class=\"opts-activetab\""; }
 	$panel .= ">" . _("Mailbox manager") . "</a></div></div>";
 
@@ -274,7 +274,7 @@ function generateOptionsPanel() {
 function generateSettingsForm() {
 	global $USER_SETTINGS;
 
-	$result = "<form class=\"opts-tab\" id=\"opts-settings\" method=\"post\" onsubmit=\"OptionsEditor.saveOptions();return false\" action=\"#\">";
+	$result = "<form class=\"opts-tab\" id=\"opts-settings\" method=\"post\" onsubmit=\"return Lichen.action('options','OptionsEditor','saveOptions')\" action=\"#\">";
 
 	//--------------------
 	// Timezone selector
@@ -338,7 +338,7 @@ function generateSettingsForm() {
 
 	$result .= "<button type=\"submit\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_ok.png\" alt=\"\" /> " . _( "save changes" ) . "</button>";
 
-	$result .= "<button onclick=\"OptionsEditor.closePanel();return false\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</button>";
+	$result .= "<button onclick=\"return Lichen.action('options','OptionsEditor','closePanel'])\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</button>";
 
 	$result .= "</p></form>";
 
@@ -356,7 +356,7 @@ function generateIdentityEditor() {
 
 	$result = "<form class=\"opts-tab\" id=\"opts-identities\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
 
-	$result .= "<div id=\"opts-identity-sel\"><select size=\"10\" id=\"opts-identity-list\" onchange=\"OptionsEditor.identity_edit()\">";
+	$result .= "<div id=\"opts-identity-sel\"><select size=\"10\" id=\"opts-identity-list\" onchange=\"Lichen.OptionsEditor.identity_edit()\">";
 
 	foreach ( $USER_SETTINGS['identities'] as $thisIdentity ) {
 
@@ -378,9 +378,9 @@ function generateIdentityEditor() {
 
 	$result .= "</select>";
 
-	$result .= "<p class=\"opts-buttons\"><button onclick=\"return OptionsEditor.identity_add()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_add.png\" alt=\"\" />" . _("add identity") . "</button> ";
-	$result .= "<button onclick=\"return OptionsEditor.identity_setdefault()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/filenew.png\" alt=\"\" />" . _("set as default") . "</button> ";
-	$result .= "<button onclick=\"return OptionsEditor.identity_remove()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_remove.png\" alt=\"\" />" . _("remove") . "</button></p></div>";
+	$result .= "<p class=\"opts-buttons\"><button onclick=\"return Lichen.OptionsEditor.identity_add()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_add.png\" alt=\"\" />" . _("add identity") . "</button> ";
+	$result .= "<button onclick=\"return Lichen.OptionsEditor.identity_setdefault()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/filenew.png\" alt=\"\" />" . _("set as default") . "</button> ";
+	$result .= "<button onclick=\"return Lichen.OptionsEditor.identity_remove()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_remove.png\" alt=\"\" />" . _("remove") . "</button></p></div>";
 
 	$result .= "<div id=\"opts-identity-edit\">";
 
@@ -389,11 +389,11 @@ function generateIdentityEditor() {
 	$result .= "<label for=\"opts-identity-address\">" . _("e-mail address:") . "</label> ";
 	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-address\" value=\"" . $defaultIdentity['address'] . "\" /></p>";
 
-	$result .= "<p><button id=\"opts-identity-save\" onclick=\"return OptionsEditor.identity_edit_done('" . $defaultIdentity['address'] . "')\">" . _("save changes") . "</button></p>";
+	$result .= "<p><button id=\"opts-identity-save\" onclick=\"return Lichen.OptionsEditor.identity_edit_done('" . $defaultIdentity['address'] . "')\">" . _("save changes") . "</button></p>";
 
 	$result .= "</div>";
 
-	$result .= "<p class=\"opts-close\"><button onclick=\"OptionsEditor.closePanel();return false\">" . _( "close" ) . "</button></p></form>";
+	$result .= "<p class=\"opts-close\"><button onclick=\"Lichen.action('options','OptionsEditor','closePanel');return false\">" . _( "close" ) . "</button></p></form>";
 
 	return $result;
 }
@@ -404,7 +404,7 @@ function generateMailboxManager() {
 	global $USER_SETTINGS;
 
 	$result = "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
-	$result .= "<button onclick=\"MailboxManager.newChild('');return false\">" . _("add mailbox") . "</button>";
+	$result .= "<button onclick=\"Lichen.MailboxManager.newChild('');return false\">" . _("add mailbox") . "</button>";
 	$result .= "<div id=\"mbm-changearea-\"></div>";
 
 // 	$result .= "<div class=\"sidebar-panel\">";
@@ -417,7 +417,7 @@ function generateMailboxManager() {
 
 	foreach ( getMailboxList() as $thisMailbox ) {
 		$result .= "<li>";
-		$result .= "[<a href=\"#\" onclick=\"MailboxManager.changeParentInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">move</a>] ";
+		$result .= "[<a href=\"#\" onclick=\"Lichen.MailboxManager.changeParentInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">move</a>] ";
 
 		$result .= "<span class=\"opts-mbm-name\" id=\"mbm-namearea-{$thisMailbox['fullboxname']}\">";
 		for ( $j = 0; $j < $thisMailbox['folderdepth']; $j ++ ) {
@@ -426,10 +426,10 @@ function generateMailboxManager() {
 		$result .= $thisMailbox['mailbox'];
 		$result .= "</span>";
 
-		$result .= " [<a href=\"#\" onclick=\"MailboxManager.renameInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">rename</a>] ";
-		$result .= "[<a href=\"#\" onclick=\"MailboxManager.mailboxDelete('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">delete</a>]";
+		$result .= " [<a href=\"#\" onclick=\"Lichen.MailboxManager.renameInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">rename</a>] ";
+		$result .= "[<a href=\"#\" onclick=\"Lichen.MailboxManager.mailboxDelete('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">delete</a>]";
 
-		$result .= "<br />[<a href=\"#\" onclick=\"MailboxManager.newChild('{$thisMailbox['fullboxname']}'); return false\">add subfolder</a>]";
+		$result .= "<br />[<a href=\"#\" onclick=\"Lichen.MailboxManager.newChild('{$thisMailbox['fullboxname']}'); return false\">add subfolder</a>]";
 		$result .= "<div id=\"mbm-changearea-{$thisMailbox['fullboxname']}\"></div>";
 
 		$result .= "</li>";
@@ -437,7 +437,7 @@ function generateMailboxManager() {
 
 	$result .= "</ul>";
 
-	$result .= "<p class=\"opts-close\"><button onclick=\"OptionsEditor.closePanel();return false\">" . _( "close" ) . "</button></p></form>";
+	$result .= "<p class=\"opts-close\"><button onclick=\"Lichen.OptionsEditor.closePanel();return false\">" . _( "close" ) . "</button></p></form>";
 	$result .= "</form>";
 
 	return $result;

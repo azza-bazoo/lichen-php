@@ -103,6 +103,7 @@ var PaneTransition = new Class({
 // TODO: this needs to be replaced with a more organised feedback class
 function if_remoteRequestStart() {
 	// TODO: debug in IE, problem seems be execution order of this function's callers
+	/*
 	if ( !window.ie ) {
 		var wrapElements = new Array( 'msg-wrapper', 'opts-wrapper', 'comp-wrapper',
 						'addr-wrapper', 'list-wrapper' );
@@ -115,15 +116,18 @@ function if_remoteRequestStart() {
 
 		activeFadeEffect = new PaneTransition( wrapElements[i] );
 	}
+	*/
 }
 
 
 // Stop the loading feedback animation
 function if_remoteRequestEnd() {
+	/*
 	if ( activeFadeEffect ) {
 		activeFadeEffect.end();
 		activeFadeEffect = false;
 	}
+	*/
 }
 
 

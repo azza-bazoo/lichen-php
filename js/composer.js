@@ -30,9 +30,7 @@ var MessageComposer = new Class({
 	// Show the form for a new message. If provided, prefill the
 	// recipient(s) and subject fields, and/or quote a message.
 	showComposer: function ( mode, quoteUID, mailto ) {
-		clearTimeout( refreshTimer );
-
-		var postbody = "request=getComposeData&mailbox=" + encodeURIComponent(MessageList.getMailbox());
+		var postbody = "request=getComposeData&mailbox=" + encodeURIComponent(Lichen.MessageList.getMailbox());
 		if ( mode )     postbody += "&mode=" + mode;
 		if ( quoteUID ) postbody += "&uid=" + encodeURIComponent(quoteUID);
 		if ( mailto )   postbody += "&mailto=" + encodeURIComponent(mailto);
@@ -48,12 +46,7 @@ var MessageComposer = new Class({
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
 	
-		if_hideWrappers();
-		if_hideToolbars();
-
 		this._render( result.composedata );
-		$( this.wrapper ).style.display = 'block';
-		$('comp-bar').style.display = 'block';
 	},
 
 	_render: function ( compData ) {
@@ -63,7 +56,7 @@ var MessageComposer = new Class({
 		// Right-side float here is to prevent IE7 from collapsing the div
 		composer = "<div class=\"header-bar\"><img src=\"themes/" + userSettings['theme'] + "/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">New message</div></div>";
 
-		composer += "<form action=\"" + lichenURL + "\" method=\"post\" id=\"compose\" onsubmit=\"MessageCompose.sendMessage();return false\">";
+		composer += "<form action=\"" + lichenURL + "\" method=\"post\" id=\"compose\" onsubmit=\"Lichen.MessageCompose.sendMessage();return false\">";
 
 		composer += "<input type=\"hidden\" name=\"comp-mode\" id=\"comp-mode\" value=\"" + compData['comp-mode'] + "\" />";
 
@@ -136,7 +129,7 @@ var MessageComposer = new Class({
 		if ( action == "forwardinline" ) {
 			// If we have an inline-forwarded message, provide a link to forward as attachment instead.
 			// TODO: If the user clicks this, it WILL NOT preserve the message content or anything!
-			composer += "<p><a href=\"#\" onclick=\"MessageCompose.showComposer('forwardasattach',MessageDisplayer.getViewedUID()); return false\">&raquo; forward message as attachment</a></p>";
+			composer += "<p><a href=\"#\" onclick=\"Lichen.MessageCompose.showComposer('forwardasattach',Lichen.MessageDisplayer.getViewedUID()); return false\">&raquo; forward message as attachment</a></p>";
 		}
 
 		// Build a set of hidden elements with the current attachments.
@@ -147,9 +140,9 @@ var MessageComposer = new Class({
 
 			attachListHtml += "<li>" + attachment['filename'] + " (" + attachment['type'] + ", " + attachment['size'] + ") ";
 			if ( attachment['isforwardedmessage'] ) {
-				attachListHtml += "<a href=\"#\" onclick=\"MessageCompose.showComposer('forwardinline',MessageDisplayer.getViewedUID()); return false\">[forward inline]</a>";
+				attachListHtml += "<a href=\"#\" onclick=\"Lichen.MessageCompose.showComposer('forwardinline',Lichen.MessageDisplayer.getViewedUID()); return false\">[forward inline]</a>";
 			} else {
-				attachListHtml += "<a href=\"#\" onclick=\"MessageCompose.removeAttachment('" + escape( attachment['filename'] ) + "');return false\">";
+				attachListHtml += "<a href=\"#\" onclick=\"Lichen.MessageCompose.removeAttachment('" + escape( attachment['filename'] ) + "');return false\">";
 				attachListHtml += "[remove]</a>";
 			}
 			attachListHtml += "</li>";
@@ -170,7 +163,7 @@ var MessageComposer = new Class({
 		
 
 		// Create the upload form.
-		composer += "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return MessageCompose.asyncUploadFile($('comp-uploadform'))\">";
+		composer += "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return Lichen.MessageCompose.asyncUploadFile($('comp-uploadform'))\">";
 		composer += "<input type=\"hidden\" name=\"request\" id=\"request\" value=\"uploadAttachment\" />";
 		composer += "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"" + compData['maxattachmentsize'] + "\" />";
 		composer += "<label for=\"comp-attachfile\">add new</label><br />";
@@ -190,9 +183,9 @@ var MessageComposer = new Class({
 		// Temporary hack to give sending or saving feedback, until
 		// interface feedback is properly rewritten.
 		if ( saveDraft ) {
-			Flash.flashMessage( "Saving draft ..." );
+			Lichen.Flash.flashMessage( "Saving draft ..." );
 		} else {
-			Flash.flashMessage( "Sending message ..." );
+			Lichen.Flash.flashMessage( "Sending message ..." );
 		}
 
 		var parameters = "request=sendMessage&";
@@ -208,8 +201,6 @@ var MessageComposer = new Class({
 	// Callback for message sending: return to the mailbox listing
 	// and give the user a feedback message.
 	sendMessageCB: function( responseText ) {
-	//	$('list-status').setHTML( statusMsg );
-	//	$('list-status').style.display = 'block';
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
 
@@ -226,13 +217,13 @@ var MessageComposer = new Class({
 			if ( min < 10 ) { min = '0'+min; }
 			if ( hr == 0 ) { hr = '12'; }
 			if ( hr > 12 ) { hr = hr-12; min += ' PM'; } else { min += ' AM'; }
-			Flash.flashMessage( 'Draft saved at ' + hr + ':' + min );
+			Lichen.Flash.flashMessage( 'Draft saved at ' + hr + ':' + min );
 
 		} else {
 			// TODO: determine if we're returning to a message list or
 			// back to a particular message.
-			if_returnToList( false );
-			Flash.flashMessage( result.message );
+			Lichen.action( 'list', 'MessageList', 'listUpdate' );
+			Lichen.Flash.flashMessage( result.message );
 		}
 	},
 
@@ -290,7 +281,7 @@ var MessageComposer = new Class({
 		var hiddenDiv = new Element('div');
 		$(hiddenDiv).setHTML("<iframe style='display: none;' src='about:blank' id='" + iframeName +
 			"' name='" + iframeName +
-			"' onload='MessageCompose.asyncUploadCompleted(\"" + iframeName +  "\")'></iframe>");
+			"' onload='Lichen.MessageCompose.asyncUploadCompleted(\"" + iframeName +  "\")'></iframe>");
 
 		$('comp-wrapper').adopt( hiddenDiv );
 
@@ -335,7 +326,7 @@ var MessageComposer = new Class({
 
 		var displayAttach = new Element('li');
 		displayAttach.setHTML( result.filename + " (" + result.type + ", " + result.size + " bytes)" +
-			" (<a href=\"#\" onclick=\"MessageCompose.removeAttachment('" + escape(result.filename) + "');return false\">remove</a>)" );
+			" (<a href=\"#\" onclick=\"Lichen.MessageCompose.removeAttachment('" + escape(result.filename) + "');return false\">remove</a>)" );
 		$('comp-attachlist').adopt( displayAttach );
 
 		var uploadedFile = new Element('input');
@@ -348,4 +339,4 @@ var MessageComposer = new Class({
 	}
 });
 
-var MessageCompose = new MessageComposer( 'comp-wrapper' );
+//var MessageCompose = new MessageComposer( 'comp-wrapper' );

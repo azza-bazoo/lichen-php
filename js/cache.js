@@ -89,6 +89,13 @@ var HashCacheConnector = new Class({
 		}
 	},
 
+	haveCachedMessageList: function( mailbox, search, page, sort ) {
+		if ( this.getMessageList( mailbox, search, page, sort, this.getMessageListValidity( mailbox, search, page, sort ) ) ) {
+			return true;
+		}
+		return false;
+	},
+
 	storeMessage: function( mailbox, uid, message, validity ) {
 		// Store a message into the cache.
 		// TODO: Use the validitity to determine when it's out of date.

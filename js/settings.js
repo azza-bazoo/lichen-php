@@ -31,10 +31,6 @@ var OptionsEditorClass = new Class({
 	},
 
 	showEditor: function ( targetTab ) {
-		// TODO: disable the background mailbox refresh
-		// and reload mailboxes completely when exiting options panel
-
-		clearTimeout( refreshTimer );
 		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
 			postBody: 'request=settingsPanel&tab=' + encodeURIComponent( targetTab ),
@@ -47,32 +43,20 @@ var OptionsEditorClass = new Class({
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
 
-		if_hideWrappers();
-		if_hideToolbars();
-
-		$('opts-bar').style.display = 'block';
-		$(this.wrapper).style.display = 'block';
 		$(this.wrapper).setHTML(result.htmlFragment);
 
 		// The mailbox manager needs a client side cache list of
 		// the mailboxes. It is passed back with the HTML data.
 		// Cache it in the appropriate spot - this is really a hack.
 		if ( result.mailboxes ) {
-			MailboxManager.mailboxCache = result.mailboxes;
+			Lichen.MailboxManager.mailboxCache = result.mailboxes;
 		}
 	},
 
 	closePanel: function () {
-		if_hideWrappers();
-		if_hideToolbars();
-
-		// TODO: return to whatever the user had open
-		$('list-bar').style.display = 'block';
-		$('list-wrapper').style.display = 'block';
-	//	opts_get();
-
 		// Hack: update the mailbox list; because it may have changed.
-		Messages.fetchMailboxList();
+		Lichen.MailboxList.listUpdate();
+		Lichen.action( 'list', 'MessageList', 'listUpdate' );
 	},
 
 	generateQueryString: function( sourceForm ) {
@@ -120,7 +104,6 @@ var OptionsEditorClass = new Class({
 		}
 
 		opts_getCB( result );
-		MessageList.listUpdate();
 	},
 
 	identity_add: function () {
@@ -135,7 +118,7 @@ var OptionsEditorClass = new Class({
 		}
 
 		// TODO: is there a cleaner way to do this?
-		$('opts-identity-save').onclick = OptionsEditor.identity_add_done.bind( this );
+		$('opts-identity-save').onclick = Lichen.OptionsEditor.identity_add_done.bind( this );
 
 		return false;
 	},
@@ -146,7 +129,7 @@ var OptionsEditorClass = new Class({
 
 		// TODO: check for conflicts with existing identity names
 		if ( idname == "" || idemail == "" ) {
-			Flash.flashMessage( "Can't add an identity with a blank name or blank e-mail." );
+			Lichen.Flash.flashMessage( "Can't add an identity with a blank name or blank e-mail." );
 			return false;
 		}
 
@@ -176,7 +159,7 @@ var OptionsEditorClass = new Class({
 		$('opts-identity-address').value = idAddress;
 
 		// TODO: something more efficient than a closure
-		$('opts-identity-save').onclick = function(){ return OptionsEditor.identity_edit_done(idAddress); };
+		$('opts-identity-save').onclick = function(){ return Lichen.OptionsEditor.identity_edit_done(idAddress); };
 
 		return false;
 	},
@@ -186,7 +169,7 @@ var OptionsEditorClass = new Class({
 		var idemail = $('opts-identity-address').value;
 
 		if ( idname == "" || idemail == "" ) {
-			Flash.flashMessage( "Can't edit an identity to have a blank name or blank e-mail." );
+			Lichen.Flash.flashMessage( "Can't edit an identity to have a blank name or blank e-mail." );
 			return false;
 		}
 
@@ -247,7 +230,7 @@ var OptionsEditorClass = new Class({
 
 		// Since the identity editor tab appears with an AJAX call
 		// (for now), repeating that call will regenerate the list.
-		OptionsEditor.showEditor('identities');
+		Lichen.action( 'options', 'OptionsEditor', 'showEditor', ['identities'] );
 
 // 		this.identity_cleareditor();
 //

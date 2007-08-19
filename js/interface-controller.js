@@ -29,19 +29,22 @@ var InterfaceController = new Class({
 		this.mode = "list";
 		
 		// Instantiate new objects for display and storage
-		this.Messages = new MessagesDatastore( true );
-		this.OptionsEditor = new OptionsEditorClass( 'opts-wrapper' );
-		this.MailboxManager = new MailboxManagerClass();
-		this.MessageDisplayer = new MessageDisplay( 'msg-wrapper' );
-		this.Flash = new FlashArea( 'notification' );
-		this.MessageList = new MessageLister( 'list-wrapper' );
-	
+		this.Messages         = new MessagesDatastore( true );
+		this.OptionsEditor    = new OptionsEditorClass( 'opts-wrapper' );
+		this.MailboxManager   = new MailboxManagerClass( this.Messages );
+		this.MessageDisplayer = new MessageDisplay( this.Messages, 'msg-wrapper' );
+		this.Flash            = new FlashArea( 'notification' );
+		this.MessageList      = new MessageLister( this.Messages, 'list-wrapper' );
+		this.MailboxList      = new MailboxLister( 'mailboxes' );
+		this.MessageCompose   = new MessageComposer( 'comp-wrapper' );
+	},
+
+	onLoadInit: function () {
 		// Load mailbox list
 		// TODO: the message list display steps (started by list_show() below)
 		// rely on this to have completed to get a mailbox listing for the
 		// "move message to" dropdown.
-		this.Messages.fetchMailboxList();
-		this.refreshTimer = setTimeout( this.checkCount.bind( this ), 5 * 60 * 1000 );
+		this.checkCount(); // This also sets up the timeout.
 
 		// Load default mailbox (inbox)
 		this.MessageList.listUpdate();
@@ -77,30 +80,55 @@ var InterfaceController = new Class({
 
 	checkCount: function () {
 		this.Messages.fetchMailboxList();
-		this.refreshTimer = setTimeout( this.checkCount.bind( this ), 5 * 60 * 1000 );
+		this.clearTimer();
+		this.setTimer();
 	},
 
-	action: function ( mode, action, data ) {
-		if ( mode != this.mode ) {
+	setTimer: function() {
+		if ( !this.refreshTimer ) {
+			this.refreshTimer = setTimeout( this.checkCount.bind( this ), 5 * 60 * 1000 );
+		}
+	},
+	clearTimer: function() {
+		if ( this.refreshTimer ) {
+			clearTimeout( this.refreshTimer );
+			this.refreshTimer = null;
+		}
+	},
+
+	action: function ( mode, controller, action, data ) {
+		if ( mode && mode != this.mode ) {
 			// Changing mode.
 			// TODO: Fade effect thingy.
 			this.clearScreen();
 			this.enterMode( mode );
 		}
-		// Pass off the action somehow.
-	},
+		if ( mode && mode != "list" ) {
+			// Disable the list time checker.
+			this.clearTimer();
+		} else if ( mode == "list" ) {
+			// Enable the list time checker.
+			this.setTimer();
+		}
 
-	actionReady: function () {
-		// This function is called to tell us that the callbacks
-		// for the action (as kicked off by action() above) are done
-		// and we can stop any fade effect or anything like that.
+		// If a fade was in effect, finish it - action gets called on the callbacks from the
+		// server.
+
+		// Call the appropriate action.
+		// This looks rather grubby.
+		if ( this[controller] && this[controller][action] ) {
+			this[controller][action].apply(this[controller], data);
+		}
+
+		// TODO: Make this "true" to force the href to visit the #href link.
+		return false;
 	},
 
 	clearScreen: function () {
 		// Clear all the interface elements, ready to enter another mode.
 		$('list-bar').setStyle( 'display', 'none' );
 		$('comp-bar').setStyle( 'display', 'none' );
-		$('msg-bar').setStyle( 'dipslay', 'none' );
+		$('msg-bar').setStyle( 'display', 'none' );
 		$('opts-bar').setStyle( 'display', 'none');
 
 		$('list-wrapper').setStyle( 'display', 'none' );
@@ -113,23 +141,23 @@ var InterfaceController = new Class({
 		if ( mode != this.mode ) {
 			this.mode = mode;
 			switch ( mode ) {
-				case "list";
+				case "list":
 					$('list-bar').setStyle( 'display', 'block' );
 					$('list-wrapper').setStyle( 'display', 'block' );
 					break;
-				case "compose";
+				case "compose":
 					$('comp-bar').setStyle( 'display', 'block' );
 					$('comp-wrapper').setStyle( 'display', 'block' );
 					break;
-				case "display";
+				case "display":
 					$('msg-bar').setStyle( 'display', 'block' );
 					$('msg-wrapper').setStyle( 'display', 'block' );
 					break;
-				case "options";
+				case "options":
 					$('opts-bar').setStyle( 'display', 'block' );
 					$('opts-wrapper').setStyle( 'display', 'block' );
 					break;
-				case "default";
+				default:
 					// Righto...
 					this.enterMode("list");
 					break;
@@ -137,3 +165,6 @@ var InterfaceController = new Class({
 		}
 	}
 });
+
+var Lichen = new InterfaceController();
+

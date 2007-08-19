@@ -24,7 +24,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 var MessageDisplay = new Class({
-	initialize: function( wrapperdiv ) {
+	initialize: function( dataStore, wrapperdiv ) {
+		this.dataStore = dataStore;
 		this.wrapperdiv = wrapperdiv;
 		this.displayMode = "";
 		this.displayModeUID = "";
@@ -49,7 +50,7 @@ var MessageDisplay = new Class({
 		}
 
 		// Go off and fetch the data.
-		Messages.fetchMessage( mailbox, uid, requestMode );
+		this.dataStore.fetchMessage( mailbox, uid, requestMode );
 
 		return false;
 	},
@@ -76,7 +77,7 @@ var MessageDisplay = new Class({
 		// This is a hack to display the "edit as draft" button
 		// only if the user is viewing the drafts folder.
 		var draftButton = $('btn-draft');
-		if ( MessageList.getMailbox() == specialFolders['drafts'] ) {
+		if ( Lichen.MessageList.getMailbox() == specialFolders['drafts'] ) {
 			draftButton.setStyle('display', 'inline');
 		} else {
 			draftButton.setStyle('display', 'none');
@@ -85,15 +86,15 @@ var MessageDisplay = new Class({
 
 	_render: function( message, forceType ) {
 		// Find the next/previous messages.
-		var adjacentMessages = Messages.fetchAdjacentMessages( MessageList.getMailbox(), MessageList.getSearch(), MessageList.getPage(), MessageList.getSortStr(), message.uid );
+		var adjacentMessages = this.dataStore.fetchAdjacentMessages( Lichen.MessageList.getMailbox(), Lichen.MessageList.getSearch(), Lichen.MessageList.getPage(), Lichen.MessageList.getSortStr(), message.uid );
 
 		var htmlFragment = "<div class=\"list-header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" />";
 
-		var messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"#inbox\" onclick=\"if_returnToList(false);return false\">back to " + MessageList.getMailbox() + "</a></div>";
+		var messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"#inbox\" onclick=\"Lichen.action('list','MessageList','listUpdate');return false\">back to " + Lichen.MessageList.getMailbox() + "</a></div>";
 
 		messageNavBar += "<div class=\"header-right\">";
 		if ( adjacentMessages.previous ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return MessageDisplayer.showMessage('" + message.mailbox + "','" + adjacentMessages.previous.uid + "')\">previous";
+			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.previous.uid + "'])\">previous";
 			if ( adjacentMessages.next ) {
 				messageNavBar += "</a> | ";
 			} else {
@@ -101,13 +102,13 @@ var MessageDisplay = new Class({
 			}
 		}
 		if ( adjacentMessages.next ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return MessageDisplayer.showMessage('" + message.mailbox + "','" + adjacentMessages.next.uid + "')\">next message</a>";
+			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.next.uid + "'])\">next message</a>";
 		}
 
 		messageNavBar += "</div></div>";
 		htmlFragment += messageNavBar;
 
-		htmlFragment += "<select id=\"msg-switch-view\" onchange=\"MessageDisplayer.switchView()\">";
+		htmlFragment += "<select id=\"msg-switch-view\" onchange=\"return Lichen.action('display','MessageDisplayer','switchView',[this.value])\">";
 		htmlFragment += "<option value=\"noop\">switch view ...</option>";
 
 		if ( message.texthtml.length > 0 || message.texthtmlpresent ) {
@@ -126,7 +127,7 @@ var MessageDisplay = new Class({
 
 		if ( message.htmlhasremoteimages ) {
 			htmlFragment += "<div class=\"msg-notification\">";
-			htmlFragment += "Remote images are not displayed. [<a href=\"#\" onclick=\"return MessageDisplayer.enableRemoteImages()\">show images</a>]";
+			htmlFragment += "Remote images are not displayed. [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteImages()\">show images</a>]";
 			htmlFragment += "</div>";
 		}
 
@@ -179,27 +180,27 @@ var MessageDisplay = new Class({
 		return htmlFragment;
 	},
 
-	switchView: function() {
+	switchView: function( toMode ) {
 		// Respond to a user's click on the "switch view" dropdown
-		switch( $('msg-switch-view').value ) {
+		switch( toMode ) {
 			case 'html':
-				this.showMessage( MessageList.getMailbox(), this.lastShownUID, 'html' );
+				this.showMessage( Lichen.MessageList.getMailbox(), this.lastShownUID, 'html' );
 				break;
 			case 'text':
-				this.showMessage( MessageList.getMailbox(), this.lastShownUID, 'text' );
+				this.showMessage( Lichen.MessageList.getMailbox(), this.lastShownUID, 'text' );
 				break;
 			case 'text-mono':
-				this.showMessage( MessageList.getMailbox(), this.lastShownUID, 'monospace' );
+				this.showMessage( Lichen.MessageList.getMailbox(), this.lastShownUID, 'monospace' );
 				break;
 			case 'source':
 				if_newWin(
 					'message.php?source&mailbox='
-					+ encodeURIComponent( MessageList.getMailbox() ) + '&uid='
+					+ encodeURIComponent( Lichen.MessageList.getMailbox() ) + '&uid='
 					+ encodeURIComponent( this.lastShownUID ) );
 				break;
 		}
 
-		$('msg-switch-view').value = 'noop';
+		return false;
 	},
 
 	enableRemoteImages: function () {

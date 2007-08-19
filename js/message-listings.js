@@ -23,12 +23,14 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 var MessageLister = new Class({
-	initialize: function ( wrapper ) {
+	initialize: function ( dataStore, wrapper ) {
 		this.parseSort( userSettings['list_sortmode'] );
 		this.mailbox = "INBOX";
 		this.page    = 0;
 		this.search  = "";
 		this.wrapper = wrapper;
+		this.dataStore = dataStore;
+		this.numberPages = 1;
 	},
 
 	setSort: function ( newSort, noUpdate ) {
@@ -79,6 +81,13 @@ var MessageLister = new Class({
 				this.listUpdate();
 			}
 		 }
+		 if ( searchTerm == "" ) {
+			// HACK: Probably should be doing this somewhere else.
+			// Clear the search box if we're clearing the search.
+			if ( $('qsearch') ) {
+				$('qsearch').value = "";
+			}
+		 }
 		 return false;
 	},
 	getSearch: function () {
@@ -102,7 +111,7 @@ var MessageLister = new Class({
 
 	setPage: function ( newPage, noUpdate ) {
 		if ( this.page != newPage ) {
-			if ( newPage >= 0 && newPage <= 100 ) { // TODO: Correctly check bounds.
+			if ( newPage >= 0 && newPage <= (this.numberPages - 1) ) { 
 				this.page = newPage;
 				if ( !noUpdate ) {
 					this.listUpdate();
@@ -121,11 +130,11 @@ var MessageLister = new Class({
 		return this.setPage( 0 );
 	},
 	lastPage: function () {
-		return this.setPage ( 100 ); // TODO: Correctly set based on bounds.
+		return this.setPage ( this.numberPages );
 	},
 
 	listUpdate: function () {
-		Messages.fetchMessageList( this.mailbox, this.search, this.page, this.getSortStr() );
+		this.dataStore.fetchMessageList( this.mailbox, this.search, this.page, this.getSortStr() );
 	},
 	getPage: function () {
 		return this.page;
@@ -133,32 +142,35 @@ var MessageLister = new Class({
 
 	listUpdateCB: function ( result ) {
 		// Check to see if the data we just got matches what the client was waiting for.
-		if ( result.mailbox != this.mailbox ||
-		     result.search  != this.search ||
-		     result.sort    != this.getSortStr() ||
-		     result.thispage.toInt() != this.page ) {
+		if ( result.mailbox  != this.mailbox ||
+		     result.search   != this.search ||
+		     result.sort     != this.getSortStr() ||
+		     result.thispage != this.page ) {
 			return;
 		}
 
 		// Is this a non-existant page? Likely because we moved all the messages from
 		// this page.
 		// View the last page.
-		if ( result.thispage.toInt() >= result.numberpages || result.thispage.toInt() == -1 ) {
+		if ( result.thispage >= result.numberpages || result.thispage == -1 ) {
 			this.setPage( result.numberpages - 1 );
 			return;
 		}
+
+		// This stores the number of pages. This could cause a trip up,
+		// if between updates enough messages show up to suggest that there
+		// is an additional page. Wow, that was a bad description.
+		this.numberPages = result.numberpages;
 
 		// Go ahead and render the messages.
 		this._render( result.messages, result );
 		
 		// Update the mailbox lists
-		Messages.fetchMailboxList();
+		this.dataStore.fetchMailboxList();
 	},
 
 	_render: function ( messages, resultObj ) {
 		$( this.wrapper ).empty();
-		// TODO: Some other code should be handling this!
-		$( this.wrapper ).style.display = 'block';
 	
 		var tableContents = "";
 
@@ -167,7 +179,7 @@ var MessageLister = new Class({
 		if ( this.search != "" ) {
 			tableContents += "<div class=\"list-notification\"><strong>Search results for &#8220;"
 				+ this.search + "&#8221;</strong> "
-				+ "[<a href=\"#clearsearch\" onclick=\"doQuickSearch(null, true);return false\">clear search</a>]</div>";
+				+ "[<a href=\"#clearsearch\" onclick=\"return Lichen.action('list','MessageList','setSearch',[''])\">clear search</a>]</div>";
 		}
 
 		tableContents += "<table>";
@@ -188,12 +200,12 @@ var MessageLister = new Class({
 
 		tableContents += "<thead><tr class=\"list-sortrow\"><th></th><th></th>";
 
-		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-from\" id=\"list-sort-from\" onclick=\"MessageList.setSort('from');return false\">sender</a></th>";
-		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-subject\" id=\"list-sort-subject\" onclick=\"MessageList.setSort('subject');return false\">subject</a></th>";
+		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-from\" id=\"list-sort-from\" onclick=\"Lichen.MessageList.setSort('from');return false\">sender</a></th>";
+		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-subject\" id=\"list-sort-subject\" onclick=\"Lichen.MessageList.setSort('subject');return false\">subject</a></th>";
 		if ( userSettings.list_showsize ) {
-			tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-size\" id=\"list-sort-size\" onclick=\"MessageList.setSort('size');return false\">size</a></th>";
+			tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-size\" id=\"list-sort-size\" onclick=\"Lichen.MessageList.setSort('size');return false\">size</a></th>";
 		}
-		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-date\" id=\"list-sort-date\" onclick=\"MessageList.setSort('date');return false\">date</a></th>";
+		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-date\" id=\"list-sort-date\" onclick=\"Lichen.MessageList.setSort('date');return false\">date</a></th>";
 		tableContents += "</tr></thead><tbody>";
 
 		if ( messages.length == 0 ) {
@@ -220,13 +232,13 @@ var MessageLister = new Class({
 
 			thisRow += "\">";
 
-			thisRow += "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" + thisMsg.uid + "\" id=\"s-" + thisMsg.uid + "\" value=\"" + thisMsg.uid + "\" onclick=\"MessageList.messageCheckboxClicked();\" /></td>";
+			thisRow += "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" + thisMsg.uid + "\" id=\"s-" + thisMsg.uid + "\" value=\"" + thisMsg.uid + "\" onclick=\"Lichen.MessageList.messageCheckboxClicked();\" /></td>";
 
 			var flagImage = thisMsg.flagged ? "/icons/flag.png" : "/icons/flag_off.png";
-			thisRow += "<td><img src=\"themes/" + userSettings.theme + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" alt=\"\" onclick=\"list_twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
+			thisRow += "<td><img src=\"themes/" + userSettings.theme + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" alt=\"\" onclick=\"Lichen.MessageList.twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
 
-			thisRow += "<td class=\"sender\" onclick=\"MessageDisplayer.showMessage('"
-				+ this.mailbox + "','" + thisMsg.uid + "')\"";
+			thisRow += "<td class=\"sender\" onclick=\"Lichen.action('display','MessageDisplayer','showMessage',['"
+				+ this.mailbox + "','" + thisMsg.uid + "'])\"";
 			if ( thisMsg.fromName == "" ) {
 				if ( thisMsg.fromAddr.length > 22 ) {
 					// Temporary hack to decide if tooltip is needed
@@ -238,7 +250,7 @@ var MessageLister = new Class({
 			}
 			thisRow += "</div></td>";
 
-			thisRow += "<td class=\"subject\" onclick=\"MessageDisplayer.showMessage('"+this.mailbox+"','"+thisMsg.uid+"')\"><div class=\"subject\">" + thisMsg.subject;
+			thisRow += "<td class=\"subject\" onclick=\"Lichen.action('display','MessageDisplayer','showMessage',['"+this.mailbox+"','"+thisMsg.uid+"'])\"><div class=\"subject\">" + thisMsg.subject;
 
 			if ( userSettings.list_showpreviews ) {
 				thisRow += "<span class=\"messagePreview\">" + thisMsg.preview + "</span>";
@@ -287,16 +299,16 @@ var MessageLister = new Class({
 			newPageBar += "<div class=\"list-footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" class=\"bottom-corner\" />";
 		}
 
-		var thisPage = resultObj.thispage.toInt() + 1;
-		var pageCount = resultObj.numberpages.toInt();
+		var thisPage = resultObj.thispage + 1;
+		var pageCount = resultObj.numberpages;
 
-		var lastMsgThisPage = thisPage * resultObj.pagesize.toInt();
-		if ( lastMsgThisPage > resultObj.numbermessages.toInt() ) {
-			lastMsgThisPage = resultObj.numbermessages.toInt();
+		var lastMsgThisPage = thisPage * resultObj.pagesize;
+		if ( lastMsgThisPage > resultObj.numbermessages ) {
+			lastMsgThisPage = resultObj.numbermessages;
 		}
 
 		newPageBar += "<div class=\"header-left\">";
-		newPageBar += "<select onchange=\"MessageList.withSelected(this)\">";
+		newPageBar += "<select onchange=\"Lichen.MessageList.withSelected(this)\">";
 		newPageBar += "<option value=\"noop\" selected=\"selected\">move selected to ...</option>";
 
 		// Build a list of mailboxes.
@@ -304,7 +316,7 @@ var MessageLister = new Class({
 		// TODO: Figure out how to make it synchonously request and return this data
 		// if needed. For the moment, we're relying on the fact that it's already
 		// been requested.
-		mailboxes = Messages.fetchMailboxList( true );
+		mailboxes = this.dataStore.fetchMailboxList( true );
 		if ( mailboxes ) {
 			for ( var i = 0; i < mailboxes.length; i++ ) {
 				newPageBar += "<option value=\"move-" + mailboxes[i].fullboxname + "\">";
@@ -317,14 +329,14 @@ var MessageLister = new Class({
 		}
 
 		newPageBar += "</select>";
-		newPageBar += " &nbsp; <input type=\"button\" onclick=\"if_deleteMessages();return false\" value=\"delete\" />";
-		newPageBar += " &nbsp; <input type=\"button\" onclick=\"MessageList.withSelected(null, 'flag');return false\" value=\"flag\" />";
-		newPageBar += " &nbsp; <input type=\"button\" onclick=\"MessageList.withSelected(null, 'markseen');return false\" value=\"mark read\" /><br />";
+		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.deleteMessages();return false\" value=\"delete\" />";
+		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.withSelected(null, 'flag');return false\" value=\"flag\" />";
+		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.withSelected(null, 'markseen');return false\" value=\"mark read\" /><br />";
 
 		if ( !isTopBar ) {
-			newPageBar += "select: <a href='#' onclick='MessageList.selectMessages(\"all\"); return false'>all</a> | ";
-			newPageBar += "<a href='#' onclick='MessageList.selectMessages(\"none\"); return false'>none</a> | ";
-			newPageBar += "<a href='#' onclick='MessageList.selectMessages(\"invert\"); return false'>invert</a>";
+			newPageBar += "select: <a href='#' onclick='Lichen.MessageList.selectMessages(\"all\"); return false'>all</a> | ";
+			newPageBar += "<a href='#' onclick='Lichen.MessageList.selectMessages(\"none\"); return false'>none</a> | ";
+			newPageBar += "<a href='#' onclick='Lichen.MessageList.selectMessages(\"invert\"); return false'>invert</a>";
 		}
 
 		newPageBar += "</div><div class=\"header-right\">";
@@ -334,14 +346,14 @@ var MessageLister = new Class({
 		// 		newPageBar += "<a href=\"#\" onclick=\"MessageList.firstPage(); return false\">first</a> | ";
 		// 	}
 			if ( thisPage > 1 ) {
-				newPageBar += "<a href=\"#\" onclick=\"MessageList.previousPage(); return false\">previous</a> | ";
+				newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.previousPage(); return false\">previous</a> | ";
 			}
 
-			newPageBar += "<select onchange=\"MessageList.setPage(this.value);\">";
-			var pageSize = resultObj.pagesize.toInt();
-			var maxMessages = resultObj.numbermessages.toInt();
+			newPageBar += "<select onchange=\"Lichen.MessageList.setPage(this.value);\">";
+			var pageSize = resultObj.pagesize;
+			var maxMessages = resultObj.numbermessages;
 			var pageCounter = 0;
-			for ( var i = 1; i <= resultObj.numbermessages.toInt(); i += pageSize ) {
+			for ( var i = 1; i <= resultObj.numbermessages; i += pageSize ) {
 				newPageBar += "<option value=\"" + pageCounter + "\"";
 				if ( thisPage == (pageCounter + 1) ) newPageBar += " selected=\"selected\"";
 				newPageBar += ">" + i + " to ";
@@ -355,11 +367,11 @@ var MessageLister = new Class({
 			}
 			newPageBar += "</select>";
 
-			// (resultObj.thispage.toInt() * resultObj.pagesize.toInt() + 1) + " to " + lastMsgThisPage
-			newPageBar += " of " + resultObj.numbermessages.toInt();
+			// (resultObj.thispage * resultObj.pagesize + 1) + " to " + lastMsgThisPage
+			newPageBar += " of " + resultObj.numbermessages;
 
 			if ( pageCount - thisPage > 0 ) {
-				newPageBar += " | <a href=\"#\" onclick=\"MessageList.nextPage(); return false\">next</a>";
+				newPageBar += " | <a href=\"#\" onclick=\"Lichen.MessageList.nextPage(); return false\">next</a>";
 			}
 		// 	if ( pageCount - thisPage > 1 ) {
 		// 		newPageBar += " | <a href=\"#\" onclick=\"MessageList.lastPage(); return false\">last</a>";
@@ -434,21 +446,21 @@ var MessageLister = new Class({
 				// Do nothing! Gracefully!
 				break;
 			case 'markseen':
-				list_twiddleFlag( selectedMessages.join(","), 'seen', 'true' );
+				this.twiddleFlag( selectedMessages.join(","), 'seen', 'true' );
 				break;
 			case 'markunseen':
-				list_twiddleFlag( selectedMessages.join(","), 'seen', 'false' );
+				this.twiddleFlag( selectedMessages.join(","), 'seen', 'false' );
 				break;
 			case 'flag':
-				list_twiddleFlag( selectedMessages.join(","), 'flagged', 'true' );
+				this.twiddleFlag( selectedMessages.join(","), 'flagged', 'true' );
 				break;
 			case 'unflag':
-				list_twiddleFlag( selectedMessages.join(","), 'flagged', 'false' );
+				this.twiddleFlag( selectedMessages.join(","), 'flagged', 'false' );
 				break;
 			case 'move':
-				// TODO: if_moveMessages gets a list of messages to work on...
+				// TODO: moveMessages gets a list of messages to work on...
 				// meaning that we do this twice if we call this...
-				if_moveMessages( mailbox );
+				this.moveMessages( mailbox );
 				break;
 		}
 
@@ -458,17 +470,100 @@ var MessageLister = new Class({
 	},
 
 
+	// TODO: We should be asking our server component to do this work.
+	twiddleFlag: function( uid, flag, state ) {
+		var postbody = "request=setFlag";
+		postbody += "&flag=" + encodeURIComponent( flag );
+		postbody += "&mailbox=" + this.getMailbox();
+		postbody += "&uid=" + encodeURIComponent( uid );
+		if ( state ) {
+			postbody += "&state=" + state;
+		}
+		new Ajax( 'ajax.php', {
+			postBody: postbody,
+			onComplete : this.twiddleFlagCB.bind( this ),
+			onFailure : if_remoteRequestFailed
+			} ).request();
+	},
+
+	twiddleFlagCB: function( responseText ) {
+		var result = if_checkRemoteResult( responseText );
+		if (!result) return;
+
+		var uidsAffected = result.uid.split(',');
+
+		if ( result.flag == 'seen' ) {
+			for (var i = 0; i < uidsAffected.length; i++ ) {
+				var messageRow = $('mr-' + uidsAffected[i]);
+				if ( messageRow ) {
+					if ( !result.state ) {
+						messageRow.addClass('new');
+					} else {
+						messageRow.removeClass('new');
+					}
+				}
+			}
+		}
+
+		if ( result.flag == 'flagged' ) {
+			for ( var i = 0; i < uidsAffected.length; i++ ) {
+				var flagIcon = $( result.flag + '_' + uidsAffected[i] );
+				if ( flagIcon ) {
+					if ( result.state ) {
+						flagIcon.src = 'themes/' + userSettings.theme + '/icons/flag.png';
+					} else {
+						flagIcon.src = 'themes/' + userSettings.theme + '/icons/flag_off.png';
+					}
+				}
+			}
+		}
+
+		if ( uidsAffected.length > 1 ) {
+			Lichen.Flash.flashMessage( "Updated " + uidsAffected.length + " messages." );
+		}
+
+		// Update the flag indicator ...?
+		//alert( "Set " + result.uid + " " + result.flag + " to " + result.state );
+	},
+
+	moveMessages: function( target ) {
+		var selectedMessages = this.getSelectedMessages();
+		var selectedCount = selectedMessages.length;
+		selectedMessages = selectedMessages.join(",");
+
+		new Ajax( 'ajax.php', {
+			postBody: 'request=moveMessage&mailbox=' + encodeURIComponent(this.getMailbox()) +
+				'&destbox=' + encodeURIComponent(target) +
+				'&uid=' + encodeURIComponent(selectedMessages),
+			onComplete : this.moveMessagesCB.bind( this ),
+			onFailure : if_remoteRequestFailed
+			} ).request();
+	},
+
+	// Send AJAX request to delete the selected messages (which is a special case of moving)
+	deleteMessages: function() {
+		var selectedMessages = this.getSelectedMessages();
+		var selectedCount = selectedMessages.length;
+		selectedMessages = selectedMessages.join(",");
+
+		new Ajax( 'ajax.php', {
+			postBody: 'request=deleteMessage&mailbox=' + encodeURIComponent(this.getMailbox()) +
+				'&uid=' + encodeURIComponent(selectedMessages),
+			onComplete : this.moveMessagesCB.bind( this ),
+			onFailure : if_remoteRequestFailed
+			} ).request();
+	},
+
+	moveMessagesCB: function( responseText ) {
+		var result = if_checkRemoteResult( responseText );
+		if (!result) return;
+
+		Lichen.Flash.flashMessage( result.message );
+
+		// Update the lists...
+		this.listUpdate();
+	}
 
 });
 
-var MessageList = new MessageLister( 'list-wrapper' );
-
-// Replaces the contents of the message list with the results
-// for an IMAP "TEXT" search using the current mailbox.
-function doQuickSearch( mode, clearSearch ) {
-	if ( clearSearch ) {
-		$('qsearch').value = "";
-	}
-	MessageList.setSearch( $('qsearch').value );
-	return false;
-}
+//var MessageList = new MessageLister( 'list-wrapper' );
