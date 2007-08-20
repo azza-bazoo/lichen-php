@@ -138,6 +138,11 @@ var InterfaceController = new Class({
 		$('msg-wrapper').setStyle( 'display', 'none' );
 		$('opts-wrapper').setStyle( 'display', 'none' );
 		$('comp-wrapper').setStyle( 'display', 'none' );
+		
+		$('list-wrapper').empty();
+		$('msg-wrapper').empty();
+		$('opts-wrapper').empty();
+		$('comp-wrapper').empty();
 	},
 
 	enterMode: function ( mode ) {
