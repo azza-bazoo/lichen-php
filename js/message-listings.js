@@ -58,6 +58,12 @@ var MessageLister = new Class({
 	getSortStr: function () {
 		return this.sort + ( this.sortAsc ? "" : "_r" );
 	},
+	getSort: function () {
+		return this.sort;
+	},
+	getSortAsc: function () {
+		return this.sortAsc;
+	},
 	parseSort: function ( newSort ) {
 		if ( newSort ) {
 			if ( newSort.substr( newSort.length - 2, 2  ) == "_r" ) {
@@ -342,11 +348,24 @@ var MessageLister = new Class({
 		newPageBar += "</div><div class=\"header-right\">";
 
 		if ( resultObj.numberpages > 1 ) {
+			var lowerPageLabel = "previous";
+			var upperPageLabel = "next";
+
+			if ( this.sort == "date" ) {
+				if ( this.sortAsc ) {
+					lowerPageLabel = "earlier";
+					upperPageLabel = "later";
+				} else {
+					lowerPageLabel = "later";
+					upperPageLabel = "earlier";
+				}
+			}
+
 		// 	if ( thisPage > 2 ) {
 		// 		newPageBar += "<a href=\"#\" onclick=\"MessageList.firstPage(); return false\">first</a> | ";
 		// 	}
 			if ( thisPage > 1 ) {
-				newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.previousPage(); return false\">previous</a> | ";
+				newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.previousPage(); return false\">" + lowerPageLabel + "</a> | ";
 			}
 
 			newPageBar += "<select onchange=\"Lichen.MessageList.setPage(this.value);\">";
@@ -371,7 +390,7 @@ var MessageLister = new Class({
 			newPageBar += " of " + resultObj.numbermessages;
 
 			if ( pageCount - thisPage > 0 ) {
-				newPageBar += " | <a href=\"#\" onclick=\"Lichen.MessageList.nextPage(); return false\">next</a>";
+				newPageBar += " | <a href=\"#\" onclick=\"Lichen.MessageList.nextPage(); return false\">" + upperPageLabel + "</a>";
 			}
 		// 	if ( pageCount - thisPage > 1 ) {
 		// 		newPageBar += " | <a href=\"#\" onclick=\"MessageList.lastPage(); return false\">last</a>";

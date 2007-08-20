@@ -91,18 +91,31 @@ var MessageDisplay = new Class({
 		var htmlFragment = "<div class=\"list-header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" />";
 
 		var messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"#inbox\" onclick=\"Lichen.action('list','MessageList','listUpdate');return false\">back to " + Lichen.MessageList.getMailbox() + "</a></div>";
+			
+		var previousMessageLabel = "previous";
+		var nextMessageLabel = "next";
+
+		if ( Lichen.MessageList.getSort() == "date" ) {
+			if ( Lichen.MessageList.getSortAsc() ) {
+				previousMessageLabel = "earlier";
+				nextMessageLabel = "later";
+			} else {
+				previousMessageLabel = "later";
+				nextMessageLabel = "earlier";
+			}
+		}
 
 		messageNavBar += "<div class=\"header-right\">";
 		if ( adjacentMessages.previous ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.previous.uid + "'])\">previous";
+			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.previous.uid + "'])\">" + previousMessageLabel;
 			if ( adjacentMessages.next ) {
-				messageNavBar += "</a> | ";
+				messageNavBar += " message</a> | ";
 			} else {
 				messageNavBar += " message</a>";
 			}
 		}
 		if ( adjacentMessages.next ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.next.uid + "'])\">next message</a>";
+			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.next.uid + "'])\">" + nextMessageLabel + " message</a>";
 		}
 
 		messageNavBar += "</div></div>";
