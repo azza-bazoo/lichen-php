@@ -80,5 +80,15 @@ var IMAPServerConnector = new Class({
 		if ( !result ) { return null; } // TODO: Something other than this - let the user know what happened.
 
 		this.dataStore.fetchMessageCB( result, result.data.mailbox, result.data.uid );
+	},
+			
+	fetchLargePart: function( mailbox, uid, part ) {
+		// Synchronously fetch a large part of a message.
+		var remoteRequest = new XHR({method: 'get', async: false});
+		var url = "message.php?mailbox=" + encodeURIComponent( mailbox ) + "&uid=" + encodeURIComponent( uid ) +
+			"&filename=part:" + encodeURIComponent( part );
+		remoteRequest.send( url, null );
+
+		return remoteRequest.response.text;
 	}
 });

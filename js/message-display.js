@@ -142,12 +142,22 @@ var MessageDisplay = new Class({
 		} else {
 			// Display the text parts.
 			for ( var i = 0; i < message.textplain.length; i++ ) {
-				htmlFragment += "<div class=\"plain-message";
+				htmlFragment += "<div id=\"plainmsg-" + i + "\" class=\"plain-message";
 				if ( forceType == "monospace" ) {
 					htmlFragment += " plain-message-monospace";
 				}
 				htmlFragment += "\">";
-				htmlFragment += message.textplain[i]; // This is linkified/cleaned on the server.
+				
+				// Hack: if the message part was too large, the server will not have returned it.
+				// Include a link to make this happen.
+				if ( message.textplain[i].substr( 0, 14 ) == "LICHENTOOLARGE" ) {
+					var messagePart = message.textplain[i].substr(15).split(")")[0];
+					htmlFragment += "<a href=\"#\" onclick=\"Lichen.MessageDisplayer.getLargePart('" +
+						message.uid + "', '" + message.mailbox + "','" + messagePart + "'," +
+						i + ");return false\">This message part was too large to return directly. Click here to load it.</a>";
+				} else {
+					htmlFragment += message.textplain[i]; // This is linkified/cleaned on the server.
+				}
 				htmlFragment += "</div>";
 			}
 		}
@@ -218,6 +228,17 @@ var MessageDisplay = new Class({
 		}
 
 		return false;
+	},
+
+	getLargePart: function( uid, mailbox, part, index ) {
+		// Ask the server to fetch this part of the message.
+		// Do it synchonously.
+		$('plainmsg-' + index).setHTML( "Please wait... this might take a while..." );
+
+		var contents = Lichen.Messages.fetchLargePart( mailbox, uid, part, index );
+		
+		// Inline replace the contents. This is a hack.
+		$('plainmsg-' + index).setHTML( contents );
 	}
 });
 

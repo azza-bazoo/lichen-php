@@ -376,6 +376,11 @@ function streamLargeAttachment($server, $port, $usessl, $user, $pass, $mailbox, 
 		$searchCID = substr( $filename, 4 );
 	}
 	$realFilename = "";
+	$searchPart = "";
+	if ( substr( $filename, 0, 5 ) == "part:" ) {
+		$searchPart = substr( $filename, 5 );
+		$getMessageSource = TRUE;
+	}
 
 	if ( !$getMessageSource ) {
 		// NOT grabbing the source - find the part that has the filename that we want.
@@ -404,7 +409,11 @@ function streamLargeAttachment($server, $port, $usessl, $user, $pass, $mailbox, 
 	} else {
 		// We are grabbing the source - set up the capture for this.
 		$contentType = "text/plain";
-		$partToExtract = FALSE;
+		if ( $searchPart == "" ) {
+			$partToExtract = FALSE;
+		} else {
+			$partToExtract = $searchPart;
+		}
 		$encoding = "none";
 	}
 

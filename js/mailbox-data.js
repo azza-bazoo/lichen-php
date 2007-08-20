@@ -256,5 +256,22 @@ var MessagesDatastore = new Class({
 		var result = this.cache.storeMessage( mailbox, uid, message.data );
 
 		Lichen.action( "display", "MessageDisplayer", "showMessageCB", [message.data] );
+	},
+
+	fetchLargePart: function( mailbox, uid, part, index ) {
+		// There was a part that was too large to fetch.
+		// Go and get it now, synchronously and return it to the user.
+		if ( this.online ) {
+			// Fetch the part.
+			var messagePart = this.server.fetchLargePart( mailbox, uid, part );
+			// Hack: wrap it in a pre, because there is no HTML processing done
+			// on the data before we get it.
+			messagePart = "<pre>" + messagePart + "</pre>";
+			// Cache it for later.
+			this.cache.storeLargePart( mailbox, uid, index, messagePart );
+			return messagePart;
+		} else {
+			return "Not online - unable to fetch that part of the message.";
+		}
 	}
 });

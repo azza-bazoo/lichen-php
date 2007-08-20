@@ -121,6 +121,16 @@ var HashCacheConnector = new Class({
 		return this.messages[cacheKey];
 	},
 
+	storeLargePart: function( mailbox, uid, index, messagePart ) {
+		// Store a large message part that was just fetched synchronously.
+		var cacheKey = mailbox + uid;
+
+		if ( this.messages[cacheKey] ) {
+			// TODO: Works only for text/plain parts.
+			this.messages[cacheKey].textplain[index] = messagePart;
+		}
+	},
+
 	getMessage: function( mailbox, uid, mode, validity ) {
 		// Get the message from the cache if it a) exists, and b) is still valid.
 		// Pass null for validity to force a miss.

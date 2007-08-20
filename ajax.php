@@ -857,7 +857,7 @@ function request_sendMessage() {
 	// TODO: The body coming back should be UTF-8... so set this as the encoding...
 	if ( $_POST['format'] == "text/plain" ) {
 		// Just a plain text email.
-		$mimeMessage->attach( new Swift_Message_Part( $_POST['comp-msg'], "text/plain", "utf-8" ) );
+		$mimeMessage->attach( new Swift_Message_Part( $_POST['comp-msg'], "text/plain" ) );
 	} else {
 		// It's a HTML email. This is fun!
 		// First part of the message is the HTML version of the email.
@@ -879,8 +879,8 @@ function request_sendMessage() {
 		// Now generate a text version. TODO: This is crude.
 		$textVersion = strip_tags( $source );
 		
-		$mimeMessage->attach( new Swift_Message_Part( $htmlVersion, "text/html", "utf-8" ) );
-		$mimeMessage->attach( new Swift_Message_Part( $textVersion, "text/plain", "utf-8" ) );
+		$mimeMessage->attach( new Swift_Message_Part( $htmlVersion, "text/html" ) );
+		$mimeMessage->attach( new Swift_Message_Part( $textVersion, "text/plain" ) );
 	}
 
 	// Add attachments.

@@ -114,7 +114,8 @@ function separateMsgParts( $partsObject, $msgNo, $partPrefix, $preview=false ) {
 			if ( $approxSize > 524288 ) { // 512 kilobytes
 				// It's a little big to include directly.
 				// TODO: we need to stream it out...
-				$separatedParts[ $contentType ][] = _("[error: message part too large to display]");
+				$fullPartNo = "{$partPrefix}" . ($partNo + 1);
+				$separatedParts[ $contentType ][] = "LICHENTOOLARGE({$fullPartNo})" . _("[error: message part too large to display]");
 			} else {
 				// Fetch the content of this part and add to the return array.
 				if ( $preview ) {
