@@ -188,7 +188,7 @@ var MessageLister = new Class({
 				+ "[<a href=\"#clearsearch\" onclick=\"return Lichen.action('list','MessageList','setSearch',[''])\">clear search</a>]</div>";
 		}
 
-		tableContents += "<table>";
+		tableContents += "<table id=\"list-data-tbl\">";
 
 		// To work around imperfect CSS layout implementations, we manually
 		// calculate the width of the subject column.
@@ -204,7 +204,10 @@ var MessageLister = new Class({
 		}
 		tableContents += "<col class=\"mcol-date\" /></colgroup>";
 
-		tableContents += "<thead><tr class=\"list-sortrow\"><th></th><th></th>";
+		tableContents += "<thead><tr class=\"list-sortrow\">";
+
+		// TODO: maybe select all/none instead of invert
+		tableContents += "<th><input type=\"checkbox\" id=\"list-check-main\" value=\"0\" onclick=\"Lichen.MessageList.selectMessages(0)\" /></th><th></th>";
 
 		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-from\" id=\"list-sort-from\" onclick=\"Lichen.MessageList.setSort('from');return false\">sender</a></th>";
 		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-subject\" id=\"list-sort-subject\" onclick=\"Lichen.MessageList.setSort('subject');return false\">subject</a></th>";
@@ -241,7 +244,7 @@ var MessageLister = new Class({
 			thisRow += "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" + thisMsg.uid + "\" id=\"s-" + thisMsg.uid + "\" value=\"" + thisMsg.uid + "\" onclick=\"Lichen.MessageList.messageCheckboxClicked();\" /></td>";
 
 			var flagImage = thisMsg.flagged ? "/icons/flag.png" : "/icons/flag_off.png";
-			thisRow += "<td><img src=\"themes/" + userSettings.theme + flagImage + "\" id=\"flagged_" + thisMsg.uid + "\" alt=\"\" onclick=\"Lichen.MessageList.twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
+			thisRow += "<td><img src=\"themes/" + userSettings.theme + flagImage + "\" id=\"f-" + thisMsg.uid + "\" alt=\"\" onclick=\"Lichen.MessageList.twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
 
 			thisRow += "<td class=\"sender\" onclick=\"Lichen.action('display','MessageDisplayer','showMessage',['"
 				+ this.mailbox + "','" + thisMsg.uid + "'])\"";
@@ -340,9 +343,13 @@ var MessageLister = new Class({
 		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.withSelected(null, 'markseen');return false\" value=\"mark read\" /><br />";
 
 		if ( !isTopBar ) {
-			newPageBar += "select: <a href='#' onclick='Lichen.MessageList.selectMessages(\"all\"); return false'>all</a> | ";
-			newPageBar += "<a href='#' onclick='Lichen.MessageList.selectMessages(\"none\"); return false'>none</a> | ";
-			newPageBar += "<a href='#' onclick='Lichen.MessageList.selectMessages(\"invert\"); return false'>invert</a>";
+			newPageBar += "select: <a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(1);return false\">all</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(2);return false\">none</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(3);return false\">read</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(4);return false\">unread</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(5);return false\">flagged</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(6);return false\">unflagged</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(0);return false\">invert</a>";
 		}
 
 		newPageBar += "</div><div class=\"header-right\">";
@@ -426,18 +433,34 @@ var MessageLister = new Class({
 	},
 
 	selectMessages: function ( mode ) {
-		var inputElements = $A( $( this.wrapper ).getElementsByTagName('input') );
+		var inputElements = $A( $('list-data-tbl').getElementsByTagName('input') );
 
-		for ( var i = 0; i < inputElements.length; i++ ) {
-			if ( inputElements[i].type != 'checkbox' ) continue;
+		for ( var i = 1; i < inputElements.length; i++ ) {
+			var thisMsgUID = inputElements[i].value;
+
 			switch ( mode ) {
-				case 'all':
+				case 1:		// all
 					inputElements[i].checked = true;
 					break;
-				case 'none':
+				case 2:		// none
 					inputElements[i].checked = false;
 					break;
-				case 'invert':
+				case 3:		// read
+					// TODO: check from message data, not display style
+					inputElements[i].checked = $('mr-'+thisMsgUID).hasClass('new');
+					break;
+				case 4:		// unread
+					inputElements[i].checked = !$('mr-'+thisMsgUID).hasClass('new');
+					break;
+				case 5:		// flagged
+					inputElements[i].checked =
+						!( $('f-'+thisMsgUID).src.substring( $('f-'+thisMsgUID).src.length-12 ) == 'flag_off.png' );
+					break;
+				case 6:		// unflagged
+					inputElements[i].checked =
+						( $('f-'+thisMsgUID).src.substring( $('f-'+thisMsgUID).src.length-12 ) == 'flag_off.png' );
+					break;
+				default:	// invert
 					inputElements[i].checked = !inputElements[i].checked;
 					break;
 			}

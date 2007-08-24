@@ -50,9 +50,10 @@ td.subject, td.sender, img.list-flag { cursor: pointer; }
 
 /* Header and footer control bars */
 
-th.list-sortlabel { text-align: left; font-weight: normal; }
+th { text-align: left; font-weight: normal; }
 img.list-sort-marker { margin-left: 4px; vertical-align: middle; }
 a#list-sort-date { margin-left: 10px; }
+input#list-check-main { margin: 0 0 0 3px; }
 
 .footer-bar, .list-header-bar, .list-footer-bar { line-height: 20px; padding: 2px; }
 .footer-bar, .list-header-bar { height: 20px; }
