@@ -65,8 +65,8 @@ var MailboxManagerClass = new Class({
 					new Ajax( 'ajax.php', {
 						postBody: 'request=mailboxAction&action=rename&mailbox1=' + encodeURIComponent(fullboxname) +
 							'&mailbox2=' + encodeURIComponent(newname),
-						onComplete : this.serverActionCB.bind( this ),
-						onFailure : if_remoteRequestFailed
+						onComplete: this.serverActionCB.bind( this ),
+						onFailure: if_remoteRequestFailed
 						} ).request();
 				}
 			}
@@ -87,8 +87,8 @@ var MailboxManagerClass = new Class({
 //			if_remoteRequestStart();
 			new Ajax( 'ajax.php', {
 				postBody: 'request=mailboxAction&action=delete&mailbox1=' + encodeURIComponent(fullboxname),
-				onComplete : this.serverActionCB.bind( this ),
-				onFailure : if_remoteRequestFailed
+				onComplete: this.serverActionCB.bind( this ),
+				onFailure: if_remoteRequestFailed
 				} ).request();
 		}
 	},
@@ -124,8 +124,8 @@ var MailboxManagerClass = new Class({
 			new Ajax( 'ajax.php', {
 				postBody: 'request=mailboxAction&action=create&mailbox1=' + encodeURIComponent(fullboxname) +
 					'&mailbox2=' + encodeURIComponent(childMailbox.value),
-				onComplete : this.serverActionCB.bind( this ),
-				onFailure : if_remoteRequestFailed
+				onComplete: this.serverActionCB.bind( this ),
+				onFailure: if_remoteRequestFailed
 				} ).request();
 		}
 	},
@@ -181,8 +181,8 @@ var MailboxManagerClass = new Class({
 			new Ajax( 'ajax.php', {
 				postBody: 'request=mailboxAction&action=move&mailbox1=' + encodeURIComponent(fullboxname) +
 					'&mailbox2=' + encodeURIComponent(newParentMailbox.value),
-				onComplete : this.serverActionCB.bind( this ),
-				onFailure : if_remoteRequestFailed
+				onComplete: this.serverActionCB.bind( this ),
+				onFailure: if_remoteRequestFailed
 				} ).request();
 		}
 	},
@@ -212,7 +212,7 @@ var MailboxManagerClass = new Class({
 // 				var buttonArea = $('mbm-buttonarea-' + result.mailbox1);
 // 				var nameRow = $('mbm-row-' + result.mailbox1);
 //
-// 				var delimiter = this.mailboxCache[0]['delimiter'];
+// 				var delimiter = this.mailboxCache[0].delimiter;
 // 				var startIndex = result.mailbox2.lastIndexOf( delimiter );
 // 				var mailboxName = result.mailbox2;
 // 				var mailboxDepth = result.mailbox2.split( delimiter );

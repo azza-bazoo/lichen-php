@@ -62,10 +62,8 @@ function if_relogin() {
 	var password = $('relogin_pass').value;
 	new Ajax( 'index.php', {
 		postBody: 'action=relogin&user='+encodeURIComponent(serverUser)+'&pass='+encodeURIComponent(password),
-		onComplete : function ( responseText ) {
-			if_reloginCB( responseText );
-		},
-		onFailure : if_remoteRequestFailed
+		onComplete: if_reloginCB,
+		onFailure: if_remoteRequestFailed
 		} ).request();
 }
 
@@ -90,10 +88,8 @@ function if_logoutSilent() {
 //	if_remoteRequestStart();
 	new Ajax( 'index.php', {
 		postBody: 'logout=0&silent=0',
-		onComplete : function ( responseText ) {
-			if_logoutSilentCB( responseText );
-		},
-		onFailure : if_remoteRequestFailed
+		onComplete: if_logoutSilentCB,
+		onFailure: if_remoteRequestFailed
 		} ).request();
 }
 

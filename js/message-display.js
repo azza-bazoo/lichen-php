@@ -77,7 +77,7 @@ var MessageDisplay = new Class({
 		// This is a hack to display the "edit as draft" button
 		// only if the user is viewing the drafts folder.
 		var draftButton = $('btn-draft');
-		if ( Lichen.MessageList.getMailbox() == specialFolders['drafts'] ) {
+		if ( Lichen.MessageList.getMailbox() == specialFolders.drafts ) {
 			draftButton.setStyle('display', 'inline');
 		} else {
 			draftButton.setStyle('display', 'none');

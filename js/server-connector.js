@@ -35,8 +35,8 @@ var IMAPServerConnector = new Class({
 			postBody: 'request=mailboxContentsList&mailbox='+encodeURIComponent(mailbox)+
 				'&page='+page+'&search='+encodeURIComponent(search)+'&sort='+encodeURIComponent(sort)+
 				'&validity='+encodeURIComponent(validity)+'&cacheonly='+encodeURIComponent(cacheonly),
-			onComplete : this.messageListCB.bind( this ),
-			onFailure : if_remoteRequestFailed
+			onComplete: this.messageListCB.bind( this ),
+			onFailure: if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -52,8 +52,8 @@ var IMAPServerConnector = new Class({
 	mailboxList: function( validity ) {
 		new Ajax( 'ajax.php', {
 			postBody: 'request=getMailboxList&validity='+encodeURIComponent(validity),
-			onComplete : this.mailboxListCB.bind( this ),
-			onFailure : if_remoteRequestFailed
+			onComplete: this.mailboxListCB.bind( this ),
+			onFailure: if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -69,8 +69,8 @@ var IMAPServerConnector = new Class({
 		new Ajax( 'ajax.php', {
 			postBody: 'request=getMessage&mailbox='+encodeURIComponent(mailbox)+'&msg='+encodeURIComponent(uid)+
 				'&mode='+encodeURIComponent(mode),
-			onComplete : this.messageBodyCB.bind( this ),
-			onFailure : if_remoteRequestFailed
+			onComplete: this.messageBodyCB.bind( this ),
+			onFailure: if_remoteRequestFailed
 		} ).request();
 	},
 

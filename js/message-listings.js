@@ -24,7 +24,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var MessageLister = new Class({
 	initialize: function ( dataStore, wrapper ) {
-		this.parseSort( userSettings['list_sortmode'] );
+		this.parseSort( userSettings.list_sortmode );
 		this.mailbox = "INBOX";
 		this.page    = 0;
 		this.search  = "";
@@ -47,7 +47,7 @@ var MessageLister = new Class({
 		}
 
 		// Change the preference value for default sort
-		userSettings['list_sortmode'] = this.getSortStr();
+		userSettings.list_sortmode = this.getSortStr();
 
 		// Trigger an update of the list.
 		// The list callback will set the correct sort icon.
@@ -523,8 +523,8 @@ var MessageLister = new Class({
 		}
 		new Ajax( 'ajax.php', {
 			postBody: postbody,
-			onComplete : this.twiddleFlagCB.bind( this ),
-			onFailure : if_remoteRequestFailed
+			onComplete: this.twiddleFlagCB.bind( this ),
+			onFailure: if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -577,8 +577,8 @@ var MessageLister = new Class({
 			postBody: 'request=moveMessage&mailbox=' + encodeURIComponent(this.getMailbox()) +
 				'&destbox=' + encodeURIComponent(target) +
 				'&uid=' + encodeURIComponent(selectedMessages),
-			onComplete : this.moveMessagesCB.bind( this ),
-			onFailure : if_remoteRequestFailed
+			onComplete: this.moveMessagesCB.bind( this ),
+			onFailure: if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -591,8 +591,8 @@ var MessageLister = new Class({
 		new Ajax( 'ajax.php', {
 			postBody: 'request=deleteMessage&mailbox=' + encodeURIComponent(this.getMailbox()) +
 				'&uid=' + encodeURIComponent(selectedMessages),
-			onComplete : this.moveMessagesCB.bind( this ),
-			onFailure : if_remoteRequestFailed
+			onComplete: this.moveMessagesCB.bind( this ),
+			onFailure: if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -610,8 +610,8 @@ var MessageLister = new Class({
 	threadTest: function () {
 		new Ajax( 'ajax.php', {
 			postBody: "request=getThreadedList&mailbox=" + encodeURIComponent(this.getMailbox()),
-			onComplete : this.threadTestCB.bind( this ),
-			onFailure : if_remoteRequestFailed
+			onComplete: this.threadTestCB.bind( this ),
+			onFailure: if_remoteRequestFailed
 			} ).request();
 	},
 

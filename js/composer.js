@@ -38,8 +38,8 @@ var MessageComposer = new Class({
 		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
 			postBody: postbody,
-			onComplete : this.showComposerCB.bind( this ),
-			onFailure : if_remoteRequestFailed
+			onComplete: this.showComposerCB.bind( this ),
+			onFailure: if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -65,10 +65,11 @@ var MessageComposer = new Class({
 
 	_render: function ( compData ) {
 		var composer = "";
+		// TODO: better property names on compData, without dashes
 		var action = compData['comp-mode'];
 
 		// Right-side float here is to prevent IE7 from collapsing the div
-		composer = "<div class=\"header-bar\"><img src=\"themes/" + userSettings['theme'] + "/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">New message</div></div>";
+		composer = "<div class=\"header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">New message</div></div>";
 
 		composer += "<form action=\"" + lichenURL + "\" method=\"post\" id=\"compose\" onsubmit=\"Lichen.MessageCompose.sendMessage();return false\">";
 
@@ -86,29 +87,29 @@ var MessageComposer = new Class({
 
 		// Build identity selector.
 		// TODO: Use HTML entities for this data, because it can contain <, >, and &.
-		if ( compData['identities'].length == 1 ) {
+		if ( compData.identities.length == 1 ) {
 			// Simple case: just display use the one identity - hidden form element..
 			composer += "<input name=\"comp-identity\" id=\"comp-identity\" type=\"hidden\" value=\"" +
-			       compData['identities'][0]['address'] + "\" />";
+			       compData.identities[0].address + "\" />";
 		} else {
 			composer += "<label class=\"comp-label\" for=\"comp-identity\">From:</label> <select name=\"comp-identity\" id=\"comp-identity\">";
-			for ( var i = 0; i < compData['identities'].length; i++ ) {
-				var identity = compData['identities'][i];
-				composer += "<option value=\"" + identity['address'] + "\"";
+			for ( var i = 0; i < compData.identities.length; i++ ) {
+				var identity = compData.identities[i];
+				composer += "<option value=\"" + identity.address + "\"";
 				if ( action == 'reply' || action == 'replyall' ) {
-					if ( identity['address'].match( compData['comp-to'] ) != null ) {
+					if ( identity.address.match( compData['comp-to'] ) != null ) {
 						// Select this identity.
 						composer += " selected=\"selected\"";
 					}
 				} else if ( action == "draft" ) {
-					if ( identity['address'].match( compData['comp-from'] ) != null ) {
+					if ( identity.address.match( compData['comp-from'] ) != null ) {
 						// Select this identity.
 						composer += " selected=\"selected\"";
 					}
-				} else if ( identity['isdefault'] ) {
+				} else if ( identity.isdefault ) {
 					composer += " selected=\"selected\"";
 				}
-				composer += ">" + identity['name'] + " &lt;" + identity['address'] + "&gt;</option>";
+				composer += ">" + identity.name + " &lt;" + identity.address + "&gt;</option>";
 			}
 			composer += "</select>";
 		}
@@ -155,24 +156,24 @@ var MessageComposer = new Class({
 		for ( var i = 0; i < compData['comp-attach'].length; i++ ) {
 			var attachment = compData['comp-attach'][i];
 
-			attachListHtml += "<li>" + attachment['filename'] + " (" + attachment['type'] + ", " + attachment['size'] + ") ";
-			if ( attachment['isforwardedmessage'] ) {
+			attachListHtml += "<li>" + attachment.filename + " (" + attachment.type + ", " + attachment.size + ") ";
+			if ( attachment.isforwardedmessage ) {
 				attachListHtml += "<a href=\"#\" onclick=\"Lichen.MessageCompose.showComposer('forwardinline',Lichen.MessageDisplayer.getViewedUID()); return false\">[forward inline]</a>";
 			} else {
-				attachListHtml += "<a href=\"#\" onclick=\"Lichen.MessageCompose.removeAttachment('" + escape( attachment['filename'] ) + "');return false\">";
+				attachListHtml += "<a href=\"#\" onclick=\"Lichen.MessageCompose.removeAttachment('" + encodeURIComponent( attachment.filename ) + "');return false\">";
 				attachListHtml += "[remove]</a>";
 			}
 			attachListHtml += "</li>";
 
 			// TODO: Html entities for the line below; otherwise it won't work properly.
-			composer += "<input type=\"hidden\" name=\"comp-attach[]\" value=\"" + attachment['filename'] + "\" />";
+			composer += "<input type=\"hidden\" name=\"comp-attach[]\" value=\"" + attachment.filename + "\" />";
 		}
 		
 		composer += "</form>";
 	
 		// Build a list of attachments.
 		composer += "<div class=\"sidebar-panel\" id=\"comp-attachments\">";
-		composer += "<h2 class=\"sidebar-head\"><img src=\"themes/" + userSettings['theme'] + "/icons/attach.png\" alt=\"\" /> attachments</h2>";
+		composer += "<h2 class=\"sidebar-head\"><img src=\"themes/" + userSettings.theme + "/icons/attach.png\" alt=\"\" /> attachments</h2>";
 	
 		composer += "<ul id=\"comp-attachlist\">";
 		composer += attachListHtml;
@@ -182,7 +183,7 @@ var MessageComposer = new Class({
 		// Create the upload form.
 		composer += "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return Lichen.MessageCompose.asyncUploadFile($('comp-uploadform'))\">";
 		composer += "<input type=\"hidden\" name=\"request\" id=\"request\" value=\"uploadAttachment\" />";
-		composer += "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"" + compData['maxattachmentsize'] + "\" />";
+		composer += "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"" + compData.maxattachmentsize + "\" />";
 		composer += "<label for=\"comp-attachfile\">add new</label><br />";
 		composer += "<input type=\"file\" name=\"comp-attachfile\" id=\"comp-attachfile\" />";
 		composer += "<div class=\"comp-attach-submit\"><input type=\"submit\" value=\"upload file\" /></div>";
@@ -218,8 +219,8 @@ var MessageComposer = new Class({
 		}
 		new Ajax( 'ajax.php', {
 			postBody: parameters,
-			onComplete : this.sendMessageCB.bind( this ),
-			onFailure : if_remoteRequestFailed
+			onComplete: this.sendMessageCB.bind( this ),
+			onFailure: if_remoteRequestFailed
 			} ).request();
 	},
 
@@ -294,8 +295,8 @@ var MessageComposer = new Class({
 		if ( foundFilename ) {
 			new Ajax( 'ajax.php', {
 				postBody: 'request=removeAttachment&filename='+encodeURIComponent(filename),
-				onComplete : this.attachmentDeleted.bind( this ),
-				onFailure : if_remoteRequestFailed
+				onComplete: this.attachmentDeleted.bind( this ),
+				onFailure: if_remoteRequestFailed
 				} ).request();
 		}
 	},

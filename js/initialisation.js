@@ -31,7 +31,7 @@ var msgCount = 0;
 //var listCurrentMailbox = 'INBOX';
 //var listCurrentPage = 0;
 //var listCurrentSearch = '';
-//var listCurrentSort = userSettings['list_sortmode'];
+//var listCurrentSort = userSettings.list_sortmode;
 //var mailboxCount = 0;
 var activeFadeEffect = false;
 var refreshTimer;

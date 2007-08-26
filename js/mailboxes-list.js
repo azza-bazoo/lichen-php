@@ -66,9 +66,9 @@ var MailboxLister = new Class({
 
 			var countresult = "";
 			// If non-zero, update the unread messages.
-			if ( msgCounts[i].unseen > 0 || userSettings['boxlist_showtotal'] ) {
+			if ( msgCounts[i].unseen > 0 || userSettings.boxlist_showtotal ) {
 				countresult = "(" + msgCounts[i].unseen;
-				if ( userSettings['boxlist_showtotal'] ) countresult += "/" + msgCounts[i].messages;
+				if ( userSettings.boxlist_showtotal ) countresult += "/" + msgCounts[i].messages;
 				countresult += ")";
 			}
 
@@ -110,9 +110,9 @@ var MailboxLister = new Class({
 			containerContents += "<span class=\"mailbox\">" + mailboxes[i].mailbox + "</strong> ";
 
 			containerContents += "<span id=\"mb-unread-" + mailboxes[i].fullboxname + "\">";
-			if (mailboxes[i].unseen > 0 || userSettings['boxlist_showtotal']) {
+			if (mailboxes[i].unseen > 0 || userSettings.boxlist_showtotal) {
 				containerContents += "(" + mailboxes[i].unseen;
-				if ( userSettings['boxlist_showtotal'] ) containerContents += "/" + mailboxes[i].messages;
+				if ( userSettings.boxlist_showtotal ) containerContents += "/" + mailboxes[i].messages;
 				containerContents += ")";
 			}
 			containerContents += "</span>";
