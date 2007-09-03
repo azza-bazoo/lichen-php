@@ -111,7 +111,7 @@ function request_getUserSettings() {
 // List the contents of a mailbox, using search criteria and page numbers.
 //
 function request_mailboxContentsList() {
-	global $mbox, $IMAP_CONNECT, $mailbox;
+	global $mailbox;
 	global $USER_SETTINGS;
 
 	$searchQuery = "";
@@ -150,7 +150,7 @@ function request_mailboxContentsList() {
 	}
 
 	// See if the mailbox has changed. If not, no need to send back all that data.
-	$mailboxData = imap_status( $mbox, $IMAP_CONNECT . $mailbox, SA_ALL );
+	$mailboxData = imapMailboxStatus( $mailbox );
 	$newValidityKey = "{$mailboxData->messages},{$mailboxData->recent},{$mailboxData->unseen}";
 
 	$listData = null;
@@ -199,7 +199,7 @@ function request_getThreadedList() {
 // Move a message between folders.
 //
 function request_moveMessage() {
-	global $mbox, $SPECIAL_FOLDERS, $mailbox;
+	global $SPECIAL_FOLDERS, $mailbox;
 	// Move a message.
 	// The mailbox= param is the SOURCE mailbox.
 
@@ -236,7 +236,7 @@ function request_moveMessage() {
 // Move a message to the Trash, or (TODO) delete if it's already in Trash
 //
 function request_deleteMessage() {
-	global $mbox, $SPECIAL_FOLDERS, $mailbox;
+	global $SPECIAL_FOLDERS, $mailbox;
 	// Move a message to Trash.
 	// The mailbox= param is the SOURCE mailbox.
 	$destinationBox = $SPECIAL_FOLDERS['trash'];
@@ -380,6 +380,7 @@ function request_mailboxAction() {
 //
 // 	// TODO: Sanitise the UID input, and handle if the message doesn't occur!
 // 	// Fetch the structure and text parts of this message.
+// 	// TODO: This is now a UID!
 // 	$msgArray = retrieveMessage( $msgNo, false );
 //
 // 	if ( $msgArray == null ) {
@@ -502,96 +503,47 @@ function request_getMessage() {
 	// For the retrieveFullMessage function, we need the number,
 	// not the UID, of the message we're after.
 	$msgUid = $_POST['msg'];
-	$msgNo = imap_msgno( $mbox, $msgUid );
 
 	// TODO: Sanitise the UID input.
-	// Fetch the structure and text parts of this message.
-	// The name of the following function that we call is ambiguous: all it does is
-	// fetch the content of the message.
-	$msgArray = retrieveMessage( $msgNo, false );
+	$msgArray = retrieveMessage( $msgUid, false );
 
 	if ( $msgArray == null ) {
 		die( remoteRequestFailure( 'MESSAGE', _("Unable to retrieve that message: non existant message.") ) );
 	}
 
-	// Array to store all the data about this message.
-	$msgData = array();
-
-	// Fetch and parse its headers.
-	$headerObj = imap_headerinfo( $mbox, $msgNo );
-
-	if ( isset( $headerObj->from ) ) {
-		$msgData['from']    = filterHeader( formatIMAPAddress( $headerObj->from ), false );
-	}
-	if ( isset( $headerObj->to ) ) {
-		$msgData['to']      = filterHeader( formatIMAPAddress( $headerObj->to ), false );
-	}
-	if ( isset( $headerObj->cc ) ) {
-		$msgData['cc']      = filterHeader( formatIMAPAddress( $headerObj->cc ), false );
-	}
-	if ( isset( $headerObj->bcc ) ) {
-		$msgData['bcc']     = filterHeader( formatIMAPAddress( $headerObj->bcc ), false );
-	}
-	if ( isset( $headerObj->replyto ) ) {
-		$msgData['replyto'] = filterHeader( formatIMAPAddress( $headerObj->reply_to ), false );
-	}
-	if ( isset( $headerObj->sender ) ) {
-		$msgData['sender']  = filterHeader( formatIMAPAddress( $headerObj->sender ), false );
-	}
-	$msgData['mailbox'] = $mailbox;
-	$msgData['uid']     = $_POST['msg'];
-
-	$subject = "(no subject)";
-	if ( isset( $headerObj->subject ) ) {
-		$subject = filterHeader( $headerObj->subject, false );
-	}
-
-	$msgData['subject'] = $subject;
-	if ( isset( $headerObj->date ) ) {
-		$msgData['localdate'] = processDate( $headerObj->date, $DATE_FORMAT_LONG );
-	}
-
-	// Arrays to store the HTML and plain text parts.
-	$msgData['texthtml']  = array();
-	$msgData['textplain'] = array();
+	$markedupContent = array();
+	$markedupContent['texthtml'] = array();
+	$markedupContent['textplain'] = array();
 
 	// Process each HTML and text part, ready for the client to use directly.
 	// (Don't want the client trying to do all this processing)
-	foreach ( $msgArray['text/html'] as $htmlPart ) {
+	foreach ( $msgArray['texthtml'] as $htmlPart ) {
 		$msgExtraFlags = array();
-		$msgData['texthtml'][] = processMsgMarkup( $htmlPart, 'text/html', $mailbox, $msgUid, $msgExtraFlags );
+		$markedupContent['texthtml'][] = processMsgMarkup( $htmlPart, 'text/html', $mailbox, $msgUid, $msgExtraFlags );
 
 		// msgExtraFlags will have a key "htmlhasremoteimages" if the html section in question has
 		// remote images. Merge this with the msgdata, as the client can use it.
-		$msgData = array_merge( $msgData, $msgExtraFlags );
+		$msgArray = array_merge( $msgArray, $msgExtraFlags );
 	}
-	foreach ( $msgArray['text/plain'] as $textPart ) {
+	foreach ( $msgArray['textplain'] as $textPart ) {
 		$msgExtraFlags = array();
-		$msgData['textplain'][] = processMsgMarkup( $textPart, 'text/plain', $mailbox, $msgUid, $msgExtraFlags );
+		$markedupContent['textplain'][] = processMsgMarkup( $textPart, 'text/plain', $mailbox, $msgUid, $msgExtraFlags );
 	}
 
-	if ( count( $msgData['texthtml'] ) > 0 ) {
-		$msgData['texthtmlpresent'] = true;
-	} else {
-		$msgData['texthtmlpresent'] = false;
-	}
-	if ( count( $msgData['textplain'] ) > 0 ) {
-		$msgData['textplainpresent'] = true;
-	} else {
-		$msgData['textplainpresent'] = false;
-	}
+	$msgArray['texthtml'] = $markedupContent['texthtml'];
+	$msgArray['textplain'] = $markedupContent['textplain'];
 
 	// Prune off data that the client doesn't need.
 	// TODO: don't fetch it in the first place
 	switch ( $_POST['mode'] ) {
 		case 'html':
-			if ( count( $msgData['texthtml'] ) > 0 ) {
-				$msgData['textplain'] = array();
+			if ( $msgArray['texthtmlpresent'] ) {
+				$msgArray['textplain'] = array();
 			}
 			break;
 		case 'text':
-			if ( count( $msgData['textplain'] ) > 0 ) {
-				$msgData['texthtml'] = array();
+			if ( $msgArray['textplainpresent'] ) {
+				$msgArray['texthtml'] = array();
 			}
 			break;
 		case 'all':
@@ -600,16 +552,13 @@ function request_getMessage() {
 		default:
 			// If HTML data exists, prune off the text version.
 			// Other than that, don't touch it.
-			if ( count( $msgData['texthtml'] ) > 0 ) {
-				$msgData['textplain'] = array();
+			if ( $msgArray['texthtmlpresent'] ) {
+				$msgArray['textplain'] = array();
 			}
 			break;
 	}
 
-	// Just store the list of attachments.
-	$msgData['attachments'] = $msgArray['attachments'];
-
-	echo remoteRequestSuccess( array( 'validity' => null, 'data' => $msgData ) );
+	echo remoteRequestSuccess( array( 'validity' => null, 'data' => $msgArray ) );
 }
 
 // ------------------------------------------------------------------------
@@ -626,7 +575,14 @@ function request_createComposer() {
 // Get data for the composer, so the client can build a composer.
 //
 function request_getComposeData() {
-	$composeData = generateComposerData();
+	$mode = "";
+	$uid = "";
+	$mailto = "";
+	if ( isset( $_POST['mode'] ) )   $mode   = $_POST['mode'];
+	if ( isset( $_POST['uid'] ) )    $uid    = $_POST['uid'];
+	if ( isset( $_POST['mailto'] ) ) $mailto = $_POST['mailto'];
+
+	$composeData = generateComposerData( $mode, $uid, $mailto );
 	echo remoteRequestSuccess( array( 'composedata' => $composeData ) );
 }
 
@@ -760,8 +716,8 @@ function request_sendMessage() {
 	if ( isset( $_POST['draft'] ) ) {
 		$draftMode = TRUE;
 
-		if ( isset( $_POST['comp-draftuid'] ) ) {
-			$oldDraftUid = $_POST['comp-draftuid'];
+		if ( isset( $_POST['comp_draftuid'] ) ) {
+			$oldDraftUid = $_POST['comp_draftuid'];
 		}
 	}
 
@@ -771,21 +727,21 @@ function request_sendMessage() {
 	Swift_Cache_Disk::setSavePath( getUserDirectory() );
 
 	// Create the message.
-	$mimeMessage =& new Swift_Message( $_POST['comp-subj'] );
+	$mimeMessage =& new Swift_Message( $_POST['comp_subj'] );
 	$mimeMessage->headers->set( 'User-Agent', 'Lichen ' . $LICHEN_VERSION );
 
 	// If this is a reply/forward of another message, get some details about that.
 	// Specifically, for generating an "In-Reply-To" header.
-	if ( isset( $_POST['comp-mode'] ) && ( $_POST['comp-mode'] == "reply" || substr( $_POST['comp-mode'], 0, 7 ) == "forward" ) ) {
+	if ( isset( $_POST['comp_mode'] ) && ( $_POST['comp_mode'] == "reply" || substr( $_POST['comp_mode'], 0, 7 ) == "forward" ) ) {
 		$oldMailbox = $mailbox;
-		changeMailbox( $_POST['comp-quotemailbox'] );
-		$replyData = imap_headerinfo( $mbox, imap_msgno( $mbox, $_POST['comp-quoteuid'] ) );
+		changeMailbox( $_POST['comp_quotemailbox'] );
+		$replyData = imap_headerinfo( $mbox, imap_msgno( $mbox, $_POST['comp_quoteuid'] ) );
 		changeMailbox( $oldMailbox );
 		$mimeMessage->headers->set( 'In-Reply-To', $replyData->message_id );
 	}
 
 	// Set the "from" address based on the identity.
-	$userIdentity = getUserIdentity( $_POST['comp-identity'] );
+	$userIdentity = getUserIdentity( $_POST['comp_identity'] );
 	if ( $userIdentity == NULL ) {
 		// Couldn't find an identity.
 		die( remoteRequestFailure( 'COMPOSE', _('Unable to find an identity to send this email for.') ));
@@ -794,7 +750,7 @@ function request_sendMessage() {
 
 	$mimeMessage->setFrom( $FROM_EMAIL );
 
-	//die( print_r( parseRecipientList( $_POST['comp-to'] ) ) );
+	//die( print_r( parseRecipientList( $_POST['comp_to'] ) ) );
 
 	// Set the Various recipient addresses.
 	/* Long diatribe about why we do the following twice, to end up with $messageRecipients and $mimeMessageRecipients.
@@ -813,7 +769,7 @@ function request_sendMessage() {
 	$messageRecipients =& new Swift_RecipientList();
 	$mimeMessageRecipients =& new Swift_RecipientList();
 	// TO:
-	$toRecipients = parseRecipientList( $_POST['comp-to'] );
+	$toRecipients = parseRecipientList( $_POST['comp_to'] );
 
 	if ( count( $toRecipients ) == 0 ) {
 		die( remoteRequestFailure( 'SEND', _('No valid to addresses given.') ) );
@@ -825,7 +781,7 @@ function request_sendMessage() {
 	}
 
 	// CC:
-	$ccRecipients = parseRecipientList( $_POST['comp-cc'] );
+	$ccRecipients = parseRecipientList( $_POST['comp_cc'] );
 
 	if ( count( $ccRecipients ) != 0 ) {
 		foreach ( $ccRecipients as $recipient ) {
@@ -835,7 +791,7 @@ function request_sendMessage() {
 	}
 
 	// BCC:
-	$bccRecipients = parseRecipientList( $_POST['comp-bcc'] );
+	$bccRecipients = parseRecipientList( $_POST['comp_bcc'] );
 
 	if ( count( $bccRecipients ) != 0 ) {
 		foreach ( $bccRecipients as $recipient ) {
@@ -857,19 +813,19 @@ function request_sendMessage() {
 	// TODO: The body coming back should be UTF-8... so set this as the encoding...
 	if ( $_POST['format'] == "text/plain" ) {
 		// Just a plain text email.
-		$mimeMessage->attach( new Swift_Message_Part( $_POST['comp-msg'], "text/plain" ) );
+		$mimeMessage->attach( new Swift_Message_Part( $_POST['comp_msg'], "text/plain" ) );
 	} else {
 		// It's a HTML email. This is fun!
 		// First part of the message is the HTML version of the email.
 		// The HTML we get from the client is just the body of the HTML, add our headers to it!
-		$source = $_POST['comp-msg'];
+		$source = $_POST['comp_msg'];
 
 		$htmlVersion  = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 		$htmlVersion .= "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n";
 		$htmlVersion .= "<html><head>\n";
 		$htmlVersion .= "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n";
 		$htmlVersion .= "<meta http-equiv=\"Generator\" content=\"Lichen Webmail / TinyMCE\" />\n";
-		$htmlVersion .= "<title>{$_POST['comp-subj']}</title>\n";
+		$htmlVersion .= "<title>{$_POST['comp_subj']}</title>\n";
 		$htmlVersion .= "</head>\n";
 		$htmlVersion .= "<body>\n";
 		$htmlVersion .= $source;
@@ -884,10 +840,10 @@ function request_sendMessage() {
 	}
 
 	// Add attachments.
-	if ( isset( $_POST['comp-attach'] ) && count( $_POST['comp-attach'] ) > 0 ) {
+	if ( isset( $_POST['comp_attach'] ) && count( $_POST['comp_attach'] ) > 0 ) {
 		// Filenames to add...
 		$uploadDir = getUserDirectory() . "/attachments";
-		foreach ( $_POST['comp-attach'] as $attachmentFile ) {
+		foreach ( $_POST['comp_attach'] as $attachmentFile ) {
 			$serverFilename = hashifyFilename( $attachmentFile );
 			$mimeType = mime_content_type( "{$uploadDir}/{$serverFilename}" );
 			if ( substr( $mimeType, 0, 7 ) == "message" ) {
@@ -1006,10 +962,10 @@ function request_sendMessage() {
 			echo remoteRequestSuccess( array( 'message' => $msg ) );
 
 			// Delete attachments - TODO: still a little unsafe.
-			if ( isset( $_POST['comp-attach'] ) && count( $_POST['comp-attach'] ) > 0 ) {
+			if ( isset( $_POST['comp_attach'] ) && count( $_POST['comp_attach'] ) > 0 ) {
 				// Filenames to add...
 				$uploadDir = getUserDirectory() . "/attachments";
-				foreach ( $_POST['comp-attach'] as $attachmentFile ) {
+				foreach ( $_POST['comp_attach'] as $attachmentFile ) {
 					$serverFilename = hashifyFilename( $attachmentFile );
 					unlink( "{$uploadDir}/{$serverFilename}" );
 				}
@@ -1018,12 +974,12 @@ function request_sendMessage() {
 			// Remove the draft that this message was based on. ?? Actually, not yet.
 
 			// Mark the original message as answered, in the case of Replies.
-			if ( isset( $_POST['comp-mode'] ) && ( $_POST['comp-mode'] == "reply" || $_POST['comp-mode'] == "replyall" ) ) {
-				if ( isset( $_POST['comp-quoteuid'] ) && !empty( $_POST['comp-quoteuid'] ) &&
-					isset( $_POST['comp-quotemailbox'] ) && !empty( $_POST['comp-quotemailbox'] ) ) {
+			if ( isset( $_POST['comp_mode'] ) && ( $_POST['comp_mode'] == "reply" || $_POST['comp_mode'] == "replyall" ) ) {
+				if ( isset( $_POST['comp_quoteuid'] ) && !empty( $_POST['comp_quoteuid'] ) &&
+					isset( $_POST['comp_quotemailbox'] ) && !empty( $_POST['comp_quotemailbox'] ) ) {
 
 					// TODO: Limited error checking here.
-					imapTwiddleFlag( $_POST['comp-quoteuid'], "\\Answered", TRUE, $_POST['comp-quotemailbox'] );
+					imapTwiddleFlag( $_POST['comp_quoteuid'], "\\Answered", TRUE, $_POST['comp_quotemailbox'] );
 				}
 			}
 		}

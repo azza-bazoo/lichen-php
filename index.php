@@ -52,6 +52,13 @@ if ( isset( $_REQUEST['logout'] ) ) {
 
 }
 
+if ( isset( $_REQUEST['mode'] ) ) {
+	if ( $_REQUEST['mode'] == "html" ) {
+		$_SESSION['htmlsession'] = true;
+	} else {
+		$_SESSION['htmlsession'] = false;
+	}
+}
 
 //------------------------------------------------------------------------------
 // Check login details

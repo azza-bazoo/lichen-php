@@ -66,22 +66,22 @@ var MessageComposer = new Class({
 	_render: function ( compData ) {
 		var composer = "";
 		// TODO: better property names on compData, without dashes
-		var action = compData['comp-mode'];
+		var action = compData.comp_mode;
 
 		// Right-side float here is to prevent IE7 from collapsing the div
 		composer = "<div class=\"header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">New message</div></div>";
 
 		composer += "<form action=\"" + lichenURL + "\" method=\"post\" id=\"compose\" onsubmit=\"Lichen.MessageCompose.sendMessage();return false\">";
 
-		composer += "<input type=\"hidden\" name=\"comp-mode\" id=\"comp-mode\" value=\"" + compData['comp-mode'] + "\" />";
+		composer += "<input type=\"hidden\" name=\"comp_mode\" id=\"comp_mode\" value=\"" + compData.comp_mode + "\" />";
 
 		if ( compData['comp-quoteuid'] ) {
-			composer += "<input type=\"hidden\" name=\"comp-quoteuid\" id=\"comp-quoteuid\" value=\"" + compData['comp-quoteuid'] + "\" />";
-			composer += "<input type=\"hidden\" name=\"comp-quotemailbox\" id=\"comp-quotemailbox\" value=\"" + compData['comp-quotemailbox'] + "\" />";
+			composer += "<input type=\"hidden\" name=\"comp_quoteuid\" id=\"comp_quoteuid\" value=\"" + compData.comp_quoteuid + "\" />";
+			composer += "<input type=\"hidden\" name=\"comp_quotemailbox\" id=\"comp_quotemailbox\" value=\"" + compData.comp_quotemailbox + "\" />";
 		}
-		composer += "<input type=\"hidden\" name=\"comp-draftuid\" id=\"comp-draftuid\" value=\"";
+		composer += "<input type=\"hidden\" name=\"comp_draftuid\" id=\"comp_draftuid\" value=\"";
 		if ( action == "draft" ) {
-			composer += compData['comp-draftuid'];
+			composer += compData.comp_draftuid;
 		}
 		composer += "\" />";
 
@@ -89,20 +89,20 @@ var MessageComposer = new Class({
 		// TODO: Use HTML entities for this data, because it can contain <, >, and &.
 		if ( compData.identities.length == 1 ) {
 			// Simple case: just display use the one identity - hidden form element..
-			composer += "<input name=\"comp-identity\" id=\"comp-identity\" type=\"hidden\" value=\"" +
+			composer += "<input name=\"comp_identity\" id=\"comp_identity\" type=\"hidden\" value=\"" +
 			       compData.identities[0].address + "\" />";
 		} else {
-			composer += "<label class=\"comp-label\" for=\"comp-identity\">From:</label> <select name=\"comp-identity\" id=\"comp-identity\">";
+			composer += "<label class=\"comp-label\" for=\"comp_identity\">From:</label> <select name=\"comp_identity\" id=\"comp_identity\">";
 			for ( var i = 0; i < compData.identities.length; i++ ) {
 				var identity = compData.identities[i];
 				composer += "<option value=\"" + identity.address + "\"";
 				if ( action == 'reply' || action == 'replyall' ) {
-					if ( identity.address.match( compData['comp-to'] ) != null ) {
+					if ( identity.address.match( compData.comp_to ) != null ) {
 						// Select this identity.
 						composer += " selected=\"selected\"";
 					}
 				} else if ( action == "draft" ) {
-					if ( identity.address.match( compData['comp-from'] ) != null ) {
+					if ( identity.address.match( compData.comp_from ) != null ) {
 						// Select this identity.
 						composer += " selected=\"selected\"";
 					}
@@ -115,33 +115,33 @@ var MessageComposer = new Class({
 		}
 
 		// Build to To: area, including buttons to display CC and BCC fields
-		composer += "<div class=\"comp-label\"><label for=\"comp-to\">To:</label>";
+		composer += "<div class=\"comp-label\"><label for=\"comp_to\">To:</label>";
 
-		composer += "<p class=\"comp-add-fields\"><a id=\"comp-ccshow\" href=\"#\"" + ( compData['show-cc'] ? " style=\"display:none\"" : "" ) + " onclick=\"$('comp-cceditor').style.display='block';$('comp-ccshow').style.display='none';return false\">add CC</a>";
-		composer += " <a id=\"comp-bccshow\" href=\"#\"" + ( compData['show-bcc'] ? " style=\"display:none\"" : "" ) + " onclick=\"$('comp-bcceditor').style.display='block';$('comp-bccshow').style.display='none';return false\">add BCC</a></p>";
+		composer += "<p class=\"comp-add-fields\"><a id=\"comp-ccshow\" href=\"#\"" + ( compData.show_cc ? " style=\"display:none\"" : "" ) + " onclick=\"$('comp-cceditor').style.display='block';$('comp-ccshow').style.display='none';return false\">add CC</a>";
+		composer += " <a id=\"comp-bccshow\" href=\"#\"" + ( compData.show_bcc ? " style=\"display:none\"" : "" ) + " onclick=\"$('comp-bcceditor').style.display='block';$('comp-bccshow').style.display='none';return false\">add BCC</a></p>";
 
-		composer += "</div> <textarea name=\"comp-to\" id=\"comp-to\">" + compData['comp-to'] + "</textarea>";
+		composer += "</div> <textarea name=\"comp_to\" id=\"comp_to\">" + compData.comp_to + "</textarea>";
 
-		composer += "<div id=\"comp-cceditor\" style=\"display: " + ( compData['show-cc'] ? "block" : "none" ) + ";\">";
-		composer += "<label class=\"comp-label\" for=\"comp-cc\">CC:</label> <textarea name=\"comp-cc\" id=\"comp-cc\">";
-		composer += compData['comp-cc'];
+		composer += "<div id=\"comp-cceditor\" style=\"display: " + ( compData.show_cc ? "block" : "none" ) + ";\">";
+		composer += "<label class=\"comp-label\" for=\"comp_cc\">CC:</label> <textarea name=\"comp_cc\" id=\"comp_cc\">";
+		composer += compData.comp_cc;
 		composer += "</textarea></div>";
 
-		composer += "<div id=\"comp-bcceditor\" style=\"display: " + ( compData['show-bcc'] ? "block" : "none" ) + ";\">";
-		composer += "<label class=\"comp-label\" for=\"comp-bcc\">BCC:</label> <textarea name=\"comp-bcc\" id=\"comp-bcc\">";
-		composer += compData['comp-bcc'];
+		composer += "<div id=\"comp-bcceditor\" style=\"display: " + ( compData.show_bcc ? "block" : "none" ) + ";\">";
+		composer += "<label class=\"comp-label\" for=\"comp_bcc\">BCC:</label> <textarea name=\"comp_bcc\" id=\"comp_bcc\">";
+		composer += compData.comp_bcc;
 		composer += "</textarea></div>";
 
 		// Build the subject area.
-		composer += "<label class=\"comp-label\" for=\"comp-subj\">Subject:</label> <input type=\"text\" name=\"comp-subj\" id=\"comp-subj\" value=\"";
-		composer += compData['comp-subj'] + "\" />";
+		composer += "<label class=\"comp-label\" for=\"comp_subj\">Subject:</label> <input type=\"text\" name=\"comp_subj\" id=\"comp_subj\" value=\"";
+		composer += compData.comp_subj + "\" />";
 
 		composer += "<div><a href=\"#\" onclick=\"Lichen.MessageCompose.makeHTMLMail();return false\">HTML Message</a> | ";
 		composer += "<a href=\"#\" onclick=\"Lichen.MessageCompose.makePlainMail();return false\">Plain Message</a></div>";
 
 		// Build the text area. Text only at the moment.
-		composer += "<textarea name=\"comp-msg\" id=\"comp-msg\">";
-		composer += compData['comp-msg'];
+		composer += "<textarea name=\"comp_msg\" id=\"comp_msg\">";
+		composer += compData.comp_msg;
 		composer += "</textarea>";
 
 		if ( action == "forwardinline" ) {
@@ -153,8 +153,8 @@ var MessageComposer = new Class({
 		// Build a set of hidden elements with the current attachments.
 		// At the same time, build the HTML for listing those attachments.
 		var attachListHtml = "";
-		for ( var i = 0; i < compData['comp-attach'].length; i++ ) {
-			var attachment = compData['comp-attach'][i];
+		for ( var i = 0; i < compData.comp_attach.length; i++ ) {
+			var attachment = compData.comp_attach[i];
 
 			attachListHtml += "<li>" + attachment.filename + " (" + attachment.type + ", " + attachment.size + ") ";
 			if ( attachment.isforwardedmessage ) {
@@ -166,7 +166,7 @@ var MessageComposer = new Class({
 			attachListHtml += "</li>";
 
 			// TODO: Html entities for the line below; otherwise it won't work properly.
-			composer += "<input type=\"hidden\" name=\"comp-attach[]\" value=\"" + attachment.filename + "\" />";
+			composer += "<input type=\"hidden\" name=\"comp_attach[]\" value=\"" + attachment.filename + "\" />";
 		}
 		
 		composer += "</form>";
@@ -211,11 +211,11 @@ var MessageComposer = new Class({
 		parameters += "format=" + encodeURIComponent( this.messageFormat ) + "&";
 		parameters += $('compose').toQueryString();
 		if ( this.messageFormat == "text/html" ) {
-			// Seems as though comp-msg is not seen as a form element, and
+			// Seems as though comp_msg is not seen as a form element, and
 			// is blank. Manually append it. Note: this is a hack, because
-			// comp-msg is actually in the string after toQueryString(),
+			// comp_msg is actually in the string after toQueryString(),
 			// we rely on PHP overriding later instances of the same variable.
-			parameters += "&comp-msg=" + encodeURIComponent( tinyMCE.getContent( 'comp-msg' ) );
+			parameters += "&comp_msg=" + encodeURIComponent( tinyMCE.getContent( 'comp_msg' ) );
 		}
 		new Ajax( 'ajax.php', {
 			postBody: parameters,
@@ -233,8 +233,8 @@ var MessageComposer = new Class({
 		// Helpful message in result.message... display it?
 
 		if ( result.draftMode ) {
-			if ( $('comp-draftuid') ) {
-				$('comp-draftuid').value = result.draftUid;
+			if ( $('comp_draftuid') ) {
+				$('comp_draftuid').value = result.draftUid;
 			}
 
 			var d = new Date();
@@ -257,7 +257,7 @@ var MessageComposer = new Class({
 	cleanupComposer: function () {
 		if ( this.messageFormat == "text/html" ) {
 			// Delete the tinyMCE editor: http://tinymce.moxiecode.com/punbb/viewtopic.php?pid=22977
-			tinyMCE.execCommand( 'mceRemoveControl', false, 'comp-msg' );
+			tinyMCE.execCommand( 'mceRemoveControl', false, 'comp_msg' );
 		}
 	},
 
@@ -365,7 +365,7 @@ var MessageComposer = new Class({
 
 		var uploadedFile = new Element('input');
 		uploadedFile.type = 'hidden';
-		uploadedFile.name = 'comp-attach[]';
+		uploadedFile.name = 'comp_attach[]';
 		uploadedFile.value = result.filename;
 		$('compose').adopt( uploadedFile );
 

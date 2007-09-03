@@ -53,9 +53,9 @@ form.login { position: absolute; top: 120px; left: 0; width: 700px; height: 380p
 
 .comp-label { clear: both; float: left; width: 120px; margin: 2px 0 0 8px; }
 
-#comp-identity, #comp-to, #comp-cc, #comp-bcc, #comp-subj { width: 452px; margin-bottom: 8px; }
-#comp-to, #comp-cc, #comp-bcc { height: 48px; }
-#comp-msg { clear: both; width: 580px; height: 370px; margin-top: 5px; }
+#comp_identity, #comp_to, #comp_cc, #comp_bcc, #comp_subj { width: 452px; margin-bottom: 8px; }
+#comp_to, #comp_cc, #comp_bcc { height: 48px; }
+#comp_msg { clear: both; width: 580px; height: 370px; margin-top: 5px; }
 
 .sidebar-panel { width: 240px; }
 #comp-attachments { position: absolute; top: 84px; left: 600px; }

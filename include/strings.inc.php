@@ -293,16 +293,18 @@ function filterHeader( $header ) {
 	}
 
 	// To ensure HTML entities are displayed correctly by the JavaScript
+	/*
 	if ( version_compare( PHP_VERSION, '5', '>=' ) ) {
 		$returnString = html_entity_decode( $returnString, ENT_QUOTES, 'UTF-8' );
 	} else {
 		$returnString = html_entity_decode( $returnString, ENT_QUOTES );
 	}
+	 */
 
 	$returnString = str_replace( "\r", "", $returnString );
 	$returnString = str_replace( "\n", " ", $returnString );
 
-	$returnString = htmlspecialchars( $returnString, ENT_NOQUOTES );
+	//$returnString = htmlspecialchars( $returnString, ENT_NOQUOTES );
 
 	return $returnString;
 }

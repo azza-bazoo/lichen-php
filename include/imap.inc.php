@@ -380,18 +380,17 @@ function listMailboxContents( $searchq, $sort, $page, $metadataOnly = false ) {
 
 // Takes an array of message numbers, and returns an array of
 // arrays of list-display data for each of those messages.
-function fetchMessages( $messageNumbers ) {
+function fetchMessages( $messageUids ) {
 	global $mbox, $mailbox, $IMAP_CONNECT, $USER_SETTINGS;
 
 	$newArray = array();
 
-	foreach ( $messageNumbers as $i ) {
+	foreach ( $messageUids as $uid ) {
 
-		// $i is actually the UID.
-		$i = imap_msgno( $mbox, $i );
+		$msgNo = imap_msgno( $mbox, $uid );
 
 		// Maybe use imap_fetch_overview instead
-		$headers = @imap_headerinfo( $mbox, $i );
+		$headers = @imap_headerinfo( $mbox, $msgNo );
 
 		if ( $headers === false ) {
 			// This message doesn't actually exist. Skip it!
@@ -412,8 +411,6 @@ function fetchMessages( $messageNumbers ) {
 			// TODO: should this throw an error message?
 			$fromaddr = _("(unknown sender)");
 		}
-
-		$uid = imap_uid( $mbox, $i );
 
 		$thisMessage = array();
 
@@ -461,16 +458,16 @@ function fetchMessages( $messageNumbers ) {
 		// (We do the substr after filtering because it improves display
 		// for HTML mail, but there's one case where that method fails.)
 		$previewString = "";
-		$fetchedMsg = retrieveMessage( $i, 'plain', 1 );
+		$fetchedMsg = retrieveMessage( $uid, true );
 
 		// If plain text parts are available, use them for the message preview
 		// TODO: this code used to call filterHeader(), but the text has already
 		// been converted to UTF-8 so that's unnecessary. There is a risk that
 		// the substr below will cut an HTML entity in half..
-		if ( count( $fetchedMsg['text/plain'] ) > 0 ) {
-			$previewString = htmlspecialchars( implode( '', $fetchedMsg['text/plain'] ) );
+		if ( $fetchedMsg['textplainpresent'] ) {
+			$previewString = htmlspecialchars( implode( '', $fetchedMsg['textplain'] ) );
 		} else {
-			$previewString = htmlspecialchars( strip_tags( implode( '', $fetchedMsg['text/html'] ) ) );
+			$previewString = htmlspecialchars( strip_tags( implode( '', $fetchedMsg['texthtml'] ) ) );
 		}
 
 		// In the preview, reduce strings of non-alpha characters to just a few.
@@ -566,6 +563,21 @@ function imapMoveMailbox( $sourceMailbox, $newParent ) {
 		return NULL;
 	} else {
 		return _("Unable to move mailbox: ") . imap_last_error();
+	}
+}
+
+// Wrapper to fetch the mailbox status.
+function imapMailboxStatus( $mailboxToCheck ) {
+	global $mbox, $IMAP_CONNECT;
+
+	$mailboxData = imap_status( $mbox, $IMAP_CONNECT . $mailboxToCheck, SA_ALL );
+
+	// TODO: What the hell does imap_status return on an invalid mailbox?
+	// The docs don't say!
+	if ( $mailboxData == null ) {
+		return null;
+	} else {
+		return $mailboxData;
 	}
 }
 

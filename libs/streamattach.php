@@ -391,7 +391,7 @@ function streamLargeAttachment($server, $port, $usessl, $user, $pass, $mailbox, 
 				'3' => 'base64', '4' => 'quoted-printable', '5' => 'other' );
 
 		// Using PHP's IMAP libraries, find the section in question.
-		$messageParts = retrieveMessage( imap_msgno( $mbox, $uid ) );
+		$messageParts = retrieveMessage( $uid, true );
 
 		foreach ( $messageParts['attachments'] as $attachment ) {
 			if ( $attachment['filename'] == $filename || ( $searchCID != "" && $searchCID == $attachment['id'] ) ) {

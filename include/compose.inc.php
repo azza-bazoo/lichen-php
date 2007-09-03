@@ -38,14 +38,11 @@ function generateMessageCompose() {
 	if ( isset( $_POST['uid'] ) ) {
 		// It's in reply/forward of...
 		// Load that message.
-		$msgNo = imap_msgno( $mbox, $_POST['uid'] );
-
-		$msgArray = retrieveMessage( $msgNo, false );
+		$msgArray = retrieveMessage( $_POST['uid'], false );
 
 		if ( $msgArray == null ) {
 			die( remoteRequestFailure( 'COMPOSER', _("Error: cannot find message to reply to or forward.") ) );
 		}
-		$headerObj = imap_headerinfo( $mbox, $msgNo );
 	}
 
 	$mailtoDetails = array();
@@ -84,7 +81,7 @@ function generateMessageCompose() {
 
 	// Do we need to display the CC or BCC fields immediately?
 	$showCC = false;
-	if ( ( isset( $headerObj->cc  ) && count( $headerObj->cc ) > 0 &&
+	if ( ( isset( $msgArray['cc'] ) && !empty( $msgArray['cc'] ) &&
 		( $action == "draft" || $action == "replyall" ) )
 		|| isset( $mailtoDetails['cc'] ) ) {
 			// Unhide the CC field if:
@@ -97,7 +94,7 @@ function generateMessageCompose() {
 
 	// Show the BCC field if editing a draft, or if a mailto: link has ?bcc=foo
 	$showBCC = false;
-	if ( isset( $headerObj->bcc ) && count( $headerObj->bcc ) > 0 ) $showBCC = true;
+	if ( isset( $msgArray['bcc'] ) && !empty( $msgArray['bcc'] ) ) $showBCC = true;
 	if ( isset( $mailtoDetails['bcc'] ) ) $showBCC = true;
 
 	// Capture the output.
@@ -129,12 +126,12 @@ function generateMessageCompose() {
 		foreach ( $USER_SETTINGS['identities'] as $identity ) {
 			echo "<option value=\"". htmlentities( $identity['address'] ). "\"";
 			if ( $action == 'reply' || $action == 'replyall' ) {
-				if ( stristr( formatIMAPAddress( $headerObj->to ), $identity['address'] ) !== FALSE ) {
+				if ( stristr( $msgArray['to'], $identity['address'] ) !== FALSE ) {
 					// Select this identity.
 					echo " selected=\"selected\"";
 				}
 			} else if ( $action == "draft" ) {
-				if ( stristr( formatIMAPAddress( $headerObj->from ), $identity['address'] ) !== FALSE ) {
+				if ( stristr( $msgArray['from'], $identity['address'] ) !== FALSE ) {
 					// Select this identity.
 					echo " selected=\"selected\"";
 				}
@@ -157,22 +154,22 @@ function generateMessageCompose() {
 	switch ($action) {
 		case 'reply':
 			// TODO: parse headers properly earlier, see above, also support multiple CCs
-			if ( isset( $headerObj->reply_to ) ) {
-				echo htmlentities( formatIMAPAddress( $headerObj->reply_to ) );
+			if ( isset( $msgArray['replyto'] ) && !empty( $msgArray['replyto'] ) ) {
+				echo htmlentities( $msgArray['replyto'] );
 			} else {
-				echo htmlentities( formatIMAPAddress( $headerObj->from ) );
+				echo htmlentities( $msgArray['from'] );
 			}
 			break;
 		case 'replyall':
 			// TODO: pick the right header
-			if ( isset( $headerObj->reply_to ) ) {
-				echo htmlentities( formatIMAPAddress( $headerObj->reply_to ) );
+			if ( isset( $msgArray['replyto'] ) && !empty( $msgArray['replyto'] ) ) {
+				echo htmlentities( $msgArray['replyto'] );
 			} else {
-				echo htmlentities( formatIMAPAddress( $headerObj->from ) );
+				echo htmlentities( $msgArray['from'] );
 			}
 			break;
 		case 'draft':
-			echo htmlentities( formatIMAPAddress( $headerObj->to ) );
+			echo htmlentities( $msgArray['to'] );
 			break;
 		case 'mailto':
 			echo htmlentities( $mailtoDetails['email-to'] );
@@ -182,8 +179,8 @@ function generateMessageCompose() {
 
 	echo "<div id=\"comp-cceditor\" style=\"display: ". ( $showCC ? "block" : "none" ) .";\">";
 	echo "<label class=\"comp-label\" for=\"comp-cc\">", _("CC:"), "</label> <textarea name=\"comp-cc\" id=\"comp-cc\">";
-	if ( $showCC && isset( $headerObj ) && isset( $headerObj->cc ) ) {
-		echo htmlentities( formatIMAPAddress( $headerObj->cc ) );
+	if ( $showCC && isset( $msgArray['cc'] ) && !empty( $msgArray['cc'] ) ) {
+		echo htmlentities( $msgArray['cc'] );
 	}
 	if ( isset( $mailtoDetails['cc'] ) ) {
 		echo htmlentities( $mailtoDetails['cc'] );
@@ -192,8 +189,8 @@ function generateMessageCompose() {
 
 	echo "<div id=\"comp-bcceditor\" style=\"display: ". ( $showBCC ? "block" : "none" ). ";\">";
 	echo "<label class=\"comp-label\" for=\"comp-bcc\">", _("BCC:"), "</label> <textarea name=\"comp-bcc\" id=\"comp-bcc\">";
-	if ( $showBCC && isset( $headerObj ) && isset( $headerObj->bcc ) ) {
-		echo htmlentities( formatIMAPAddress( $headerObj->bcc ) );
+	if ( $showBCC && isset( $msgArray['bcc'] ) && !empty( $msgArray['bcc'] ) ) {
+		echo htmlentities( $msgArray['bcc'] );
 	}
 	if ( isset( $mailtoDetails['bcc'] ) ) {
 		echo htmlentities( $mailtoDetails['bcc'] );
@@ -205,14 +202,14 @@ function generateMessageCompose() {
 	switch ($action) {
 		case 'reply':
 		case 'replyall':
-			echo htmlentities( _("Re:") . " " . $headerObj->subject );
+			echo htmlentities( _("Re:") . " " . $msgArray['subject'] );
 			break;
 		case 'forwardinline':
 		case 'forwardasattach':
-			echo htmlentities( _("Fwd:") . " ". $headerObj->subject );
+			echo htmlentities( _("Fwd:") . " ". $msgArray['subject'] );
 			break;
 		case 'draft':
-			echo htmlentities( $headerObj->subject );
+			echo htmlentities( $msgArray['subject'] );
 			break;
 		case 'mailto':
 			if ( isset( $mailtoDetails['subject'] ) ) {
@@ -239,10 +236,10 @@ function generateMessageCompose() {
 			break;
 		case 'forwardinline':
 			echo "--- ", _("Forwarded message"), " ---\n";
-			echo _("From"), ": " . formatIMAPAddress( $headerObj->from ) . "\n";
-			echo _("To"), ": " . formatIMAPAddress( $headerObj->to ) . "\n";
+			echo _("From"), ": " . htmlentities( $msgArray['from'] ) . "\n";
+			echo _("To"), ": " . htmlentities( $msgArray['to'] ) . "\n";
 			// TODO: CC as well.
-			echo _("Subject"), ": " . $headerObj->subject  . "\n";
+			echo _("Subject"), ": " . htmlentities( $msgArray['subject'] ) . "\n";
 			echo "\n";
 			echo htmlentities( trim( strip_tags( implode( "", $msgArray['text/html'] ) ) ) );
 			echo htmlentities( implode( "", $msgArray['text/plain'] ) );
@@ -287,7 +284,8 @@ function generateMessageCompose() {
 	if ( $action == "forwardasattach" ) {
 		// TODO: Lots of copied code from above - don't copy and paste!
 		$userDir = getUserDirectory() . "/attachments";
-		$attachmentFilename = "{$headerObj->subject}.eml";
+		// TODO: What if subject is blank??
+		$attachmentFilename = "{$msgArray['subject']}.eml";
 		$attachmentFilename = str_replace( array( "/", "\\" ), array( "-", "-" ), $attachmentFilename );
 		$serverFilename = hashifyFilename( $attachmentFilename );
 		$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
@@ -333,7 +331,7 @@ function generateMessageCompose() {
 // In future, it can be passed through a modified version of the above function
 // to put out a HTML version.
 // TODO: Stop using all these global variables and $_POST vars.
-function generateComposerData() {
+function generateComposerData( $mode, $uid, $mailto ) {
 	global $mbox, $IMAP_CONNECT, $mailbox;
 	global $IMAP_PORT, $IMAP_SERVER, $IS_SSL;
 	global $SMTP_SERVER, $SMTP_PORT, $USER_SETTINGS;
@@ -345,26 +343,23 @@ function generateComposerData() {
 	$compData = array();
 
 	$message = null;
-	if ( isset( $_POST['uid'] ) ) {
+	if ( !empty( $uid ) ) {
 		// It's in reply/forward of...
 		// Load that message.
-		$msgNo = imap_msgno( $mbox, $_POST['uid'] );
-
-		$msgArray = retrieveMessage( $msgNo, false );
+		$msgArray = retrieveMessage( $uid, false );
 
 		if ( $msgArray == null ) {
 			// TODO: Don't die here. That's just bad form.
 			die( remoteRequestFailure( 'COMPOSER', _("Error: cannot find message to reply to or forward.") ) );
 		}
-		$headerObj = imap_headerinfo( $mbox, $msgNo );
 	}
 
 	$mailtoDetails = array();
-	if ( isset( $_POST['mailto'] ) ) {
+	if ( !empty( $mailto ) ) {
 		// Parse a string that was in an email.
 		// Probably just a raw email address, but may be
 		// something like "mailto:foo@bar.com?subject=Baz"
-		$bits = explode( "?", $_POST['mailto'] );
+		$bits = explode( "?", $mailto );
 
 		if ( count( $bits ) > 1 ) {
 			// Parse the later part.
@@ -374,8 +369,8 @@ function generateComposerData() {
 	}
 
 	$action = "new";
-	if ( isset( $_POST['mode'] ) ) {
-		$action = $_POST['mode'];
+	if ( !empty( $mode ) ) {
+		$action = $mode;
 	}
 
 	if ( $action == "forward_default" ) {
@@ -393,19 +388,19 @@ function generateComposerData() {
 		$action = "new";
 	}
 
-	$compData['comp-mode'] = $action;
-	if ( isset( $_POST['uid'] ) ) {
-		$compData['comp-quoteuid'] = $_POST['uid'];
-		$compData['comp-quotemailbox'] = $_POST['mailbox'];
+	$compData['comp_mode'] = $action;
+	if ( !empty( $uid ) ) {
+		$compData['comp_quoteuid'] = $uid;
+		$compData['comp_quotemailbox'] = $mailbox;
 	}
 	if ( $action == "draft" ) {
-		$compData['comp-draftuid'] = $_POST['uid'];
+		$compData['comp_draftuid'] = $uid;
 	}
 
 	$compData['identities'] = $USER_SETTINGS['identities'];
 
-	if ( isset( $headerObj->from ) ) {
-		$compData['comp-from'] = formatIMAPAddress( $headerObj->from );
+	if ( isset( $msgArray['from'] ) ) {
+		$compData['comp_from'] = $msgArray['from'];
 	}
 
 	// TODO: Much of this data is htmlentity encoded before it goes to the client, which is intended
@@ -413,120 +408,121 @@ function generateComposerData() {
 	// Maybe in future this won't be true...
 
 	// Determine the "to" address.
-	$compData['comp-to'] = "";
+	$compData['comp_to'] = "";
 	switch ($action) {
 		case 'reply':
 			// This is probably not the right thing to do.
-			if ( isset( $headerObj->reply_to ) ) {
-				$compData['comp-to'] = formatIMAPAddress( $headerObj->reply_to );
+			if ( isset( $msgArray['replyto'] ) && !empty( $msgArray['replyto'] ) ) {
+				$compData['comp_to'] = $msgArray['reply_to'];
 			} else {
-				$compData['comp-to'] = formatIMAPAddress( $headerObj->from );
+				$compData['comp_to'] = $msgArray['from'];
 			}
 			break;
 		case 'replyall':
 			// TODO: pick the right header
-			if ( isset( $headerObj->reply_to ) ) {
-				$compData['comp-to'] = formatIMAPAddress( $headerObj->reply_to );
+			if ( isset( $msgArray['replyto'] ) && !empty( $msgArray['replyto'] ) ) {
+				$compData['comp_to'] = $msgArray['replyto'];
 			} else {
-				$compData['comp-to'] = formatIMAPAddress( $headerObj->from );
+				$compData['comp_to'] = $msgArray['from'];
 			}
 			break;
 		case 'draft':
-			$compData['comp-to'] = formatIMAPAddress( $headerObj->to );
+			$compData['comp_to'] = $msgArray['to'];
 			break;
 		case 'mailto':
-			$compData['comp-to'] = $mailtoDetails['email-to'];
+			$compData['comp_to'] = $mailtoDetails['email-to'];
 			break;
 	}
-	$compData['comp-to'] = htmlentities( $compData['comp-to'] );
+	$compData['comp_to'] = htmlentities( $compData['comp_to'] );
 
 	// Determine CC address(es), if we need them.
-	$compData['comp-cc'] = "";
-	if ( isset( $headerObj ) && isset( $headerObj->cc ) ) {
-		$compData['comp-cc'] .= htmlentities( formatIMAPAddress( $headerObj->cc ) );
+	$compData['comp_cc'] = "";
+	if ( isset( $msgArray['cc'] ) && !empty( $msgArray['cc'] ) ) {
+		$compData['comp_cc'] .= htmlentities( $msgArray['cc'] );
 	}
 	if ( isset( $mailtoDetails['cc'] ) ) {
-		$compData['comp-cc'] .= htmlentities( $mailtoDetails['cc'] );
+		$compData['comp_cc'] .= htmlentities( $msgArray['cc'] );
 	}
-	$compData['show-cc'] = !empty( $compData['comp-cc'] );
+	$compData['show_cc'] = !empty( $compData['comp_cc'] );
 
 	// Determine BCC address(es), if we need them.
-	$compData['comp-bcc'] = "";
-	if ( isset( $headerObj ) && isset( $headerObj->bcc ) ) {
-		$compData['comp-bcc'] .= htmlentities( formatIMAPAddress( $headerObj->bcc ) );
+	$compData['comp_bcc'] = "";
+	if ( isset( $msgArray['bcc'] ) && !empty( $msgArray['bcc'] ) ) {
+		$compData['comp_bcc'] .= htmlentities( $msgArray['bcc'] );
 	}
 	if ( isset( $mailtoDetails['bcc'] ) ) {
-		$compData['comp-bcc'] .= htmlentities( $mailtoDetails['bcc'] );
+		$compData['comp_bcc'] .= htmlentities( $mailtoDetails['bcc'] );
 	}
-	$compData['show-bcc'] = !empty( $compData['comp-bcc'] );
+	$compData['show_bcc'] = !empty( $compData['comp_bcc'] );
 
 	// Determine the subject of the message.
-	$compData['comp-subj'] = "";
+	$compData['comp_subj'] = "";
 	switch ($action) {
 		case 'reply':
 		case 'replyall':
-			$compData['comp-subj'] = _("Re:") . " " . $headerObj->subject;
+			$compData['comp_subj'] = _("Re:") . " " . $msgArray['subject'];
 			break;
 		case 'forwardinline':
 		case 'forwardasattach':
-			$compData['comp-subj'] = _("Fwd:") . " ". $headerObj->subject;
+			$compData['comp_subj'] = _("Fwd:") . " ". $msgArray['subject'];
 			break;
 		case 'draft':
-			$compData['comp-subj'] = $headerObj->subject;
+			$compData['comp_subj'] = $msgArray['subject'];
 			break;
 		case 'mailto':
 			if ( isset( $mailtoDetails['subject'] ) ) {
-				$compData['comp-subj'] = $mailtoDetails['subject'];
+				$compData['comp_subj'] = $mailtoDetails['subject'];
 			}
 			break;
 	}
-	$compData['comp-subj'] = htmlentities( $compData['comp-subj'] );
+	$compData['comp_subj'] = htmlentities( $compData['comp_subj'] );
 
 	// Determine the initial body of the message.
 	// TODO: Handle HTML properly.
-	$compData['comp-msg'] = "";
+	$compData['comp_msg'] = "";
 	switch ($action) {
 		case 'reply':
 		case 'replyall':
-			$compData['comp-msg']  = markupQuotedMessage( $msgArray['text/html'], 'text/html', 'reply' );
-			$compData['comp-msg'] .= "\n";
-			$compData['comp-msg'] .= markupQuotedMessage( $msgArray['text/plain'], 'text/plain', 'reply' );
+			$compData['comp_msg']  = markupQuotedMessage( $msgArray['texthtml'], 'text/html', 'reply' );
+			$compData['comp_msg'] .= "\n";
+			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['textplain'], 'text/plain', 'reply' );
 			break;
 		case 'forwardinline':
-			$compData['comp-msg']  = "--- ". _("Forwarded message"). " ---\n";
-			$compData['comp-msg'] .= _("From"). ": " . formatIMAPAddress( $headerObj->from ) . "\n";
-			$compData['comp-msg'] .= _("To"). ": " . formatIMAPAddress( $headerObj->to ) . "\n";
-			$compData['comp-msg'] .= _("Subject"). ": " . $headerObj->subject  . "\n";
-			$compData['comp-msg'] .= "\n";
-			$compData['comp-msg'] .= markupQuotedMessage( $msgArray['text/html'], 'text/html', 'forward' );
-			$compData['comp-msg'] .= "\n";
-			$compData['comp-msg'] .= markupQuotedMessage( $msgArray['text/plain'], 'text/plain', 'forward' );
+			$compData['comp_msg']  = "--- ". _("Forwarded message"). " ---\n";
+			$compData['comp_msg'] .= _("From"). ": " . formatIMAPAddress( $msgArray['from'] ) . "\n";
+			$compData['comp_msg'] .= _("To"). ": " . formatIMAPAddress( $msgArray['to'] ) . "\n";
+			$compData['comp_msg'] .= _("Subject"). ": " . $msgArray['subject'] . "\n";
+			$compData['comp_msg'] .= "\n";
+			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['texthtml'], 'text/html', 'forward' );
+			$compData['comp_msg'] .= "\n";
+			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['textplain'], 'text/plain', 'forward' );
 			break;
 		case 'draft':
-			$compData['comp-msg']  = implode( "", $msgArray['text/plain'] );
+			$compData['comp_msg']  = implode( "", $msgArray['textplain'] );
 			break;
 		case 'mailto':
 			if ( isset( $mailtoDetails['body'] ) ) {
-				$compData['comp-msg'] = $mailtoDetails['body'];
+				$compData['comp_msg'] = $mailtoDetails['body'];
 			}
 	}
-	$compData['comp-msg'] = htmlentities( $compData['comp-msg'] );
+	$compData['comp_msg'] = htmlentities( $compData['comp_msg'] );
 
 	// Collect data on all the attachments.
-	$compData['comp-attach'] = array();
+	$compData['comp_attach'] = array();
 	
 	if ( $action == "forwardasattach" ) {
 		// TODO: Lots of copied code from below - don't copy and paste!
 		$userDir = getUserDirectory() . "/attachments";
-		$attachmentFilename = "{$headerObj->subject}.eml";
+		// TODO: What if subject is blank?
+		$attachmentFilename = "{$msgArray['subject']}.eml";
 		$attachmentFilename = str_replace( array( "/", "\\" ), array( "-", "-" ), $attachmentFilename );
 		$serverFilename = hashifyFilename( $attachmentFilename );
 		$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
 		streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
-			$mailbox, $_POST['uid'], "LICHENSOURCE", $attachmentHandle );
+			$mailbox, $uid, "LICHENSOURCE", $attachmentHandle );
 		fclose( $attachmentHandle );
 
-		$compData['comp-attach'][] = array(
+		$compData['comp_attach'][] = array(
 			"filename" => $attachmentFilename,
 			"type" => "message/rfc822",
 			"size" => filesize( "{$userDir}/{$serverFilename}" ),
@@ -544,9 +540,9 @@ function generateComposerData() {
 			$serverFilename = hashifyFilename( $attachment['filename'] );
 			$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
 			streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
-				$mailbox, $_POST['uid'], $attachment['filename'], $attachmentHandle );
+				$mailbox, $uid, $attachment['filename'], $attachmentHandle );
 			fclose( $attachmentHandle );
-			$compData['comp-attach'][] = array(
+			$compData['comp_attach'][] = array(
 				"filename" => $attachment['filename'],
 				"type" => $attachment['type'],
 				"size" => filesize( "{$userDir}/{$serverFilename}" ),

@@ -26,12 +26,17 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Retrieves the given message number and processes MIME (if present), and
 // return an array containing the text and HTML parts as well as a list of
-// attachments and the unmodified headers.
+// attachments. Also returns header metadata - eg, subject, from, to, etc.
+// If in preview mode, doesn't return the header metadata - because you've probably
+// already got that data!
 // TODO: support $preferredType ...?
-function retrieveMessage( $msgNo, $preview=false ) {	// $preferredType='plain',
+function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 	global $mbox, $mailbox, $IMAP_CONNECT;
+	global $DATE_FORMAT_LONG; // TODO: Remove! Formatting should be done elsewhere.
 
 	$processedResult = array();
+
+	$msgNo = imap_msgno( $mbox, $msgUid );
 
 	// Fetch the MIME structure of this message (also works for non-MIME messages)
 	$msgStruct = imap_fetchstructure( $mbox, $msgNo );
@@ -41,18 +46,89 @@ function retrieveMessage( $msgNo, $preview=false ) {	// $preferredType='plain',
 		return null;
 	}
 
+	if ( $preview == false ) {
+		// ----------------------------------------------------------------
+		// HEADER EXTRACTION
+		// Fetch details about the message - subject, from, to, etc.
+		$headerObj = imap_headerinfo( $mbox, $msgNo );
+
+		if ( $headerObj === false ) {
+			// Non existant message...
+			return null;
+		}
+
+		if ( isset( $headerObj->from ) ) {
+			$processedResult['from']    = filterHeader( formatIMAPAddress( $headerObj->from ), false );
+		}
+		if ( isset( $headerObj->to ) ) {
+			$processedResult['to']      = filterHeader( formatIMAPAddress( $headerObj->to ), false );
+		}
+		if ( isset( $headerObj->cc ) ) {
+			$processedResult['cc']      = filterHeader( formatIMAPAddress( $headerObj->cc ), false );
+		}
+		if ( isset( $headerObj->bcc ) ) {
+			$processedResult['bcc']     = filterHeader( formatIMAPAddress( $headerObj->bcc ), false );
+		}
+		if ( isset( $headerObj->replyto ) ) {
+			$processedResult['replyto'] = filterHeader( formatIMAPAddress( $headerObj->reply_to ), false );
+		}
+		if ( isset( $headerObj->sender ) ) {
+			$processedResult['sender']  = filterHeader( formatIMAPAddress( $headerObj->sender ), false );
+		}
+		$processedResult['mailbox'] = $mailbox;
+		$processedResult['uid']     = $msgUid;
+	
+		$subject = "(no subject)";
+		if ( isset( $headerObj->subject ) ) {
+			$subject = filterHeader( $headerObj->subject, false );
+		}
+
+		$processedResult['subject'] = $subject;
+
+		// TODO: Date should be formatted elsewhere?
+		if ( isset( $headerObj->date ) ) {
+			$processedResult['localdate'] = processDate( $headerObj->date, $DATE_FORMAT_LONG );
+		}
+	}
+
+	// ----------------------------------------------------------------
+	// CONTENT EXTRACTION
 	// Is this a multi-part message?
 	if ( isset( $msgStruct->parts ) ) {
 
 		// Separate the different MIME parts into the three types we recognise.
-		$processedResult = separateMsgParts( $msgStruct->parts, $msgNo, '', $preview );
+		$processedResult = array_merge( $processedResult, separateMsgParts( $msgStruct->parts, $msgNo, '', $preview ) );
 
 	} else {
 
 		// Use our MIME-separation function but feed it an array with
 		// the whole message's structure (so it loops once)
-		$processedResult = separateMsgParts( array( $msgStruct ), $msgNo, '', $preview );
+		$processedResult = array_merge( $processedResult, separateMsgParts( array( $msgStruct ), $msgNo, '', $preview ) );
 
+	}
+	
+	// Change the key "text/html" and "text/plain" into "texthtml" and "textplain", so that
+	// the array can be safely JSONified.
+	// TODO: Test that this works on PHP4.
+	// We use a reference here, so that we don't copy the data - we unset the original, which
+	// removes one reference, keeping the data.
+	$processedResult["texthtml"] = &$processedResult["text/html"];
+	$processedResult["textplain"] = &$processedResult["text/plain"];
+	unset( $processedResult["text/html"] );
+	unset( $processedResult["text/plain"] );
+
+	// ----------------------------------------------------------------
+	// FINAL CONTENT FLAGS
+	// Determine what we have.
+	if ( count( $processedResult['texthtml'] ) > 0 ) {
+		$processedResult['texthtmlpresent'] = true;
+	} else {
+		$processedResult['texthtmlpresent'] = false;
+	}
+	if ( count( $processedResult['textplain'] ) > 0 ) {
+		$processedResult['textplainpresent'] = true;
+	} else {
+		$processedResult['textplainpresent'] = false;
 	}
 
 	return $processedResult;
@@ -179,6 +255,5 @@ function separateMsgParts( $partsObject, $msgNo, $partPrefix, $preview=false ) {
 
 	return $separatedParts;
 }
-
 
 ?>

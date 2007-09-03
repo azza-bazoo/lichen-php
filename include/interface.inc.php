@@ -23,6 +23,15 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+function isHtmlSession() {
+	if ( isset( $_SESSION['htmlsession'] ) && $_SESSION['htmlsession'] ) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
 
 if ( !function_exists( 'json_encode' ) ) {
 	// We don't have a json_encode function, so include one from PEAR.
@@ -72,12 +81,20 @@ function remoteRequestFailure( $code, $message ) {
 	} else {
 		$imapErrors = "";
 	}
-	return json_encode_assoc(
-		array(
-			'resultCode' => $code,
-			'errorMessage' => $message,
-			'imapNotices' => $imapErrors
-		));
+	if ( isHtmlSession() ) {
+		echo printPageHeader();
+		echo "<div>Request Failed.</div>";
+		echo "<div>{$code} - {$message}</div>";
+		echo "<div>{$imapErrors}</div>";
+		echo "</body></html>";
+	} else {
+		return json_encode_assoc(
+			array(
+				'resultCode' => $code,
+				'errorMessage' => $message,
+				'imapNotices' => $imapErrors
+			));
+	}
 }
 
 // Successful remote request: merge the success tokens with the data
