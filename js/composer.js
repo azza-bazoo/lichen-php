@@ -65,7 +65,6 @@ var MessageComposer = new Class({
 
 	_render: function ( compData ) {
 		var composer = "";
-		// TODO: better property names on compData, without dashes
 		var action = compData.comp_mode;
 
 		// Right-side float here is to prevent IE7 from collapsing the div
@@ -75,7 +74,7 @@ var MessageComposer = new Class({
 
 		composer += "<input type=\"hidden\" name=\"comp_mode\" id=\"comp_mode\" value=\"" + compData.comp_mode + "\" />";
 
-		if ( compData['comp_quoteuid'] ) {
+		if ( compData.comp_quoteuid ) {
 			composer += "<input type=\"hidden\" name=\"comp_quoteuid\" id=\"comp_quoteuid\" value=\"" + compData.comp_quoteuid + "\" />";
 			composer += "<input type=\"hidden\" name=\"comp_quotemailbox\" id=\"comp_quotemailbox\" value=\"" + compData.comp_quotemailbox + "\" />";
 		}
