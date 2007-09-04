@@ -75,7 +75,7 @@ var MessageComposer = new Class({
 
 		composer += "<input type=\"hidden\" name=\"comp_mode\" id=\"comp_mode\" value=\"" + compData.comp_mode + "\" />";
 
-		if ( compData['comp-quoteuid'] ) {
+		if ( compData['comp_quoteuid'] ) {
 			composer += "<input type=\"hidden\" name=\"comp_quoteuid\" id=\"comp_quoteuid\" value=\"" + compData.comp_quoteuid + "\" />";
 			composer += "<input type=\"hidden\" name=\"comp_quotemailbox\" id=\"comp_quotemailbox\" value=\"" + compData.comp_quotemailbox + "\" />";
 		}
