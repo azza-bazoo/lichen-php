@@ -31,7 +31,27 @@ function isHtmlSession() {
 	}
 }
 
+function _GETORPOST( $variable, $default = "" ) {
+	// Fetch the variable from GET first, or POST if it's not in GET.
+	// If it's not in either, return the default value.
+	if ( isset( $_GET[ $variable ] ) ) {
+		return $_GET[ $variable ];
+	} elseif ( isset( $_POST[ $variable ] ) ) {
+		return $_POST[ $variable ];
+	} else {
+		return $default;
+	}
+}
 
+function _ISSET_GETORPOST( $variable ) {
+	if ( isset( $_GET[ $variable ] ) ) {
+		return true;
+	} elseif ( isset( $_POST[ $variable ] ) ) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
 if ( !function_exists( 'json_encode' ) ) {
 	// We don't have a json_encode function, so include one from PEAR.
@@ -81,20 +101,12 @@ function remoteRequestFailure( $code, $message ) {
 	} else {
 		$imapErrors = "";
 	}
-	if ( isHtmlSession() ) {
-		echo printPageHeader();
-		echo "<div>Request Failed.</div>";
-		echo "<div>{$code} - {$message}</div>";
-		echo "<div>{$imapErrors}</div>";
-		echo "</body></html>";
-	} else {
-		return json_encode_assoc(
-			array(
-				'resultCode' => $code,
-				'errorMessage' => $message,
-				'imapNotices' => $imapErrors
-			));
-	}
+	return json_encode_assoc(
+		array(
+			'resultCode' => $code,
+			'errorMessage' => $message,
+			'imapNotices' => $imapErrors
+		));
 }
 
 // Successful remote request: merge the success tokens with the data
@@ -111,6 +123,24 @@ function remoteRequestSuccess( $array = NULL ) {
 	}
 
 	return json_encode_assoc( $array );
+}
+
+// Generates the part of a URL after the ? mark.
+// Input is up to two associative arrays, with key value
+// pairs to be made into a query string.
+// Any keys in overData that already exist in baseData
+// will be overridden.
+function genLinkQuery( $baseData, $overData = array() ) {
+	
+	$allData = array_merge( $baseData, $overData );
+
+	$bits = array();
+
+	foreach ( $allData as $key => $value ) {
+		$bits[] = urlencode( $key ) . "=" . urlencode( $value );
+	}
+
+	return htmlentities( implode( "&", $bits ) );
 }
 
 ?>

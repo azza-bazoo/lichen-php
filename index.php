@@ -39,7 +39,7 @@ if ( isset( $_REQUEST['logout'] ) ) {
 	}
 	session_destroy();
 
-	if ( isset( $_REQUEST['silent'] ) ) {
+	if ( _ISSET_GETORPOST( 'silent' ) ) {
 		// Silent logout... do nothing
 		die( remoteRequestSuccess() );
 	}
@@ -52,8 +52,8 @@ if ( isset( $_REQUEST['logout'] ) ) {
 
 }
 
-if ( isset( $_REQUEST['mode'] ) ) {
-	if ( $_REQUEST['mode'] == "html" ) {
+if ( _ISSET_GETORPOST( 'interface' ) ) {
+	if ( _GETORPOST( 'interface' ) == "html" ) {
 		$_SESSION['htmlsession'] = true;
 	} else {
 		$_SESSION['htmlsession'] = false;

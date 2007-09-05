@@ -28,7 +28,11 @@ include( "functions.inc.php" );
 session_start();
 
 if ( !isset( $_SESSION['pass'] ) || !isset( $_SESSION['user'] ) ) {
-	die( remoteRequestFailure( 'AUTH', _("Sorry, you're not logged in!") ));
+	if ( isHtmlSession() ) {
+		// TODO: Do something here. Preferably call our dispatcher, below.
+	} else {
+		die( remoteRequestFailure( 'AUTH', _("Sorry, you're not logged in!") ));
+	}
 }
 
 if ( isset( $_POST['mailbox'] ) && !empty( $_POST['mailbox'] ) ) {
@@ -46,10 +50,42 @@ if ( version_compare( PHP_VERSION, '5.1.0', '>=' ) ) {
 
 // ------------------------------------------------------------------------
 //
+// REQUEST HANDLING GUIDE
+//
+// These requests are meant to be multipurpose, and able to be used for both
+// the AJAX and non-AJAX versions of Lichen.
+//
+// This is how they work.
+//
+// - Each function name must start with "request_". This "puts them in another
+//   namespace", and tries to reduce the ability for random hackers to call
+//   random Lichen internal functions.
+//
+// - The request function must return an associative array. It must have the
+//   following keys:
+//      success - boolean, true if all ok, false if not ok.
+//
+//   If success is false, then the array must have two other keys:
+//      errorCode - the error code, eg "AUTH".
+//      errorString - a string describing the error, eg, "Login expired".
+//
+//   The request should return other keys as appropriate, which will get either
+//   JSON encoded if the request is an AJAX request, or "otherwise passed
+//   around" if it is a non-ajax request. (But the request code should not be
+//   written to expect one or the other, although some will be AJAX only).
+//
+// - Requests must not call die(), remoteRequestSuccess(), or remoteRequestFailure().
+
+
+// ------------------------------------------------------------------------
+//
 // Fetch message counts for the current mailbox.
 //
+// AJAX only.
 function request_getMailboxList() {
 	$mailboxes = getMailboxList();
+
+	$result = array();
 
 	// TODO: Find, generate, and return a meaningful validity value.
 	// TODO: This is a hack to generate the validity - it's expensive in server
@@ -59,7 +95,9 @@ function request_getMailboxList() {
 	$validity = sha1( serialize( $mailboxes ) );
 
 	if ($mailboxes == NULL) {
-		echo remoteRequestFailure( 'IMAP', _('Unable to fetch mailbox list.') );
+		$result['success']     = false;
+		$result['errorCode']   = 'IMAP';
+		$result['errorString'] = _('Unable to fetch mailbox list.');
 	} else {
 		if ( $_POST['validity'] == $validity ) {
 			// The client already has valid data.
@@ -69,17 +107,25 @@ function request_getMailboxList() {
 			// more than once.
 			$mailboxes = null;
 		}
-		echo remoteRequestSuccess( array( 'validity' => $validity, 'data' => $mailboxes ) );
+		$result['success']  = true;
+		$result['validity'] = $validity;
+		$result['data']     = $mailboxes;
 	}
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
 //
 // Get the users settings.
 //
+// AJAX Only.
 function request_getUserSettings() {
 	global $USER_SETTINGS;
-	echo remoteRequestSuccess( array( 'settings' => $USER_SETTINGS ) );
+
+	$result = array();
+	$result['success'] = true;
+	$result['settings'] = $USER_SETTINGS;
 }
 
 // ------------------------------------------------------------------------
@@ -110,14 +156,15 @@ function request_getUserSettings() {
 //
 // List the contents of a mailbox, using search criteria and page numbers.
 //
+// AJAX/HTML versions.
 function request_mailboxContentsList() {
 	global $mailbox;
 	global $USER_SETTINGS;
 
-	$searchQuery = "";
-	$displayPage = 0;
-	$sortMessages = "";
-	$validityKey = "";
+	$searchQuery  = _GETORPOST( 'search' );
+	$displayPage  = _GETORPOST( 'page' );
+	$sortMessages = _GETORPOST( 'sort' );
+	$validityKey  = _GETORPOST( 'validity' );
 
 	$validSortTypes = array( "date", "date_r",
 				"from", "from_r",
@@ -126,27 +173,15 @@ function request_mailboxContentsList() {
 				"cc", "cc_r",
 				"size", "size_r" );
 
-	if ( isset( $_POST['search'] ) ) {
-		$searchQuery = $_POST['search'];
+	if ( empty( $sortMessages ) || array_search( $sortMessages, $validSortTypes ) === false ) {
+		$sortMessages = $USER_SETTINGS['list_sortmode'];
 	}
 
-	if ( isset( $_POST['page'] ) && is_numeric( $_POST['page'] ) ) {
-		$displayPage = $_POST['page'];
-	}
-
-	if ( isset( $_POST['sort'] ) && array_search( $_POST['sort'], $validSortTypes ) !== false ) {
-		$sortMessages = $_POST['sort'];
-
-		if ( $_POST['sort'] != $USER_SETTINGS['list_sortmode'] ) {
-			// If the sort order has changed from the last one we saved,
-			// modify and save the user's preferences again.
-			$USER_SETTINGS['list_sortmode'] = $_POST['sort'];
-			saveUserSettings( $USER_SETTINGS );
-		}
-	}
-
-	if ( isset( $_POST['validity'] ) ) {
-		$validityKey = $_POST['validity'];
+	if ( $sortMessages != $USER_SETTINGS['list_sortmode'] ) {
+		// If the sort order has changed from the last one we saved,
+		// modify and save the user's preferences again.
+		$USER_SETTINGS['list_sortmode'] = $_POST['sort'];
+		saveUserSettings( $USER_SETTINGS );
 	}
 
 	// See if the mailbox has changed. If not, no need to send back all that data.
@@ -167,7 +202,13 @@ function request_mailboxContentsList() {
 		$listData = listMailboxContents( $searchQuery, $sortMessages, $displayPage, true );
 	}
 
-	echo remoteRequestSuccess( array( "validityKey" => $validityKey, "data" => $listData, "cacheonly" => $_POST['cacheonly'] ) );
+	$result = array();
+	$result['success']     = true;
+	$result['validityKey'] = $validityKey;
+	$result['data']        = $listData;
+	$result['cacheonly']   = _GETORPOST( 'cacheonly', false );
+
+	return $result;
 }
 
 // Testing code.
@@ -191,90 +232,120 @@ function request_getThreadedList() {
 		}
 	}
 
-	echo remoteRequestSuccess( array( "htmlFragment" => ob_get_clean() ) );
+	$result = array(
+		"success" => true,
+		"htmlFragment" => ob_get_clean()
+	);
+	return $result;
 }
 
 // ------------------------------------------------------------------------
 //
 // Move a message between folders.
 //
+// AJAX/HTML versions.
 function request_moveMessage() {
 	global $SPECIAL_FOLDERS, $mailbox;
 	// Move a message.
 	// The mailbox= param is the SOURCE mailbox.
+	
+	$result = array();
+	$result['success'] = false;
 
-	$destinationBox = "";
-	if ( isset( $_POST['destbox'] ) && !empty( $_POST['destbox'] ) ) {
-		$destinationBox = $_POST['destbox'];
-	}
+	$destinationBox = _GETORPOST( 'destbox' );
 	$messages = array();
-	if ( isset( $_POST['uid'] ) && !empty( $_POST['uid'] ) ) {
+	$clientMessages = _GETORPOST( 'uid' );
+	if ( !empty( $clientMessages ) ) {
 		// TODO: Assumes "," doesn't appear in uids.
-		$messages = explode( ",", $_POST['uid'] );
+		$messages = explode( ",", $clientMessages );
 	}
 
 	if ( count( $messages ) == 0 ) {
-		echo remoteRequestFailure( 'MOVE', _("You haven&#8217;t selected any messages to move.") );
+		$result['success']     = false;
+		$result['errorCode']   = 'MOVE';
+		$result['errorString'] = _("You haven&#8217;t selected any messages to move.");
 	} elseif ( $destinationBox == "" ) {
-		echo remoteRequestFailure( 'MOVE', _("Error: no destination mailbox provided") );
+		$result['success']     = true;
+		$result['errorCode']   = 'MOVE';
+		$result['errorString'] = _("Error: no destination mailbox provided"); 
 	} else {
-
 		$failedCount = moveMessages( $destinationBox, $messages );
 
 		if ( $failedCount == 0 ) {
 			$msg = sprintf( _("Moved %d message(s) to %s"), count( $messages ), $destinationBox );
-			echo remoteRequestSuccess( array( 'message' => $msg ) );
+			$result['success'] = true;
+			$result['message'] = $msg;
 		} else {
 			$msg = sprintf( _("Unable to move %d message(s): "), $failedCount );
-			echo remoteRequestFailure( 'MOVE', $msg . imap_last_error() );
+			$result['success']     = false;
+			$result['errorCode']   = 'MOVE';
+			$result['errorString'] = $msg . imap_last_error();
 		}
 	}
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
 //
 // Move a message to the Trash, or (TODO) delete if it's already in Trash
 //
+// AJAX/HTML Versions.
 function request_deleteMessage() {
 	global $SPECIAL_FOLDERS, $mailbox;
+
+	$result = array();
+	$result['success'] = false;
+
 	// Move a message to Trash.
 	// The mailbox= param is the SOURCE mailbox.
 	$destinationBox = $SPECIAL_FOLDERS['trash'];
 	if ( !imapCheckMailboxExistence( $SPECIAL_FOLDERS['trash'] ) ) {
-		die( remoteRequestFailure( 'MOVE', _('Error: cannot create trash mailbox') ) );
-	}
-
-	$messages = array();
-	if ( isset( $_POST['uid'] ) && !empty( $_POST['uid'] ) ) {
-		// TODO: Assumes "," doesn't appear in uids.
-		$messages = explode( ",", $_POST['uid'] );
-	}
-
-	if ( $mailbox == $SPECIAL_FOLDERS['trash'] ) {
-		// TODO: if the source mailbox was the trash folder, then really delete.
-	}
-
-	if ( count( $messages ) == 0 ) {
-		echo remoteRequestFailure( 'MOVE', _("You haven&#8217;t selected any messages to delete.") );
+		$result['success']     = false;
+		$result['errorCode']   = 'MOVE';
+		$result['errorString'] = _('Error: cannot create trash mailbox');
 	} else {
 
-		$failedCount = moveMessages( $destinationBox, $messages );
+		$messages = array();
+		$clientMessages = _GETORPOST( 'uid' );
+		if ( !empty( $clientMessages ) ) { // TODO: What if the UID is zero? This won't work properly.
+			// TODO: Assumes "," doesn't appear in uids.
+			$messages = explode( ",", $clientMessages );
+		}
 
-		if ( $failedCount == 0 ) {
-			$msg = sprintf( _("Moved %d message(s) to %s"), count( $messages ), $destinationBox );
-			echo remoteRequestSuccess( array( 'message' => $msg ) );
+		if ( $mailbox == $SPECIAL_FOLDERS['trash'] ) {
+			// TODO: if the source mailbox was the trash folder, then really delete.
+		}
+
+		if ( count( $messages ) == 0 ) {
+			$result['success'] = false;
+			$result['errorCode'] = 'MOVE';
+			$result['errorString'] = _("You haven&#8217;t selected any messages to delete.");
 		} else {
-			$msg = sprintf( _("Unable to move %d message(s): "), $failedCount );
-			echo remoteRequestFailure( 'MOVE', $msg . imap_last_error() );
+	
+			$failedCount = moveMessages( $destinationBox, $messages );
+
+			if ( $failedCount == 0 ) {
+				$msg = sprintf( _("Moved %d message(s) to %s"), count( $messages ), $destinationBox );
+				$result['success'] = true;
+				$result['message'] = $msg;
+			} else {
+				$msg = sprintf( _("Unable to move %d message(s): "), $failedCount );
+				$result['success']     = false;
+				$result['errorCode']   = 'MOVE';
+				$result['errorString'] = $msg . imap_last_error();
+			}
 		}
 	}
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
 //
 // Build the mailbox manager pane.
 //
-
+// AJAX only.
 function request_mailboxManager() {
 
 	// TODO: this is the second AJAX callback that does the same thing...
@@ -289,41 +360,33 @@ function request_mailboxManager() {
 //
 // Mailbox management.
 //
-
+// AJAX/HTML versions.
 function request_mailboxAction() {
 	global $mbox, $IMAP_CONNECT;
 
-	$action = "";
-	$mailbox1 = "";
-	$mailbox2 = "";
+	$action   = _GETORPOST( 'action' );
+	$mailbox1 = _GETORPOST( 'mailbox1' );
+	$mailbox2 = _GETORPOST( 'mailbox2' );
 
-	if ( isset( $_POST['action'] ) && !empty( $_POST['action'] ) ) {
-		$action = $_POST['action'];
-	}
-	if ( isset( $_POST['mailbox1'] ) && !empty( $_POST['mailbox1'] ) ) {
-		$mailbox1 = $_POST['mailbox1'];
-	}
-	if ( isset( $_POST['mailbox2'] ) && !empty( $_POST['mailbox2'] ) ) {
-		$mailbox2 = $_POST['mailbox2'];
-	}
-
-	$result = false;
+	$result = array();
 	$resultMessage = "";
 	$resultMailbox = "";
 	switch ( $action ) {
 		case 'delete':
 			// Delete the mailbox.
 			// TODO: Delete sub mailboxes?
-			$result = imap_deletemailbox( $mbox, $IMAP_CONNECT . $mailbox1 );
-			if ( !$result ) {
-				$resultMessage = _("Unable to delete mailbox: ") . imap_last_error();
+			$result['success'] = imap_deletemailbox( $mbox, $IMAP_CONNECT . $mailbox1 );
+			if ( !$result['success'] ) {
+				$result['errorCode']   = 'MAILBOX';
+				$result['errorString'] = _("Unable to delete mailbox: ") . imap_last_error();
 			}
 			break;
 		case 'rename':
 			// Rename the mailbox.
-			$result = imap_renamemailbox( $mbox, $IMAP_CONNECT . $mailbox1, $IMAP_CONNECT . $mailbox2 );
-			if ( !$result ) {
-				$resultMessage = _("Unable to rename mailbox: ") . imap_last_error();
+			$result['success'] = imap_renamemailbox( $mbox, $IMAP_CONNECT . $mailbox1, $IMAP_CONNECT . $mailbox2 );
+			if ( !$result['success'] ) {
+				$result['errorCode']   = 'MAILBOX';
+				$result['errorString'] = _("Unable to rename mailbox: ") . imap_last_error();
 			}
 			break;
 		case 'create':
@@ -336,31 +399,38 @@ function request_mailboxAction() {
 			} else {
 				$newname = "{$mailbox1}{$delimiter}{$mailbox2}";
 			}
-			$result = imap_createmailbox( $mbox, $IMAP_CONNECT . $newname );
-			if ( !$result ) {
-				$resultMessage = _("Unable to create mailbox: ") . imap_last_error();
+			$result['success'] = imap_createmailbox( $mbox, $IMAP_CONNECT . $newname );
+			if ( !$result['success'] ) {
+				$result['errorCode']   = 'MAILBOX';
+				$result['errorString'] = _("Unable to create mailbox: ") . imap_last_error();
 			}
 			break;
 		case 'move':
 			// Move mailbox.
-			$result = imapMoveMailbox( $mailbox1, $mailbox2 );
-			if ( $result == null ) {
-				$result = true;
+			$mmResult = imapMoveMailbox( $mailbox1, $mailbox2 );
+			if ( $mmResult == null ) {
+				$result['success'] = true;
 			} else {
-				$resultMessage = $result;
-				$result = false;
+				$result['success']     = false;
+				$result['errorCode']   = 'MAILBOX';
+				$result['errorString'] = $mmResult;
 			}
 			break;
 		default:
-			$resultMessage = _("Unknown request.");
+			$result['success']     = false;
+			$result['errorCode']   = 'MAILBOX';
+			$result['errorString'] = _("Unknown request.");
 			break;
 	}
 
-	if ( $result ) {
-		echo remoteRequestSuccess( array( "action" => $action, "mailbox1" => $mailbox1, "mailbox2" => $mailbox2, "mailboxes" => getMailboxList() ) );
-	} else {
-		echo remoteRequestFailure( 'MAILBOX', $resultMessage );
+	if ( $result['success'] ) {
+		$result['action']    = $action;
+		$result['mailbox1']  = $mailbox1;
+		$result['mailbox2']  = $mailbox2;
+		$result['mailboxes'] = getMailboxList();
 	}
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
@@ -500,15 +570,19 @@ function request_getMessage() {
 
 	include( 'libs/HTMLPurifier.auto.php' );
 
-	// For the retrieveFullMessage function, we need the number,
-	// not the UID, of the message we're after.
-	$msgUid = $_POST['msg'];
+	$result = array();
+
+	$msgUid = _GETORPOST( 'msg' );
 
 	// TODO: Sanitise the UID input.
 	$msgArray = retrieveMessage( $msgUid, false );
 
 	if ( $msgArray == null ) {
-		die( remoteRequestFailure( 'MESSAGE', _("Unable to retrieve that message: non existant message.") ) );
+		$result['success'] = false;
+		$result['errorCode'] = 'MESSAGE';
+		$result['errorString'] = _("Unable to retrieve that message: non existant message.");
+
+		return $result; // TODO: Don't return in the middle of a function!
 	}
 
 	$markedupContent = array();
@@ -535,7 +609,7 @@ function request_getMessage() {
 
 	// Prune off data that the client doesn't need.
 	// TODO: don't fetch it in the first place
-	switch ( $_POST['mode'] ) {
+	switch ( _GETORPOST( 'mode' ) ) {
 		case 'html':
 			if ( $msgArray['texthtmlpresent'] ) {
 				$msgArray['textplain'] = array();
@@ -558,16 +632,12 @@ function request_getMessage() {
 			break;
 	}
 
-	echo remoteRequestSuccess( array( 'validity' => null, 'data' => $msgArray ) );
-}
+	$result['success']  = true;
+	$result['validity'] = null;
+	$result['data']     = $msgArray;
+	$result['mode']     = _GETORPOST( 'mode' );
 
-// ------------------------------------------------------------------------
-//
-// Create the HTML for the composer.
-//
-function request_createComposer() {
-	$composePanel = generateMessageCompose();
-	echo remoteRequestSuccess( array( 'htmlFragment' => $composePanel ) );
+	return $result;
 }
 
 // ------------------------------------------------------------------------
@@ -575,15 +645,18 @@ function request_createComposer() {
 // Get data for the composer, so the client can build a composer.
 //
 function request_getComposeData() {
-	$mode = "";
-	$uid = "";
-	$mailto = "";
-	if ( isset( $_POST['mode'] ) )   $mode   = $_POST['mode'];
-	if ( isset( $_POST['uid'] ) )    $uid    = $_POST['uid'];
-	if ( isset( $_POST['mailto'] ) ) $mailto = $_POST['mailto'];
+	$mode   = _GETORPOST( 'mode' );
+	$uid    = _GETORPOST( 'uid' );
+	$mailto = _GETORPOST( 'mailto' );
 
 	$composeData = generateComposerData( $mode, $uid, $mailto );
-	echo remoteRequestSuccess( array( 'composedata' => $composeData ) );
+
+	$result = array(
+		"success" => true,
+		"composedata" => $composeData
+	);
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
@@ -591,6 +664,8 @@ function request_getComposeData() {
 // Upload an attachment.
 //
 function request_uploadAttachment() {
+
+	$result = array();
 
 	if ( isset( $_FILES['comp-attachfile'] ) ) {
 		if ( $_FILES['comp-attachfile']['error'] != 0 ) {
@@ -619,31 +694,41 @@ function request_uploadAttachment() {
 					$errorMessage = _("File upload disabled by file extension.");
 					break;
 			}
-			echo remoteRequestFailure( 'UPLOAD', $errorMessage );
+			$result['success']      = false;
+			$result['errorCode']    = 'UPLOAD';
+			$result['errorMessage'] = $errorMessage;
 		} else {
 			$destinationDirectory = getUserDirectory() . "/attachments";
 			$serverFilename = hashifyFilename( $_FILES['comp-attachfile']['name'] );
 			if (move_uploaded_file( $_FILES['comp-attachfile']['tmp_name'], "{$destinationDirectory}/$serverFilename" ) ) {
-				echo remoteRequestSuccess( array(
-					"filename" => $_FILES['comp-attachfile']['name'],
-					"type" => $_FILES['comp-attachfile']['type'],
-					"size" => $_FILES['comp-attachfile']['size']
-				));
+				$result['success']  = true;
+				$result['filename'] = $_FILES['comp-attachfile']['name'];
+				$result['type']     = $_FILES['comp-attachfile']['type'];
+				$result['size']     = $_FILES['comp-attachfile']['size'];
 			} else {
-				echo remoteRequestFailure( 'UPLOAD', _("Unable to move uploaded file - probably server permissions problem.") );
+				$result['success']     = false;
+				$result['errorCode']   = 'UPLOAD';
+				$result['errorString'] = _("Unable to move uploaded file - probably server permissions problem.");
 			}
 		}
 	} else {
 		// Wrong upload.
-		echo remoteRequestFailure( 'UPLOAD', _('Failed to specify a file to upload.') );
+		$result['success']     = false;
+		$result['errorCode']   = 'UPLOAD';
+		$result['errorString'] = _('Failed to specify a file to upload.');
 	}
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
 //
 // Remove an attachment from a message (for the composer).
 //
+// AJAX/HTML versions.
 function request_removeAttachment() {
+
+	$result = array();
 
 	// TODO: Still a little unsafe.
 	$userDir = getUserDirectory();
@@ -653,13 +738,19 @@ function request_removeAttachment() {
 
 		if ( file_exists( $serverFilename ) ) {
 			unlink( $serverFilename );
-			echo remoteRequestSuccess();
+			$result['success'] = true;
 		} else {
-			echo remoteRequestFailure( 'ATTACH', _('Unable to find attachment to remove') );
+			$result['success']     = false;
+			$result['errorCode']   = 'ATTACH';
+			$result['errorString'] = _('Unable to find attachment to remove');
 		}
 	} else {
-		echo remoteRequestFailure( "ATTACH", _("Invalid attachment to remove.") );
+		$result['success']     = false;
+		$result['errorCode']   = 'ATTACH';
+		$result['errorString'] = _("Invalid attachment to remove.");
 	}
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
@@ -669,32 +760,31 @@ function request_removeAttachment() {
 function request_setFlag() {
 	global $mbox;
 
-	$flag = "\\Seen";
-	$state = "toggle";
-	$messageUID = "";
+	$result = array();
 
-	if ( isset( $_POST['uid'] ) && !empty( $_POST['uid'] ) ) {
-		$messageUID = $_POST['uid'];
-	}
-	if ( isset( $_POST['state'] ) && !empty( $_POST['state'] ) ) {
-		$state = $_POST['state'];
+	$flag       = _GETORPOST( 'flag', '\\Seen' );
+	$state      = _GETORPOST( 'state' );
+	$messageUID = _GETORPOST( 'uid' );
 
-		if ( $state != "true" && $state != "false" && $state != "toggle" ) {
-			// Invalid state.
-			$state = "toggle";
-		}
-	}
-	if ( isset( $_POST['flag'] ) && !empty( $_POST['flag'] ) ) {
-		$flag = $_POST['flag'];
+	if ( empty( $state ) || ( $state != "true" && $state != "false" && $state != "toggle" ) ) {
+		// Invalid state.
+		$state = "toggle";
 	}
 
 	$flagState = imapTwiddleFlag( $messageUID, $flag, $state );
 
 	if ( $flagState['success'] ) {
-		echo remoteRequestSuccess( array( "flag" => $flag, "state" => $flagState['flagstate'], "uid" => $messageUID ) );
+		$result['success'] = true;
+		$result['flag']    = $flag;
+		$result['state']   = $flagState['flagstate'];
+		$result['uid']     = $messageUID;
 	} else {
-		echo remoteRequestFailure( 'FLAGS', _('Unable to set flag on the message: ') . $flagState['errormessage'] );
+		$result['success']     = false;
+		$result['errorCode']   = 'FLAGS';
+		$result['errorString'] = _('Unable to set flag on the message: ') . $flagState['errormessage'];
 	}
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
@@ -710,6 +800,9 @@ function request_sendMessage() {
 	include ( 'libs/Swift.php' );
 	include ( 'libs/Swift/Connection/SMTP.php' );
 	include ( 'libs/streamattach.php' );
+
+	$result = array();
+	$result['success'] = false;
 
 	$draftMode = FALSE;
 	$oldDraftUid = "";
@@ -744,7 +837,11 @@ function request_sendMessage() {
 	$userIdentity = getUserIdentity( $_POST['comp_identity'] );
 	if ( $userIdentity == NULL ) {
 		// Couldn't find an identity.
-		die( remoteRequestFailure( 'COMPOSE', _('Unable to find an identity to send this email for.') ));
+		$result['success'] = false;
+		$result['errorCode'] = 'COMPOSE';
+		$result['errorString'] = _('Unable to find an identity to send this email for.');
+
+		return $result; // TODO: Returning in the middle of a function... don't do it!
 	}
 	$FROM_EMAIL = new Swift_Address( $userIdentity['address'], $userIdentity['name'] );
 
@@ -772,7 +869,11 @@ function request_sendMessage() {
 	$toRecipients = parseRecipientList( $_POST['comp_to'] );
 
 	if ( count( $toRecipients ) == 0 ) {
-		die( remoteRequestFailure( 'SEND', _('No valid to addresses given.') ) );
+		$result['success']     = false;
+		$result['errorCode']   = 'SEND';
+		$result['errorString'] = _('No valid to addresses given.');
+
+		return $result; // TODO: Returning in the middle of a function... don't do it!
 	}
 
 	foreach ( $toRecipients as $recipient ) {
@@ -889,7 +990,11 @@ function request_sendMessage() {
 		// In draft mode? Just save the message.
 
 		if ( !imapCheckMailboxExistence( $SPECIAL_FOLDERS['drafts'] ) ) {
-			die( remoteRequestFailure( 'SENT', _("Unable to create draft folder - mail not sent: ") . imap_last_error() ) );
+			$result['success'] = false;
+			$result['errorCode'] = 'SENT';
+			$result['errorString'] = _("Unable to create draft folder - mail not sent: ") . imap_last_error();
+			
+			return $result; // TODO: Returning in the middle of a function... don't do it!
 		}
 
 		// Stream the message to the IMAP server, so that emails of any size can be saved.
@@ -910,26 +1015,40 @@ function request_sendMessage() {
 		}
 
 		if ( $res != null ) {
-			echo remoteRequestFailure( 'DRAFT', _('Unable to save draft message: ') . $res );
+			$result['success']     = false;
+			$result['errorCode']   = 'DRAFT';
+			$result['errorString'] = _('Unable to save draft message: ') . $res;
 		} else {
 			// Delete the old draft. ONLY if we have a new AND old UID.
 			if ( $oldDraftUid != "" && $draftUID != "" ) {
 				imap_delete( $mbox, $oldDraftUid, FT_UID );
 				imap_expunge( $mbox );
 			}
-			echo remoteRequestSuccess( array( 'draftMode' => true, 'message' => _('Draft saved'), 'draftUid' => $draftUID ) );
+			$result['success']   = true;
+			$result['draftMode'] = true;
+			$result['message']   = _('Draft saved');
+			$result['draftUid']  = $draftUID;
 		}
 	} else {
 		// Time to send the message.
 		// Save it into Sent first.
 		if ( !imapCheckMailboxExistence( $SPECIAL_FOLDERS['sent'] ) ) {
-			die( remoteRequestFailure( 'SENT', _("Unable to create sent folder - mail not sent: ") . imap_last_error() ) );
+			$result['success']     = false;
+			$result['errorCode']   = 'SENT';
+			$result['errorString'] = _("Unable to create sent folder - mail not sent: ") . imap_last_error();
+			
+			return $result; // TODO: Returning in the middle of a function... don't do it!
 		}
 		$res = streamSaveMessage( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
 			$SPECIAL_FOLDERS['sent'], $rawMessage, $messageLength, "");
 		if ( $res != null ) {
 			$msg = sprintf( _("Unable to save sent message: %s - message NOT sent."), $res );
-			die( remoteRequestFailure( 'SENT', $msg ) );
+			
+			$result['success']     = false;
+			$result['errorCode']   = 'SENT';
+			$result['errorString'] = $msg;
+			
+			return $result; // TODO: Returning in the middle of a function... don't do it!
 		}
 
 		// Create the connection to the remote SMTP server.
@@ -956,10 +1075,15 @@ function request_sendMessage() {
 			ob_start();
 			$messageSender->log->dump();
 			$msg = sprintf( _("Unable to send message: %s"), ob_get_clean() );
-			echo remoteRequestFailure( 'SMTP', $msg );
+
+			$result['success']     = false;
+			$result['errorCode']   = 'SMTP';
+			$result['errorString'] = $msg;
 		} else {
 			$msg = sprintf( _("Sent message to %d recipient(s)"), $numberRecipients );
-			echo remoteRequestSuccess( array( 'message' => $msg ) );
+
+			$result['success'] = true;
+			$result['message'] = $msg;
 
 			// Delete attachments - TODO: still a little unsafe.
 			if ( isset( $_POST['comp_attach'] ) && count( $_POST['comp_attach'] ) > 0 ) {
@@ -984,23 +1108,35 @@ function request_sendMessage() {
 			}
 		}
 	}
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
 //
 // Return HTML for settings panel
 //
+// AJAX/HTML versions.
 function request_settingsPanel() {
 	$settingsPanel = generateOptionsPanel();
-	echo remoteRequestSuccess( $settingsPanel );
+
+	$result = array(
+		"success" => true
+	);
+
+	$result = array_merge( $result, $settingsPanel );
+	return $result;
 }
 
 // ------------------------------------------------------------------------
 //
 // Save input from the settings panel
 //
+// AJAX/HTML versions.
 function request_settingsPanelSave() {
 	global $USER_SETTINGS;
+
+	$result = array();
 
 	$errors = parseUserSettings();
 
@@ -1008,11 +1144,13 @@ function request_settingsPanelSave() {
 	saveUserSettings( $USER_SETTINGS );
 
 	// Return the current settings.
+	$result['success'] = true;
+	$result['settings'] = $USER_SETTINGS;
 	if ( count( $errors ) > 0 ) {
-		echo remoteRequestSuccess( array( 'errors' => $errors, 'settings' => $USER_SETTINGS ) );
-	} else {
-		echo remoteRequestSuccess( array( 'settings' => $USER_SETTINGS ) );
+		$result['errors']   = $errors;
 	}
+
+	return $result;
 }
 
 // ------------------------------------------------------------------------
@@ -1076,23 +1214,93 @@ function request_identityEditor() {
 
 	saveUserSettings( $USER_SETTINGS );
 
-	echo remoteRequestSuccess( array( "identities" => $USER_SETTINGS['identities'] ) );
+	$result = array();
+	$result['success']    = true;
+	$result['identities'] = $USER_SETTINGS['identities'];
+
+	return $result;
 }
 
-// ------------------------------------------------------------------------
-//
-// AJAX Request Dispatcher
-//
-// TODO: This is for ajax requests; will need another one to handle
-// form-style (non-JavaScript) requests.
-if ( isset( $_POST['request'] ) && !empty( $_POST['request'] ) ) {
-	$functionName = "request_{$_POST['request']}";
+if ( !isHtmlSession() ) {
+	// ------------------------------------------------------------------------
+	//
+	// AJAX Request Dispatcher
+	//
+	if ( isset( $_POST['request'] ) && !empty( $_POST['request'] ) ) {
+		$functionName = "request_{$_POST['request']}";
 
+		$result = array(
+			"success" => false,
+			"errorCode" => "BADREQ",
+			"errorString" => "Invalid Request."
+		);
+
+		if ( function_exists( $functionName ) ) {
+			$result = $functionName();
+		} else {
+			// If the function doesn't exist, fail silently. (ish)
+		}
+
+		if ( $result['success'] ) {
+			// The call succeeded.
+			unset( $result['errorCode'] );
+			unset( $result['errorString'] );
+			unset( $result['success'] );
+			echo remoteRequestSuccess( $result );
+		} else {
+			echo remoteRequestFailure( $result['errorCode'], $result['errorString'] );
+		}
+	}
+} else {
+	// ------------------------------------------------------------------------
+	//
+	// Non-AJAX Request Dispatcher
+	//
+	$reqMode = _GETORPOST( 'reqmode', 'list' ); // Mode of the request: list/comp/disp/settings/error
+	$request = _GETORPOST( 'request' );
+
+	// Step 0: Actually do the request. It knows how to handle things
+	// correctly.
+	$result = array(
+		"success" => false,
+		"errorCode" => "BADREQ",
+		"errorString" => "Invalid Request."
+	);
+	$functionName = "request_{$request}";
 	if ( function_exists( $functionName ) ) {
-		$functionName();
+		$result = $functionName();
+	} else {
+		$reqMode = "error";
 	}
 
-	// If the function doesn't exist, fail silently.
+	// Step 1: basic page layout.
+	printPageHeader();
+
+	// Step 2: Mailbox list (always visible)
+	//
+
+	// Step 3: Toolbar. As appropriate for mode.
+	switch ( $reqMode ) {
+		case "list":
+			// List toolbar.
+			break;
+		case "comp":
+			// Compose toolbar.
+			break;
+		case "disp":
+			// Display toolbar.
+			break;
+		case "settings":
+			// Settings toolbar.
+			break;
+		case "error";
+			break;
+		default:
+			// Do nothing.
+			break;
+	}
+
+	// Step 4: Content area. As appropriate for mode and request.
 }
 
 imap_close($mbox);
