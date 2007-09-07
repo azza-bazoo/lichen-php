@@ -364,19 +364,6 @@ function render_displayMessage( $requestData, $requestParams ) {
 		genLinkQuery( $requestParams, array( 'reqmode' => 'list' ), array( 'request' ) ) .
 		"\">back to ". htmlentities( $mailbox ) . "</a></div>";
 			
-	$previousMessageLabel = "previous";
-	$nextMessageLabel = "next";
-
-	if ( $requestData['sort'] == "date" ) {
-		if ( $requestData['sortAsc'] ) {
-			$previousMessageLabel = "earlier";
-			$nextMessageLabel = "later";
-		} else {
-			$previousMessageLabel = "later";
-			$nextMessageLabel = "earlier";
-		}
-	}
-
 	$messageNavBar .= "<div class=\"header-right\">\n";
 	$previousMessage = $requestData['previousmessage'];
 	$nextMessage = $requestData['nextmessage'];
@@ -384,17 +371,17 @@ function render_displayMessage( $requestData, $requestParams ) {
 	if ( $previousMessage ) {
 		$messageNavBar .= "<a href=\"ajax.php?" .
 			genLinkQuery( $requestParams, array( 'msg' => $previousMessage['uid'], 'reqmode' => 'disp', 'request' => 'getMessage' ) ) .
-			"\">" . $previousMessageLabel;
+			"\">&laquo; " . $previousMessage['subject'];
 		if ( $nextMessage ) {
-			$messageNavBar .= " message</a> | ";
+			$messageNavBar .= "</a> | ";
 		} else {
-			$messageNavBar .= " message</a>";
+			$messageNavBar .= "</a>";
 		}
 	}
 	if ( $nextMessage ) {
 		$messageNavBar .= "<a href=\"ajax.php?" .
 			genLinkQuery( $requestParams, array( 'msg' => $nextMessage['uid'], 'reqmode' => 'disp', 'request' => 'getMessage' ) ) .
-			"\">" . $nextMessageLabel . " message</a>";
+			"\">" . $nextMessage['subject'] . " &raquo;</a>";
 	}
 
 	$messageNavBar .= "</div></div>\n";
