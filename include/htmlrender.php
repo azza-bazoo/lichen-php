@@ -33,6 +33,16 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
+function helper_calculateSortDirection( &$data ) {
+	// Precalculation: figure out the sort direction and the raw sort.
+	if ( strpos( $data['sort'], "_r" ) !== false ) {
+		$data['sortAsc'] = false;
+		$data['sort'] = substr( $data['sort'], 0, -2 );
+	} else {
+		$data['sortAsc'] = true;
+	}
+}
+
 // ------------------------------------------------------------------------
 //
 // Render a message list.
@@ -40,13 +50,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 function render_messageList( $requestData, $requestParams ) {
 	global $USER_SETTINGS;
 
-	// Precalculation: figure out the sort direction and the raw sort.
-	if ( strpos( $requestData['sort'], "_r" ) !== false ) {
-		$requestData['sortAsc'] = false;
-		$requestData['sort'] = substr( $requestData['sort'], 0, -2 );
-	} else {
-		$requestData['sortAsc'] = true;
-	}
+	helper_calculateSortDirection( $requestData );
 
 	// Capture the output - faster than strcatting.
 	ob_start();
@@ -143,20 +147,21 @@ function render_messageList( $requestData, $requestParams ) {
 		$flagImage = $thisMsg['flagged'] ? "/icons/flag.png" : "/icons/flag_off.png";
 		$thisRow .= "<td><img src=\"themes/" . $USER_SETTINGS['theme'] . $flagImage . "\" id=\"f-" . $thisMsg['uid'] . "\" alt=\"\" onclick=\"Lichen.MessageList.twiddleFlag('" . $thisMsg['uid'] . "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
 
-		$thisRow .= "<td class=\"sender\" onclick=\"Lichen.action('display','MessageDisplayer','showMessage',['"
-				. $requestData['mailbox'] . "','" . $thisMsg['uid'] . "'])\"";
+		$displayUrl = "ajax.php?" . genLinkQuery( $requestParams, array( 'msg' => $thisMsg['uid'], 'reqmode' => 'disp', 'request' => 'getMessage' ) );
+
+		$thisRow .= "<td class=\"sender\" ";
 		if ( $thisMsg['fromName'] == "" ) {
 			if ( strlen( $thisMsg['fromAddr'] ) > 22 ) {
 				// Temporary hack to decide if tooltip is needed
 				$thisRow .= " title=\"" . $thisMsg['fromAddr'] . "\"";
 			}
-			$thisRow .= "><div class=\"sender\">" . $thisMsg['fromAddr'];
+			$thisRow .= "><div class=\"sender\"><a href=\"{$displayUrl}\">" . $thisMsg['fromAddr'] . "</a>";
 		} else {
-			$thisRow .= " title=\"" . $thisMsg['fromAddr'] . "\"><div class=\"sender\">" . $thisMsg['fromName'];
+			$thisRow .= " title=\"" . $thisMsg['fromAddr'] . "\"><div class=\"sender\"><a href=\"{$displayUrl}\">" . $thisMsg['fromName'] . "</a>";
 		}
 		$thisRow .= "</div></td>";
 
-		$thisRow .= "<td class=\"subject\" onclick=\"Lichen.action('display','MessageDisplayer','showMessage',['".$requestData['mailbox']."','".$thisMsg['uid']."'])\"><div class=\"subject\">" . $thisMsg['subject'];
+		$thisRow .= "<td class=\"subject\"><div class=\"subject\"><a href=\"{$displayUrl}\">" . $thisMsg['subject'] . "</a>";
 
 		if ( $USER_SETTINGS['list_showpreviews'] ) {
 			$thisRow .= "<span class=\"messagePreview\">" . $thisMsg['preview'] . "</span>";
@@ -321,23 +326,172 @@ function render_mailboxList( $requestData, $requestParams ) {
 		// Indent the mailbox name. This is crude.
 		echo str_repeat( "&nbsp;&nbsp;", $thisMailbox['folderdepth'] );
 
-		echo "<span class=\"mailbox\">", $thisMailbox['mailbox'], "</strong> ";
+		echo "<span class=\"mailbox\">", $thisMailbox['mailbox'];
 
-		echo "<span id=\"mb-unread-", $thisMailbox['fullboxname'], "\">";
+		echo "&nbsp;<span id=\"mb-unread-", $thisMailbox['fullboxname'], "\">";
 		if ( $thisMailbox['unseen'] > 0 || $USER_SETTINGS['boxlist_showtotal'] ) {
 			echo "(", $thisMailbox['unseen'];
 			if ( $USER_SETTINGS['boxlist_showtotal'] ) echo "/", $thisMailbox['messages'];
 			echo ")";
 		}
 		echo "</span>";
+		echo "</span>";
 
 		if ( $thisMailbox['selectable'] ) {
 			echo "</a>";
 		}
-		echo "</li>";
+		echo "</li>\n";
 	}
 
-	echo "</ul>";
+	return ob_get_clean();
+}
+
+// ------------------------------------------------------------------------
+//
+// Display a message
+//
+function render_displayMessage( $requestData, $requestParams ) {
+	global $USER_SETTINGS;
+	global $mailbox;
+	
+	helper_calculateSortDirection( $requestData );
+
+	ob_start();
+	
+	echo "<div class=\"list-header-bar\"><img src=\"themes/", $USER_SETTINGS['theme'], "/top-corner.png\" alt=\"\" class=\"top-corner\" />";
+
+	$messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"ajax.php?" . 
+		genLinkQuery( $requestParams, array( 'reqmode' => 'list' ), array( 'request' ) ) .
+		"\">back to ". htmlentities( $mailbox ) . "</a></div>";
+			
+	$previousMessageLabel = "previous";
+	$nextMessageLabel = "next";
+
+	if ( $requestData['sort'] == "date" ) {
+		if ( $requestData['sortAsc'] ) {
+			$previousMessageLabel = "earlier";
+			$nextMessageLabel = "later";
+		} else {
+			$previousMessageLabel = "later";
+			$nextMessageLabel = "earlier";
+		}
+	}
+
+	$messageNavBar .= "<div class=\"header-right\">\n";
+	$previousMessage = $requestData['previousmessage'];
+	$nextMessage = $requestData['nextmessage'];
+	
+	if ( $previousMessage ) {
+		$messageNavBar .= "<a href=\"ajax.php?" .
+			genLinkQuery( $requestParams, array( 'msg' => $previousMessage['uid'], 'reqmode' => 'disp', 'request' => 'getMessage' ) ) .
+			"\">" . $previousMessageLabel;
+		if ( $nextMessage ) {
+			$messageNavBar .= " message</a> | ";
+		} else {
+			$messageNavBar .= " message</a>";
+		}
+	}
+	if ( $nextMessage ) {
+		$messageNavBar .= "<a href=\"ajax.php?" .
+			genLinkQuery( $requestParams, array( 'msg' => $nextMessage['uid'], 'reqmode' => 'disp', 'request' => 'getMessage' ) ) .
+			"\">" . $nextMessageLabel . " message</a>";
+	}
+
+	$messageNavBar .= "</div></div>\n";
+
+	echo $messageNavBar;
+
+	echo genLinkForm( $requestParams, array(), array( 'mode' ), "typeChanger", "ajax.php" );
+	echo "<select id=\"mode\" name=\"mode\">";
+	echo "<option value=\"auto\">switch view ...</option>";
+
+	$message = $requestData['data'];
+
+	if ( $message['texthtmlpresent'] ) {
+		echo "<option value=\"html\">HTML part</option>";
+	}
+	if ( $message['textplainpresent'] ) {
+		echo "<option value=\"text\">text part</option>";
+		echo "<option value=\"text-mono\">monospace text</option>";
+	}
+	echo "<option value=\"source\">message source</option>";
+	echo "</select>";
+	echo "<input type=\"submit\" value=\"Change\" />";
+	echo "</form>";
+
+	echo "<h1 class=\"msg-head-subject\">", htmlentities( $message['subject'] ), "</h1>";
+	echo "<p class=\"msg-head-line2\">from <span class=\"msg-head-sender\">", htmlentities( $message['from'] ), "</span> ";
+	echo "at <span class=\"msg-head-date\">", $message['localdate'], "</span></p>";
+
+	if ( isset( $message['htmlhasremoteimages'] ) && $message['htmlhasremoteimages'] ) {
+		echo "<div class=\"msg-notification\">";
+		echo "Remote images are not displayed. [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteImages()\">show images</a>]";
+		echo "</div>";
+	}
+
+	// TODO: Clean up this multistage IF. Its a bit IFFY.
+	if ( count( $message['texthtml'] ) > 0 && $requestParams['mode'] != "text" &&
+	       $requestParams['mode'] != "text-mono" && $requestParams['mode'] != "source" ) {
+		// Display HTML in preference.
+		foreach ( $message['texthtml'] as $htmlpart ) {
+			echo "<div class=\"html-message\">";
+			echo $htmlPart;
+			echo "</div>";
+		}
+	} else {
+		// Display the text parts.
+		$i = 0;
+		foreach ( $message['textplain'] as $plainpart ) {
+			echo "<div id=\"plainmsg-", $i, "\" class=\"plain-message";
+			if ( $requestParams['mode'] == "text-mono" ) {
+				echo " plain-message-monospace";
+			}
+			echo "\">";
+			
+			// Hack: if the message part was too large, the server will not have returned it.
+			// Include a link to make this happen.
+			// TODO: Make this work in the HTML version... the buffering kills it!
+			if ( substr( $message['textplain'][$i], 0, 14 ) == "LICHENTOOLARGE" ) {
+				$messagePart = explode( ")", substr( $message['textplain'][$i], 15 ) );
+				$messagePart = $messagePart[0];
+				echo "<a href=\"#\" onclick=\"Lichen.MessageDisplayer.getLargePart('",
+					$message['uid'], "', '", $message['mailbox'], "','", $messagePart, "',",
+					$i, ");return false\">This message part was too large to return directly. Click here to load it.</a>";
+			} else {
+				echo $message['textplain'][$i]; // This is linkified/cleaned on the server.
+			}
+			echo "</div>";
+
+			$i++;
+		}
+	}
+
+	if ( count( $message['attachments'] ) > 0 && $requestParams['mode'] != "source" ) {
+		echo "<ul class=\"attachments\">\n";
+
+		foreach ( $message['attachments'] as $thisAttach ) {
+			// Skip attachments that are internal-only.
+			if ( $thisAttach['filename'] == "" ) continue;
+			echo "<li>";
+			$attachUrl = "message.php?mailbox=" . urlencode( $message['mailbox'] ) .
+				"&uid=" . urlencode( $message['uid'] ) . "&filename=" . urlencode( $thisAttach['filename'] );
+			echo "<a href=\"", $attachUrl, "\" onclick=\"return if_newWin('", $attachUrl, "')\">";
+			echo htmlentities( $thisAttach['filename'] ), "</a>";
+			echo " <span class=\"msg-attach-meta\">type ", $thisAttach['type'], ", size ~", $thisAttach['size'], " bytes</span>";
+
+			if ( substr( $thisAttach['type'], 0, 5 ) == "image" ) {
+				echo "<br />";
+				echo "<img src=\"", $attachUrl, "\" alt=\"", $attachUrl, "\" />";
+			}
+
+			echo "\n";
+		}
+
+		echo "</ul>\n";
+	}
+
+	// Huh? If we include the closing DIV below, then we're closing a DIV we never opened. What the?
+	echo "<div class=\"footer-bar\"><img src=\"themes/", $USER_SETTINGS['theme'], "/bottom-corner.png\" alt=\"\" class=\"bottom-corner\" />", $messageNavBar;//, "</div>";
 
 	return ob_get_clean();
 }

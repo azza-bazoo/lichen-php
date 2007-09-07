@@ -111,7 +111,7 @@ var MailboxLister = new Class({
 				containerContents += "&nbsp;&nbsp;";
 			}
 
-			containerContents += "<span class=\"mailbox\">" + mailboxes[i].mailbox + "</strong> ";
+			containerContents += "<span class=\"mailbox\">" + mailboxes[i].mailbox;
 
 			containerContents += "<span id=\"mb-unread-" + mailboxes[i].fullboxname + "\">";
 			if (mailboxes[i].unseen > 0 || userSettings.boxlist_showtotal) {
@@ -120,14 +120,13 @@ var MailboxLister = new Class({
 				containerContents += ")";
 			}
 			containerContents += "</span>";
+			containerContents += "</span>";
 
 			if ( mailboxes[i].selectable ) {
 				containerContents += "</a>";
 			}
 			containerContents += "</li>";
 		}
-
-		containerContents += "</ul>";
 
 		$(this.wrapper).setHTML( containerContents );
 	},

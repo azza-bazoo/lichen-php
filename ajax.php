@@ -620,6 +620,8 @@ function request_getMessage() {
 			break;
 		case 'all':
 			// Don't prune anything
+		case 'auto':
+			// For the HTML version: prune nothing.
 			break;
 		default:
 			// If HTML data exists, prune off the text version.
@@ -1315,7 +1317,38 @@ if ( !isHtmlSession() ) {
 			// Compose toolbar.
 			break;
 		case "disp":
-			// Display toolbar.
+			$result['sort'] = $requestParams['sort'];
+			$requestParams['mode'] = _GETORPOST( 'mode', 'auto' );
+			$requestParams['reqmode'] = 'disp';
+			$requestParams['request'] = 'getMessage';
+			$requestParams['msg'] = $result['data']['uid'];
+
+			// Load data on the next/previous messages.
+			// TODO: Make it increment/decrement the page counter when it goes
+			// over a page? That will be tricky.
+			$currentIndex = array_search( $result['data']['uid'], $_SESSION['boxcache'] );
+			$previousMessage = null;
+			$nextMessage = null;
+			if ( $currentIndex !== false ) {
+				if ( $currentIndex != 0 ) {
+					$previousMessage = $currentIndex - 1;
+					$previousMessage = fetchMessages( array( $_SESSION['boxcache'][$previousMessage] ) );
+					$previousMessage = $previousMessage[0];
+				}
+				if ( $currentIndex < count( $_SESSION['boxcache'] ) - 1 ) {
+					$nextMessage = $currentIndex + 1;
+					$nextMessage = fetchMessages( array( $_SESSION['boxcache'][$nextMessage] ) );
+					$nextMessage = $nextMessage[0];
+				}
+			}
+			$result['previousmessage'] = $previousMessage;
+			$result['nextmessage'] = $nextMessage;
+
+			// TODO: We have to force display with inline style below,
+			// because it is display: none by default in layout.css.
+			echo "<div id=\"msg-wrapper\" style=\"display: block;\">\n";
+			echo render_displayMessage( $result, $requestParams );
+			echo "\n</div>";
 			break;
 		case "settings":
 			// Settings toolbar.
@@ -1328,8 +1361,10 @@ if ( !isHtmlSession() ) {
 	}
 
 	// Step 4. Display page footers.
+	echo "</body></html>";
 }
 
+imap_errors();
 @imap_close($mbox);
 exit;
 

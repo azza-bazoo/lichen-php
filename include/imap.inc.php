@@ -355,7 +355,9 @@ function listMailboxContents( $searchq, $sort, $page, $metadataOnly = false ) {
 
 	// HACK: Cache the full set in $_SESSION so that later
 	// we can figure out previous/next messages for display.
-	$_SESSION['boxcache'] = $msgNumsToShow;
+	if ( !$metadataOnly ) {
+		$_SESSION['boxcache'] = $msgNumsToShow;
+	}
 
 	// Slice out those messages that we are showing.
 	$msgNumsToShow = array_slice( $msgNumsToShow, $msgStart, $pageSize );

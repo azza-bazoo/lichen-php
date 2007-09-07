@@ -85,6 +85,10 @@ var MessageDisplay = new Class({
 	},
 
 	_render: function( message, forceType ) {
+		// ****************************************************
+		// IF YOU CHANGE THIS CODE, CHANGE THE MATCHING CODE IN
+		// include/htmlrender.php AS WELL.
+
 		// Find the next/previous messages.
 		var adjacentMessages = this.dataStore.fetchAdjacentMessages( Lichen.MessageList.getMailbox(), Lichen.MessageList.getSearch(), Lichen.MessageList.getPage(), Lichen.MessageList.getSortStr(), message.uid );
 
