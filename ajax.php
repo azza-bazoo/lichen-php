@@ -1289,6 +1289,7 @@ if ( !isHtmlSession() ) {
 
 	// Step 1: basic page layout.
 	printPageHeader();
+	drawToolbar( 'corner-bar', true );
 
 	// Step 2: Mailbox list (always visible)
 	$result['mailboxList'] = getMailboxList();
@@ -1302,6 +1303,9 @@ if ( !isHtmlSession() ) {
 			// Prep any extra request params.
 			$requestParams['reqmode'] = 'list';
 			$requestParams['request'] = 'mailboxContentsList';
+			
+			// Show the toolbar.
+			drawToolbar( 'list-bar', true );
 
 			// Hack... the data we need is in the key 'data' in request,
 			// but we want it up one level.
@@ -1322,6 +1326,9 @@ if ( !isHtmlSession() ) {
 			$requestParams['reqmode'] = 'disp';
 			$requestParams['request'] = 'getMessage';
 			$requestParams['msg'] = $result['data']['uid'];
+
+			// Draw the toolbar.
+			drawToolbar( 'msg-bar', true );
 
 			// Load data on the next/previous messages.
 			// TODO: Make it increment/decrement the page counter when it goes

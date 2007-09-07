@@ -60,7 +60,7 @@ function render_messageList( $requestData, $requestParams ) {
 	if ( $requestData['search'] != "" ) {
 		echo "<div class=\"list-notification\"><strong>Search results for &#8220;",
 			$requestData['search'], "&#8221;</strong> ",
-			"[<a href=\"#clearsearch\" onclick=\"return Lichen.action('list','MessageList','setSearch',[''])\">clear search</a>]</div>";
+			"[<a href=\"ajax.php?" . genLinkQuery( $requestParams, array(), array( "search", "page" ) ) . "\">clear search</a>]</div>";
 	}
 
 	echo "<table id=\"list-data-tbl\">";

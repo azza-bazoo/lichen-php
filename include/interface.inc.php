@@ -191,6 +191,66 @@ function printPageHeader() {
 ENDHEAD;
 }
 
+// Draw a particular toolbar.
+function drawToolbar( $toolbarName, $htmlMode = false, $toolbarData = array() ) {
+	global $USER_SETTINGS, $LICHEN_URL, $mailbox;
+
+	echo "<ul id=\"{$toolbarName}\" class=\"toolbar\">";
+
+	switch ( $toolbarName ) {
+		case 'corner-bar':
+			if ( $htmlMode ) {
+				drawToolbarButton( "settings", "configure", "#settings", "settings", "" );
+			} else {
+				drawToolbarButton( "settings", "configure", "#settings", "settings", "Lichen.action('options','OptionsEditor','showEditor',['settings'])" );
+			}
+			drawToolbarButton( "log out", "exit", $LICHEN_URL."?logout", "logout", "" );
+
+			break;
+		case 'list-bar':
+			if ( $htmlMode ) {
+				drawToolbarButton( "compose", "mail_new", "ajax.php?reqmode=comp&request=getComposeData", "compose", "" );
+			} else {
+				drawToolbarButton( "compose", "mail_new", "#compose", "compose", "Lichen.action('compose','MessageCompose','showComposer')" );
+			}
+
+			// TODO: fix HTML hacks in the search form.
+			if ( $htmlMode ) {
+				echo "<li id=\"btn-search\"><form action=\"ajax.php\" style=\"display:inline;margin:0;\">",
+					"<label for=\"qsearch\">",
+					"<img src=\"themes/{$USER_SETTINGS['theme']}/icons/mail_find.png\" alt=\"\" title=\"",
+					_("Search messages"),
+					"\" /></label>",
+					" <input type=\"text\" name=\"search\" id=\"search\" style=\"display:inline;vertical-align:middle\" />",
+					" <input type=\"submit\" value=\"", _("search"), "\" style=\"display:inline;vertical-align:middle\" />",
+					"<input type=\"hidden\" name=\"mailbox\" value=\"", htmlentities($mailbox) , "\" />",
+					"<input type=\"hidden\" name=\"reqmode\" value=\"list\" />",
+					"</form></li>";
+			} else {
+				echo "<li id=\"btn-search\"><form action=\"$LICHEN_URL\" onsubmit=\"Lichen.action('list','MessageList','setSearch',[$('qsearch').value]);return false\" style=\"display:inline;margin:0;\"><label for=\"qsearch\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/mail_find.png\" alt=\"\" title=\"", _("Search messages"), "\" /></label> <input type=\"text\" name=\"qsearch\" id=\"qsearch\" style=\"display:inline;vertical-align:middle\" /> <input type=\"submit\" value=\"", _("search"), "\" style=\"display:inline;vertical-align:middle\" /></form></li>";
+			}
+
+			break;
+		case 'comp-bar':
+			drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "Lichen.action('compose','MessageCompose','sendMessage')" );
+			drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "Lichen.action('compose','MessageCompose','sendMessage',[true])" );
+			drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopcomp", "Lichen.action('list','MessageList','listUpdate')" );
+			break;
+		case 'msg-bar':
+			drawToolbarButton( "reply", "mail_reply", "#compose", "reply", "Lichen.action('compose','MessageCompose','showComposer',['reply',Lichen.MessageDisplayer.getViewedUID()])" );
+			drawToolbarButton( "reply all", "mail_replyall", "#compose", "replyall", "Lichen.action('compose','MessageCompose','showComposer',['replyall',Lichen.MessageDisplayer.getViewedUID()])" );
+			drawToolbarButton( "forward", "mail_forward", "#compose", "forward", "Lichen.action('compose','MessageCompose','showComposer',['forward_default',Lichen.MessageDisplayer.getViewedUID()])" );
+			drawToolbarButton( "edit as draft", "editcopy", "#compose", "draft", "Lichen.action('compose','MessageCompose','showComposer',['draft',Lichen.MessageDisplayer.getViewedUID()])" );
+			break;
+		case 'opts-bar':
+			// For this release, these have been moved to below the options themselves
+		//	drawToolbarButton( "save changes", "button_ok", "#inbox", "saveopts", "OptionsEditor.saveOptions()" );
+		//	drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopopts", "OptionsEditor.closePanel()" );
+			break;
+	}
+
+	echo "</ul>";
+}
 
 // Output the code (with LI, A, IMG tags) for a toolbar button,
 // passing the label through gettext for l10n.

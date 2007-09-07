@@ -134,7 +134,8 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 //------------------------------------------------------------------------------
 // Draw toolbars
 
-	echo <<<ENDJS
+	if ( !isHtmlSession() ) {
+		echo <<<ENDJS
 <script type="text/javascript" src="js/mootools.v1.11.js"></script>
 <script type="text/javascript" src="js/tinymce/tiny_mce.js"></script>
 <!-- <script type="text/javascript" src="js/lichen.r63.js"></script> -->
@@ -154,59 +155,27 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 <script type="text/javascript" src="js/interface-controller.js"></script>
 ENDJS;
 
-	echo "<ul id=\"corner-bar\" class=\"toolbar\">";
+		drawToolbar( 'corner-bar' );
+		drawToolbar( 'list-bar' );
+		drawToolbar( 'comp-bar' );
+		drawToolbar( 'msg-bar' );
+		drawToolbar( 'opts-bar' );
 
-	drawToolbarButton( "settings", "configure", "#settings", "settings", "Lichen.action('options','OptionsEditor','showEditor',['settings'])" );
-	drawToolbarButton( "log out", "exit", $LICHEN_URL."?logout", "logout", "" );
+		echo "<ul id=\"mailboxes\">\n";
+		echo "<li>", _("Loading ..."), "</li>\n";
+		echo "</ul>\n";
 
-	echo "</ul><ul id=\"list-bar\" class=\"toolbar\">";
+		echo "<div id=\"list-wrapper\">", _("Loading ..."), "</div>";
+		echo "<div id=\"msg-wrapper\"></div>";
+		echo "<div id=\"opts-wrapper\"></div>";
+		echo "<div id=\"comp-wrapper\"></div>";
+		echo "<div id=\"addr-wrapper\"></div>";
+		echo "<div id=\"notification\"></div>";
 
-	drawToolbarButton( "compose", "mail_new", "#compose", "compose", "Lichen.action('compose','MessageCompose','showComposer')" );
-
-	// TODO: fix HTML hacks in the search form.
-	echo "<li id=\"btn-search\"><form action=\"$LICHEN_URL\" onsubmit=\"Lichen.action('list','MessageList','setSearch',[$('qsearch').value]);return false\" style=\"display:inline;margin:0;\"><label for=\"qsearch\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/mail_find.png\" alt=\"\" title=\"", _("Search messages"), "\" /></label> <input type=\"text\" name=\"qsearch\" id=\"qsearch\" style=\"display:inline;vertical-align:middle\" /> <input type=\"submit\" value=\"", _("search"), "\" style=\"display:inline;vertical-align:middle\" /></form></li>";
-
-	echo "</ul><ul id=\"comp-bar\" class=\"toolbar\">";
-
-	drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "Lichen.action('compose','MessageCompose','sendMessage')" );
-	drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "Lichen.action('compose','MessageCompose','sendMessage',[true])" );
-	drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopcomp", "Lichen.action('list','MessageList','listUpdate')" );
-
-	echo "</ul><ul id=\"msg-bar\" class=\"toolbar\">";
-
-//	drawToolbarButton( "back to list", "back", "#inbox", "back", "if_returnToList(lastShownUID)" );
-
-	// TODO: lastShownUID is not the correct place to get the UID from.
-	drawToolbarButton( "reply", "mail_reply", "#compose", "reply", "Lichen.action('compose','MessageCompose','showComposer',['reply',Lichen.MessageDisplayer.getViewedUID()])" );
-	drawToolbarButton( "reply all", "mail_replyall", "#compose", "replyall", "Lichen.action('compose','MessageCompose','showComposer',['replyall',Lichen.MessageDisplayer.getViewedUID()])" );
-	drawToolbarButton( "forward", "mail_forward", "#compose", "forward", "Lichen.action('compose','MessageCompose','showComposer',['forward_default',Lichen.MessageDisplayer.getViewedUID()])" );
-	drawToolbarButton( "edit as draft", "editcopy", "#compose", "draft", "Lichen.action('compose','MessageCompose','showComposer',['draft',Lichen.MessageDisplayer.getViewedUID()])" );
-
-	// TODO: anchor target here should be to message.php
-//	drawToolbarButton( "change view", "view_text", "#inbox", "view", "if_newWin('message.php?source&amp;mailbox='+listCurrentMailbox+'&amp;uid='+encodeURIComponent(lastShownUID))" );
-
-	echo "</ul><ul id=\"opts-bar\" class=\"toolbar\">";
-
-	// For this release, these have been moved to below the options themselves
-//	drawToolbarButton( "save changes", "button_ok", "#inbox", "saveopts", "OptionsEditor.saveOptions()" );
-//	drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopopts", "OptionsEditor.closePanel()" );
-
-	echo "</ul>\n";
-
-	echo "<ul id=\"mailboxes\">\n";
-	echo "<li>", _("Loading ..."), "</li>\n";
-	echo "</ul>\n";
-
-	echo "<div id=\"list-wrapper\">", _("Loading ..."), "</div>";
-	echo "<div id=\"msg-wrapper\"></div>";
-	echo "<div id=\"opts-wrapper\"></div>";
-	echo "<div id=\"comp-wrapper\"></div>";
-	echo "<div id=\"addr-wrapper\"></div>";
-	echo "<div id=\"notification\"></div>";
-
-	$imapErrors = imap_errors();
-	imap_close($mbox);
-	echo "</body></html>";
+		$imapErrors = imap_errors();
+		@imap_close($mbox);
+		echo "</body></html>";
+	}
 
 
 } else {
