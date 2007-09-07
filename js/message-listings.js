@@ -177,6 +177,10 @@ var MessageLister = new Class({
 
 	_render: function ( messages, resultObj ) {
 		$( this.wrapper ).empty();
+
+		// ****************************************************
+		// IF YOU CHANGE THIS CODE, CHANGE THE MATCHING CODE IN
+		// include/htmlrender.php AS WELL.
 	
 		var tableContents = "";
 
@@ -301,6 +305,10 @@ var MessageLister = new Class({
 	// string with the text-only toolbar to display above and below the list.
 	_createPageBar: function ( resultObj, isTopBar ) {
 		var newPageBar = "";
+		
+		// ****************************************************
+		// IF YOU CHANGE THIS CODE, CHANGE THE MATCHING CODE IN
+		// include/htmlrender.php AS WELL.
 
 		if ( isTopBar ) {
 			newPageBar += "<div class=\"list-header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" />";

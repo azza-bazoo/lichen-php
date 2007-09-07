@@ -87,6 +87,10 @@ var MailboxLister = new Class({
 
 	_render: function ( mailboxes ) {
 		$(this.wrapper).empty();
+		
+		// ****************************************************
+		// IF YOU CHANGE THIS CODE, CHANGE THE MATCHING CODE IN
+		// include/htmlrender.php AS WELL.
 
 		var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"#manage-mailboxes\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\">edit</a>]</li>";
 

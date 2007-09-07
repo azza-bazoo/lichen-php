@@ -35,11 +35,8 @@ if ( !isset( $_SESSION['pass'] ) || !isset( $_SESSION['user'] ) ) {
 	}
 }
 
-if ( isset( $_POST['mailbox'] ) && !empty( $_POST['mailbox'] ) ) {
-	connectToServer( $_SESSION['user'], $_SESSION['pass'], $_POST['mailbox'] );
-} else {
-	connectToServer( $_SESSION['user'], $_SESSION['pass'] );
-}
+// TODO: Read the default below from the SPECIAL_FOLDERS array.
+connectToServer( $_SESSION['user'], $_SESSION['pass'], _GETORPOST( 'mailbox', 'INBOX' ) );
 
 // Load the user settings.
 $USER_SETTINGS = getUserSettings();
@@ -180,7 +177,7 @@ function request_mailboxContentsList() {
 	if ( $sortMessages != $USER_SETTINGS['list_sortmode'] ) {
 		// If the sort order has changed from the last one we saved,
 		// modify and save the user's preferences again.
-		$USER_SETTINGS['list_sortmode'] = $_POST['sort'];
+		$USER_SETTINGS['list_sortmode'] = $sortMessages;
 		saveUserSettings( $USER_SETTINGS );
 	}
 
@@ -207,6 +204,7 @@ function request_mailboxContentsList() {
 	$result['validityKey'] = $validityKey;
 	$result['data']        = $listData;
 	$result['cacheonly']   = _GETORPOST( 'cacheonly', false );
+	$result['mailbox']     = $mailbox;
 
 	return $result;
 }
@@ -1256,8 +1254,15 @@ if ( !isHtmlSession() ) {
 	//
 	// Non-AJAX Request Dispatcher
 	//
+	
+	include( "include/htmlrender.php" );
+
 	$reqMode = _GETORPOST( 'reqmode', 'list' ); // Mode of the request: list/comp/disp/settings/error
 	$request = _GETORPOST( 'request' );
+
+	if ( $reqMode == "list" && empty( $request ) ) {
+		$request = "mailboxContentsList";
+	}
 
 	// Step 0: Actually do the request. It knows how to handle things
 	// correctly.
@@ -1272,17 +1277,39 @@ if ( !isHtmlSession() ) {
 	} else {
 		$reqMode = "error";
 	}
+	
+	// Prep variables.
+	$requestParams = array();
+	$requestParams['mailbox'] = _GETORPOST( 'mailbox', "INBOX" );
+	$requestParams['search']  = _GETORPOST( 'search' );
+	$requestParams['sort']    = _GETORPOST( 'sort' );
+	$requestParams['page']    = _GETORPOST( 'page', 0 );
 
 	// Step 1: basic page layout.
 	printPageHeader();
 
 	// Step 2: Mailbox list (always visible)
-	//
+	$result['mailboxList'] = getMailboxList();
+	echo "<ul id=\"mailboxes\">\n";
+	echo render_mailboxList( $result, $requestParams );
+	echo "</ul>\n";
 
-	// Step 3: Toolbar. As appropriate for mode.
+	// Step 3: Toolbar and content area. As appropriate for mode.
 	switch ( $reqMode ) {
 		case "list":
-			// List toolbar.
+			// Prep any extra request params.
+			$requestParams['reqmode'] = 'list';
+			$requestParams['request'] = 'mailboxContentsList';
+
+			// Hack... the data we need is in the key 'data' in request,
+			// but we want it up one level.
+			$result = array_merge( $result, $result['data'] );
+
+			// List mode - list toolbar and message listing.
+			echo "<div id=\"list-wrapper\">";
+			echo render_messageList( $result, $requestParams );
+			echo "</div>";
+			
 			break;
 		case "comp":
 			// Compose toolbar.
@@ -1300,10 +1327,10 @@ if ( !isHtmlSession() ) {
 			break;
 	}
 
-	// Step 4: Content area. As appropriate for mode and request.
+	// Step 4. Display page footers.
 }
 
-imap_close($mbox);
+@imap_close($mbox);
 exit;
 
 ?>

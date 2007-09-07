@@ -130,17 +130,102 @@ function remoteRequestSuccess( $array = NULL ) {
 // pairs to be made into a query string.
 // Any keys in overData that already exist in baseData
 // will be overridden.
-function genLinkQuery( $baseData, $overData = array() ) {
+// killData is an array of keys that will not be included, this is useful
+// to generate URL bases that JavaScript can modify.
+function genLinkQuery( $baseData, $overData = array(), $killData = array() ) {
 	
 	$allData = array_merge( $baseData, $overData );
 
 	$bits = array();
 
 	foreach ( $allData as $key => $value ) {
+		if ( in_array( $key, $killData ) ) continue;
+
 		$bits[] = urlencode( $key ) . "=" . urlencode( $value );
 	}
 
 	return htmlentities( implode( "&", $bits ) );
+}
+
+// This function works just like the above, but instead of generating a URL,
+// generates a series of input type="hidden" elements, for a form.
+// Also optionally puts out a form, if supplied with a form name. The form is NOT CLOSED.
+function genLinkForm( $baseData, $overData = array(), $killData = array(), $formName = "", $formPost = "" ) {
+	
+	$allData = array_merge( $baseData, $overData );
+
+	$bits = array();
+
+	$form = "";
+	if ( $formName != "" ) {
+		// TODO: HTML Hack below to show form inline... I wonder how many browsers that's going to work for!
+		$form = "<form name=\"{$formName}\" id=\"{$formName}\" method=\"post\" action=\"{$formPost}\" style=\"display: inline\">";
+	}
+
+	foreach ( $allData as $key => $value ) {
+		if ( in_array( $key, $killData ) ) continue;
+		$form .= "<input type=\"hidden\" name=\"" . htmlentities( $key ) . "\" value=\"" . htmlentities( $value ) . "\" />"; 
+	}
+
+	return $form;
+}
+
+// Print HTML for the page header.
+function printPageHeader() {
+	global $USER_SETTINGS;
+
+	if ( isset( $USER_SETTINGS['theme'] ) ) {
+		$themePath = "themes/" . $USER_SETTINGS['theme'];
+	} else {
+		$themePath = "themes/default";
+	}
+
+	echo <<<ENDHEAD
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<title>Lichen Webmail</title>
+<link rel="StyleSheet" type="text/css" href="$themePath/default.css" />
+<link rel="StyleSheet" type="text/css" href="$themePath/layout.css" />
+</head><body>
+ENDHEAD;
+}
+
+
+// Output the code (with LI, A, IMG tags) for a toolbar button,
+// passing the label through gettext for l10n.
+function drawToolbarButton( $buttonLabel, $icon, $anchorTarget, $id, $clickHandler ) {
+	global $USER_SETTINGS;
+
+	echo "<li id=\"btn-$id\">";
+	echo "<a href=\"$anchorTarget\"";
+	if ( $clickHandler ) {
+		// TODO: this should be "return $clickHandler"
+		echo " onclick=\"$clickHandler;return false\"";
+	}
+	echo ">";
+	echo "<img src=\"themes/", $USER_SETTINGS['theme'], "/icons/", $icon, ".png\" alt=\"\" /> ";
+	echo _( $buttonLabel );
+	echo "</a></li>\n";
+}
+
+
+// Display a login form with optional user message.
+function drawLoginForm( $message='' ) {
+	global $LICHEN_URL;
+
+	echo "<form action=\"$LICHEN_URL\" method=\"post\" class=\"login\"><div class=\"input-block\">\n";
+
+	if ( $message ) {
+		echo "<p class=\"login-notice\">$message</p>";
+	}
+
+	echo "<p><label for=\"user\">", _("username"), "</label><br />";
+	echo "<input type=\"text\" name=\"user\" id=\"user\" /></p>\n";
+	echo "<p><label for=\"pass\">", _("password"), "</label><br />";
+	echo "<input type=\"password\" name=\"pass\" id=\"pass\" /></p>\n";
+	echo "<p class=\"login-submit\"><input type=\"submit\" value=\"", _("Login"), "\" /></p>\n";
+	echo "</div></form>";
 }
 
 ?>
