@@ -195,7 +195,12 @@ ENDHEAD;
 function drawToolbar( $toolbarName, $htmlMode = false, $toolbarData = array() ) {
 	global $USER_SETTINGS, $LICHEN_URL, $mailbox;
 
-	echo "<ul id=\"{$toolbarName}\" class=\"toolbar\">";
+	echo "<ul id=\"{$toolbarName}\" class=\"toolbar\"";
+	if ( $htmlMode ) {
+		// Force style to display.
+		echo " style=\"display: block;\"";
+	}
+	echo ">";
 
 	switch ( $toolbarName ) {
 		case 'corner-bar':
@@ -209,7 +214,7 @@ function drawToolbar( $toolbarName, $htmlMode = false, $toolbarData = array() ) 
 			break;
 		case 'list-bar':
 			if ( $htmlMode ) {
-				drawToolbarButton( "compose", "mail_new", "ajax.php?reqmode=comp&request=getComposeData", "compose", "" );
+				drawToolbarButton( "compose", "mail_new", "ajax.php?sequence=comp", "compose", "" );
 			} else {
 				drawToolbarButton( "compose", "mail_new", "#compose", "compose", "Lichen.action('compose','MessageCompose','showComposer')" );
 			}
@@ -232,15 +237,36 @@ function drawToolbar( $toolbarName, $htmlMode = false, $toolbarData = array() ) 
 
 			break;
 		case 'comp-bar':
-			drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "Lichen.action('compose','MessageCompose','sendMessage')" );
-			drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "Lichen.action('compose','MessageCompose','sendMessage',[true])" );
-			drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopcomp", "Lichen.action('list','MessageList','listUpdate')" );
+			if ( $htmlMode ) {
+				drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "Lichen.action('compose','MessageCompose','sendMessage')" );
+				drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "Lichen.action('compose','MessageCompose','sendMessage',[true])" );
+				drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopcomp", "Lichen.action('list','MessageList','listUpdate')" );
+			} else {
+				drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "Lichen.action('compose','MessageCompose','sendMessage')" );
+				drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "Lichen.action('compose','MessageCompose','sendMessage',[true])" );
+				drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopcomp", "Lichen.action('list','MessageList','listUpdate')" );
+			}
 			break;
 		case 'msg-bar':
-			drawToolbarButton( "reply", "mail_reply", "#compose", "reply", "Lichen.action('compose','MessageCompose','showComposer',['reply',Lichen.MessageDisplayer.getViewedUID()])" );
-			drawToolbarButton( "reply all", "mail_replyall", "#compose", "replyall", "Lichen.action('compose','MessageCompose','showComposer',['replyall',Lichen.MessageDisplayer.getViewedUID()])" );
-			drawToolbarButton( "forward", "mail_forward", "#compose", "forward", "Lichen.action('compose','MessageCompose','showComposer',['forward_default',Lichen.MessageDisplayer.getViewedUID()])" );
-			drawToolbarButton( "edit as draft", "editcopy", "#compose", "draft", "Lichen.action('compose','MessageCompose','showComposer',['draft',Lichen.MessageDisplayer.getViewedUID()])" );
+			if ( $htmlMode ) {
+				drawToolbarButton( "reply", "mail_reply", "ajax.php?" .
+					genLinkQuery( $toolbarData, array( "sequence" => "comp", "mode" => "reply", "uid" => $toolbarData['msg'] ) ),
+					"reply", "" );
+				drawToolbarButton( "reply all", "mail_replyall", "ajax.php?" .
+					genLinkQuery( $toolbarData, array( "sequence" => "comp", "mode" => "replyall", "uid" => $toolbarData['msg'] ) ),
+					"replyall", "" );
+				drawToolbarButton( "forward", "mail_forward", "ajax.php?".
+					genLinkQuery( $toolbarData, array( "sequence" => "comp", "mode" => "forward_default", "uid" => $toolbarData['msg'] ) ),
+					"forward", "" );
+				drawToolbarButton( "edit as draft", "editcopy", "ajax.php?".
+					genLinkQuery( $toolbarData, array( "sequence" => "comp", "mode" => "draft", "uid" => $toolbarData['msg'] ) ),
+					"draft", "" );
+			} else {
+				drawToolbarButton( "reply", "mail_reply", "#compose", "reply", "Lichen.action('compose','MessageCompose','showComposer',['reply',Lichen.MessageDisplayer.getViewedUID()])" );
+				drawToolbarButton( "reply all", "mail_replyall", "#compose", "replyall", "Lichen.action('compose','MessageCompose','showComposer',['replyall',Lichen.MessageDisplayer.getViewedUID()])" );
+				drawToolbarButton( "forward", "mail_forward", "#compose", "forward", "Lichen.action('compose','MessageCompose','showComposer',['forward_default',Lichen.MessageDisplayer.getViewedUID()])" );
+				drawToolbarButton( "edit as draft", "editcopy", "#compose", "draft", "Lichen.action('compose','MessageCompose','showComposer',['draft',Lichen.MessageDisplayer.getViewedUID()])" );
+			}
 			break;
 		case 'opts-bar':
 			// For this release, these have been moved to below the options themselves

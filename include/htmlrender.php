@@ -147,7 +147,7 @@ function render_messageList( $requestData, $requestParams ) {
 		$flagImage = $thisMsg['flagged'] ? "/icons/flag.png" : "/icons/flag_off.png";
 		$thisRow .= "<td><img src=\"themes/" . $USER_SETTINGS['theme'] . $flagImage . "\" id=\"f-" . $thisMsg['uid'] . "\" alt=\"\" onclick=\"Lichen.MessageList.twiddleFlag('" . $thisMsg['uid'] . "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
 
-		$displayUrl = "ajax.php?" . genLinkQuery( $requestParams, array( 'msg' => $thisMsg['uid'], 'reqmode' => 'disp', 'request' => 'getMessage' ) );
+		$displayUrl = "ajax.php?" . genLinkQuery( $requestParams, array( 'msg' => $thisMsg['uid'], 'sequence' => 'disp' ) );
 
 		$thisRow .= "<td class=\"sender\" ";
 		if ( $thisMsg['fromName'] == "" ) {
@@ -319,7 +319,8 @@ function render_mailboxList( $requestData, $requestParams ) {
 
 		if ( $thisMailbox['selectable'] ) {
 			echo "<a href=\"ajax.php?" ,
-				genLinkQuery( $requestParams, array( "mailbox" => $thisMailbox['fullboxname'], "page" => 0, "search" => "" ) ) ,
+				genLinkQuery( $requestParams, array( "mailbox" => $thisMailbox['fullboxname'],
+					"page" => 0, "search" => "", "sequence" => "list" ) ) ,
 				"\" class=\"mb-click\">";
 		}
 
@@ -361,7 +362,7 @@ function render_displayMessage( $requestData, $requestParams ) {
 	echo "<div class=\"list-header-bar\"><img src=\"themes/", $USER_SETTINGS['theme'], "/top-corner.png\" alt=\"\" class=\"top-corner\" />";
 
 	$messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"ajax.php?" . 
-		genLinkQuery( $requestParams, array( 'reqmode' => 'list' ), array( 'request' ) ) .
+		genLinkQuery( $requestParams, array( 'sequence' => 'list' ) ) .
 		"\">back to ". htmlentities( $mailbox ) . "</a></div>";
 			
 	$messageNavBar .= "<div class=\"header-right\">\n";
@@ -370,7 +371,7 @@ function render_displayMessage( $requestData, $requestParams ) {
 	
 	if ( $previousMessage ) {
 		$messageNavBar .= "<a href=\"ajax.php?" .
-			genLinkQuery( $requestParams, array( 'msg' => $previousMessage['uid'], 'reqmode' => 'disp', 'request' => 'getMessage' ) ) .
+			genLinkQuery( $requestParams, array( 'msg' => $previousMessage['uid'], 'sequence' => 'disp' ) ) .
 			"\">&laquo; " . $previousMessage['subject'];
 		if ( $nextMessage ) {
 			$messageNavBar .= "</a> | ";
@@ -380,7 +381,7 @@ function render_displayMessage( $requestData, $requestParams ) {
 	}
 	if ( $nextMessage ) {
 		$messageNavBar .= "<a href=\"ajax.php?" .
-			genLinkQuery( $requestParams, array( 'msg' => $nextMessage['uid'], 'reqmode' => 'disp', 'request' => 'getMessage' ) ) .
+			genLinkQuery( $requestParams, array( 'msg' => $nextMessage['uid'], 'sequence' => 'disp' ) ) .
 			"\">" . $nextMessage['subject'] . " &raquo;</a>";
 	}
 

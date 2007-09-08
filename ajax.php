@@ -96,7 +96,7 @@ function request_getMailboxList() {
 		$result['errorCode']   = 'IMAP';
 		$result['errorString'] = _('Unable to fetch mailbox list.');
 	} else {
-		if ( $_POST['validity'] == $validity ) {
+		if ( isset( $_POST['validity'] ) && $_POST['validity'] == $validity ) {
 			// The client already has valid data.
 			// So return them no data, with the same key - they will know
 			// that this is the valid data.
@@ -1259,28 +1259,40 @@ if ( !isHtmlSession() ) {
 	
 	include( "include/htmlrender.php" );
 
-	$reqMode = _GETORPOST( 'reqmode', 'list' ); // Mode of the request: list/comp/disp/settings/error
-	$request = _GETORPOST( 'request' );
+	$sequence = _GETORPOST( 'sequence', 'list' ); // Sequence of actions to perform.
 
-	if ( $reqMode == "list" && empty( $request ) ) {
-		$request = "mailboxContentsList";
+	$mailboxList = getMailboxList();
+
+	function request_wrapper( $requestName ) {
+		global $mailboxList; // This is a hack... saves running getMailboxList() multiple times.
+
+		$result = array(
+			"success" => false,
+			"errorCode" => "BADREQ",
+			"errorString" => "Invalid Request."
+		);
+		$functionName = "request_{$requestName}";
+		if ( function_exists( $functionName ) ) {
+			$result = $functionName();
+		}
+
+		$result['mailboxList'] = &$mailboxList;
+
+		return $result;
+	}
+	function request_failed( $requestResult ) {
+		$result = true;
+
+		if ( $requestResult['success'] ) {
+			$result = false;
+		} else {
+			// TODO: Display the error.	
+		}
+
+		return $result;
 	}
 
-	// Step 0: Actually do the request. It knows how to handle things
-	// correctly.
-	$result = array(
-		"success" => false,
-		"errorCode" => "BADREQ",
-		"errorString" => "Invalid Request."
-	);
-	$functionName = "request_{$request}";
-	if ( function_exists( $functionName ) ) {
-		$result = $functionName();
-	} else {
-		$reqMode = "error";
-	}
-	
-	// Prep variables.
+	// Prepare core variables.
 	$requestParams = array();
 	$requestParams['mailbox'] = _GETORPOST( 'mailbox', "INBOX" );
 	$requestParams['search']  = _GETORPOST( 'search' );
@@ -1292,70 +1304,86 @@ if ( !isHtmlSession() ) {
 	drawToolbar( 'corner-bar', true );
 
 	// Step 2: Mailbox list (always visible)
-	$result['mailboxList'] = getMailboxList();
 	echo "<ul id=\"mailboxes\">\n";
-	echo render_mailboxList( $result, $requestParams );
+	echo render_mailboxList( array( "mailboxList" => $mailboxList ), $requestParams );
 	echo "</ul>\n";
 
-	// Step 3: Toolbar and content area. As appropriate for mode.
-	switch ( $reqMode ) {
+	// Step 3: Run through the sequence of actions we need to do.
+	// This will involve running some request, and then running
+	// some sort of HTML renderer.
+	switch ( $sequence ) {
+		default:
 		case "list":
+			// ---------------------
+			// Display message list.
+			//
 			// Prep any extra request params.
-			$requestParams['reqmode'] = 'list';
-			$requestParams['request'] = 'mailboxContentsList';
+			$requestParams['sequence'] = 'list';
 			
 			// Show the toolbar.
 			drawToolbar( 'list-bar', true );
 
-			// Hack... the data we need is in the key 'data' in request,
-			// but we want it up one level.
-			$result = array_merge( $result, $result['data'] );
+			// Get the list of messages.
+			$result = request_wrapper( 'mailboxContentsList' );
 
-			// List mode - list toolbar and message listing.
-			echo "<div id=\"list-wrapper\">";
-			echo render_messageList( $result, $requestParams );
-			echo "</div>";
+			if ( !request_failed( $result ) ) {
+				// Hack... the data we need is in the key 'data' in request,
+				// but we want it up one level.
+				$result['sort'] = $requestParams['sort'];
+				$result = array_merge( $result, $result['data'] );
+
+				// List mode - list toolbar and message listing.
+				echo "<div id=\"list-wrapper\">";
+				echo render_messageList( $result, $requestParams );
+				echo "</div>";
+			}
 			
 			break;
 		case "comp":
 			// Compose toolbar.
 			break;
 		case "disp":
+			// Fetch the message data.
+			$result = request_getMessage();
+
+			// Organise a few other parameters.
 			$result['sort'] = $requestParams['sort'];
 			$requestParams['mode'] = _GETORPOST( 'mode', 'auto' );
-			$requestParams['reqmode'] = 'disp';
-			$requestParams['request'] = 'getMessage';
+			$requestParams['sequence'] = 'disp';
 			$requestParams['msg'] = $result['data']['uid'];
-
+			
 			// Draw the toolbar.
-			drawToolbar( 'msg-bar', true );
+			// This toolbar is depenant on the request parameters.
+			drawToolbar( 'msg-bar', true, $requestParams );
 
-			// Load data on the next/previous messages.
-			// TODO: Make it increment/decrement the page counter when it goes
-			// over a page? That will be tricky.
-			$currentIndex = array_search( $result['data']['uid'], $_SESSION['boxcache'] );
-			$previousMessage = null;
-			$nextMessage = null;
-			if ( $currentIndex !== false ) {
-				if ( $currentIndex != 0 ) {
-					$previousMessage = $currentIndex - 1;
-					$previousMessage = fetchMessages( array( $_SESSION['boxcache'][$previousMessage] ) );
-					$previousMessage = $previousMessage[0];
+			if ( !request_failed( $result ) ) {
+				// Load data on the next/previous messages.
+				// TODO: Make it increment/decrement the page counter when it goes
+				// over a page? That will be tricky.
+				$currentIndex = array_search( $result['data']['uid'], $_SESSION['boxcache'] );
+				$previousMessage = null;
+				$nextMessage = null;
+				if ( $currentIndex !== false ) {
+					if ( $currentIndex != 0 ) {
+						$previousMessage = $currentIndex - 1;
+						$previousMessage = fetchMessages( array( $_SESSION['boxcache'][$previousMessage] ) );
+						$previousMessage = $previousMessage[0];
+					}
+					if ( $currentIndex < count( $_SESSION['boxcache'] ) - 1 ) {
+						$nextMessage = $currentIndex + 1;
+						$nextMessage = fetchMessages( array( $_SESSION['boxcache'][$nextMessage] ) );
+						$nextMessage = $nextMessage[0];
+					}
 				}
-				if ( $currentIndex < count( $_SESSION['boxcache'] ) - 1 ) {
-					$nextMessage = $currentIndex + 1;
-					$nextMessage = fetchMessages( array( $_SESSION['boxcache'][$nextMessage] ) );
-					$nextMessage = $nextMessage[0];
-				}
+				$result['previousmessage'] = $previousMessage;
+				$result['nextmessage'] = $nextMessage;
+
+				// TODO: We have to force display with inline style below,
+				// because it is display: none by default in layout.css.
+				echo "<div id=\"msg-wrapper\" style=\"display: block;\">\n";
+				echo render_displayMessage( $result, $requestParams );
+				echo "\n</div>";
 			}
-			$result['previousmessage'] = $previousMessage;
-			$result['nextmessage'] = $nextMessage;
-
-			// TODO: We have to force display with inline style below,
-			// because it is display: none by default in layout.css.
-			echo "<div id=\"msg-wrapper\" style=\"display: block;\">\n";
-			echo render_displayMessage( $result, $requestParams );
-			echo "\n</div>";
 			break;
 		case "settings":
 			// Settings toolbar.
