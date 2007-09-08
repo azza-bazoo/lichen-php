@@ -214,7 +214,9 @@ function drawToolbar( $toolbarName, $htmlMode = false, $toolbarData = array() ) 
 			break;
 		case 'list-bar':
 			if ( $htmlMode ) {
-				drawToolbarButton( "compose", "mail_new", "ajax.php?sequence=comp", "compose", "" );
+				drawToolbarButton( "compose", "mail_new", "ajax.php?" .
+					genLinkQuery( $toolbarData, array( "sequence" => "comp" ) ),
+					"compose", "" );
 			} else {
 				drawToolbarButton( "compose", "mail_new", "#compose", "compose", "Lichen.action('compose','MessageCompose','showComposer')" );
 			}
@@ -238,9 +240,12 @@ function drawToolbar( $toolbarName, $htmlMode = false, $toolbarData = array() ) 
 			break;
 		case 'comp-bar':
 			if ( $htmlMode ) {
-				drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "Lichen.action('compose','MessageCompose','sendMessage')" );
-				drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "Lichen.action('compose','MessageCompose','sendMessage',[true])" );
-				drawToolbarButton( "cancel", "button_cancel", "#inbox", "stopcomp", "Lichen.action('list','MessageList','listUpdate')" );
+				// How do we handle these toolbar buttons in the HTML version? Some headscratching required.
+				//drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "Lichen.action('compose','MessageCompose','sendMessage')" );
+				//drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "Lichen.action('compose','MessageCompose','sendMessage',[true])" );
+				drawToolbarButton( "cancel", "button_cancel", "ajax.php?" .
+					genLinkQuery( $toolbarData, array( "sequence" => "list" ) ),
+					"stopcomp", "" );
 			} else {
 				drawToolbarButton( "send message", "mail_send", "#inbox", "sendmsg", "Lichen.action('compose','MessageCompose','sendMessage')" );
 				drawToolbarButton( "save draft", "filesave", "#compose", "savemsg", "Lichen.action('compose','MessageCompose','sendMessage',[true])" );

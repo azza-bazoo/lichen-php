@@ -64,6 +64,10 @@ var MessageComposer = new Class({
 	},
 
 	_render: function ( compData ) {
+		// ****************************************************
+		// IF YOU CHANGE THIS CODE, CHANGE THE MATCHING CODE IN
+		// include/htmlrender.php AS WELL.
+
 		var composer = "";
 		var action = compData.comp_mode;
 

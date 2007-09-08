@@ -84,6 +84,7 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	}
 
 	$compData['comp_mode'] = $action;
+	$compData['action']    = $action;
 	if ( !empty( $uid ) ) {
 		$compData['comp_quoteuid'] = $uid;
 		$compData['comp_quotemailbox'] = $mailbox;

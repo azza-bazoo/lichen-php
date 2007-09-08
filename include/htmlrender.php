@@ -484,4 +484,138 @@ function render_displayMessage( $requestData, $requestParams ) {
 	return ob_get_clean();
 }
 
+// ------------------------------------------------------------------------
+//
+// Display the compose form.
+//
+function render_composer( $requestData, $requestParams ) {
+	global $USER_SETTINGS, $LICHEN_URL;
+
+	ob_start();
+
+	// Right-side float here is to prevent IE7 from collapsing the div
+	echo "<div class=\"header-bar\"><img src=\"themes/", $USER_SETTINGS['theme'], "/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">", _('New message'), "</div></div>";
+
+	echo "<form action=\"", $LICHEN_URL, "ajax.php\" method=\"post\" id=\"compose\">";
+	echo "<input type=\"hidden\" name=\"sequence\" value=\"comp\" />";
+	echo "<input type=\"hidden\" name=\"format\" value=\"text/plain\" />";
+
+	echo "<input type=\"hidden\" name=\"comp_mode\" id=\"comp_mode\" value=\"", $requestData['comp_mode'], "\" />";
+
+	if ( isset( $requestData['comp_quoteuid'] ) ) {
+		echo "<input type=\"hidden\" name=\"comp_quoteuid\" id=\"comp_quoteuid\" value=\"", $requestData['comp_quoteuid'], "\" />";
+		echo "<input type=\"hidden\" name=\"comp_quotemailbox\" id=\"comp_quotemailbox\" value=\"", $requestData['comp_quotemailbox'], "\" />";
+	}
+	echo "<input type=\"hidden\" name=\"comp_draftuid\" id=\"comp_draftuid\" value=\"";
+	if ( isset( $requestData['comp_draftuid'] ) && !empty( $requestData['comp_draftuid'] ) ) {
+		echo $requestData['comp_draftuid'];
+	}
+	echo "\" />";
+
+	// Build identity selector.
+	if ( count( $requestData['identities'] ) == 1 ) {
+		// Simple case: just display use the one identity - hidden form element..
+		echo "<input name=\"comp_identity\" id=\"comp_identity\" type=\"hidden\" value=\"",
+		       htmlentities( $requestData['identities'][0]['address'] ), "\" />";
+	} else {
+		echo "<label class=\"comp-label\" for=\"comp_identity\">From:</label> <select name=\"comp_identity\" id=\"comp_identity\">";
+		foreach ( $requestData['identities'] as $identity ) {
+			echo "<option value=\"", $identity['address'], "\"";
+			if ( $requestData['action'] == 'reply' || $requestData['action'] == 'replyall' ) {
+				if ( strpos( $identity['address'], $requestData['comp_to'] ) !== false ) {
+					// Select this identity.
+					echo " selected=\"selected\"";
+				}
+			} else if ( $requestData['action'] == "draft" ) {
+				if ( strpos( $identity['address'], $requestData['comp_from'] ) !== false ) {
+					// Select this identity.
+					echo " selected=\"selected\"";
+				}
+			} else if ( $identity['isdefault'] ) {
+				echo " selected=\"selected\"";
+			}
+			echo ">", htmlentities( $identity['name'] ), " &lt;", htmlentities( $identity['address'] ), "&gt;</option>";
+		}
+		echo "</select>";
+	}
+
+	// Build to To: area, including buttons to display CC and BCC fields
+	echo "<div class=\"comp-label\"><label for=\"comp_to\">", _('To:'), "</label>";
+
+	// No Add CC / Add BCC buttons - would need javascript for that!
+
+	echo "</div> <textarea name=\"comp_to\" id=\"comp_to\">", $requestData['comp_to'], "</textarea>";
+
+	echo "<div id=\"comp-cceditor\">";
+	echo "<label class=\"comp-label\" for=\"comp_cc\">", _('CC:'), "</label> <textarea name=\"comp_cc\" id=\"comp_cc\">";
+	echo $requestData['comp_cc'];
+	echo "</textarea></div>";
+
+	echo "<div id=\"comp-bcceditor\">";
+	echo "<label class=\"comp-label\" for=\"comp_bcc\">", _('BCC:'), "</label> <textarea name=\"comp_bcc\" id=\"comp_bcc\">";
+	echo $requestData['comp_bcc'];
+	echo "</textarea></div>";
+
+	// Build the subject area.
+	echo "<label class=\"comp-label\" for=\"comp_subj\">", _('Subject:'), "</label> <input type=\"text\" name=\"comp_subj\" id=\"comp_subj\" value=\"";
+	echo $requestData['comp_subj'], "\" />";
+
+	// Build the text area. Text only for the HTML version.
+	echo "<textarea name=\"comp_msg\" id=\"comp_msg\">";
+	// Should have already been htmlentitified... so no more work required here.
+	echo $requestData['comp_msg'];
+	echo "</textarea>";
+
+	if ( $requestData['action'] == "forwardinline" ) {
+		// If we have an inline-forwarded message, provide a link to forward as attachment instead.
+		// TODO: Implement this so that it preserves the message.
+		echo "<input type=\"submit\" name=\"compaction\" value=\"forward_attach\" />";
+		echo "<p><a href=\"#\">", _('&raquo; forward message as attachment'), "</a></p>";
+	}
+
+	// Build a set of hidden elements with the current attachments.
+	// At the same time, build the HTML for listing those attachments.
+	// TODO: Make these things below work - they should be buttons!
+	$attachListHtml = "";
+	foreach ( $requestData['comp_attach'] as $attachment ) {
+		$attachListHtml .= "<li>" . $attachment['filename'] . " (" . $attachment['type'] . ", " . $attachment['size'] . ") ";
+		if ( $attachment['isforwardedmessage'] ) {
+			$attachListHtml .= "<a href=\"#\">" . _('[forward inline]') . "</a>";
+		} else {
+			$attachListHtml .= "<a href=\"#\">";
+			$attachListHtml .= _("[remove]") . "</a>";
+		}
+		$attachListHtml .= "</li>";
+
+		echo "<input type=\"hidden\" name=\"comp_attach[]\" value=\"", htmlentities( $attachment['filename'] ), "\" />";
+	}
+
+	// TODO: The values (the descriptions on the buttons) are not translatable - the dispatcher code uses it to figure out
+	// what the hell the user clicked.
+	echo "<input type=\"submit\" name=\"compaction\" value=\"Send Message\" />";
+	echo "<input type=\"submit\" name=\"compaction\" value=\"Save Draft\" />";
+		
+	echo "</form>";
+	
+	// Build a list of attachments.
+	echo "<div class=\"sidebar-panel\" id=\"comp-attachments\">";
+	echo "<h2 class=\"sidebar-head\"><img src=\"themes/", $USER_SETTINGS['theme'], "/icons/attach.png\" alt=\"\" /> ", _('attachments'), "</h2>";
+	
+	echo "<ul id=\"comp-attachlist\">";
+	echo $attachListHtml;
+	echo "</ul>";
+		
+	// Create the upload form.
+	echo "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\">";
+	echo "<input type=\"hidden\" name=\"request\" id=\"request\" value=\"uploadAttachment\" />";
+	echo "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"", $requestData['maxattachmentsize'], "\" />";
+	echo "<label for=\"comp-attachfile\">", _('add new'), "</label><br />";
+	echo "<input type=\"file\" name=\"comp-attachfile\" id=\"comp-attachfile\" />";
+	echo "<div class=\"comp-attach-submit\"><input type=\"submit\" value=\"", _('upload file'), "\" /></div>";
+	echo "<input type=\"hidden\" name=\"upattach\" value=\"1\" />";
+	echo "</form></div>";
+
+	return ob_get_clean();
+}
+
 ?>

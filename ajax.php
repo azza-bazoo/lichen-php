@@ -671,7 +671,7 @@ function request_sendMessage() {
 
 	include ( 'libs/Swift.php' );
 	include ( 'libs/Swift/Connection/SMTP.php' );
-	include ( 'libs/streamattach.php' );
+	include_once ( 'libs/streamattach.php' );
 
 	$result = array();
 	$result['success'] = false;
@@ -1193,7 +1193,7 @@ if ( !isHtmlSession() ) {
 			$requestParams['sequence'] = 'list';
 			
 			// Show the toolbar.
-			drawToolbar( 'list-bar', true );
+			drawToolbar( 'list-bar', true, $requestParams );
 
 			// Get the list of messages.
 			$result = request_wrapper( 'mailboxContentsList' );
@@ -1212,9 +1212,83 @@ if ( !isHtmlSession() ) {
 			
 			break;
 		case "comp":
-			// Compose toolbar.
+			// ---------------------
+			// Display the composer
+			//
+			$requestParams['sequence'] = 'comp';
+
+			// Show the toolbar.
+			drawToolbar( 'comp-bar', true, $requestParams );
+
+			$displayComposer = true;
+			$result = array();
+
+			$compAction = "new";
+			if ( isset( $_POST['compaction'] ) ) {
+				$compAction = $_POST['compaction'];
+			}
+
+			switch ( $compAction ) {
+				default:
+				case "new":
+					// Generate data for the composer.
+					$result = request_wrapper( 'getComposeData' );
+					$result = array_merge( $result, $result['composedata'] );
+					break;
+				case "Send Message":
+					$result = request_wrapper( 'sendMessage' );
+
+					if ( !request_failed( $result ) ) {
+						// Success! Return to the inbox...
+						$displayComposer = false;
+					} else {
+						// Restore the data that the user posted.
+						$result = array_merge( $_POST, $result );
+						$result['identities'] = $USER_SETTINGS['identities'];
+						$result['action']     = $result['comp_mode'];
+						if ( !isset( $result['comp_attach'] ) ) {
+							$result['comp_attach'] = array();
+						}
+					}
+					break;
+				case "Save Draft":
+					// Force request_sendMessage to save a draft instead.
+					$_POST['draft'] = true;
+
+					$result = request_wrapper( 'sendMessage' );
+					
+					// Restore the data that the user posted.
+					$result = array_merge( $_POST, $result );
+					$result['identities'] = $USER_SETTINGS['identities'];
+					$result['action']     = $result['comp_mode'];
+					if ( !isset( $result['comp_attach'] ) ) {
+						$result['comp_attach'] = array();
+					}
+
+					if ( !request_failed( $result ) ) {
+						// Save the draft UID - we need it later.
+						$result['comp_draftuid'] = $result['draftUid'];
+					}
+					break;
+			}
+
+			if ( $displayComposer ) {
+				// TODO: We have to force display with inline style below,
+				// because it is display: none by default in layout.css.
+				echo "<div id=\"comp-wrapper\" style=\"display: block;\">";
+				echo render_composer( $result, $requestParams );
+				echo "</div>";
+			} else {
+				// TODO: Not so hackish!
+				echo "<div id=\"comp-wrapper\" style=\"display: block;\">";
+				echo $result['message'], " <a href=\"ajax.php\">Return to Inbox</a>.";
+				echo "</div>";
+			}
 			break;
 		case "disp":
+			// ---------------------
+			// Display a message
+			//
 			// Fetch the message data.
 			$result = request_getMessage();
 
