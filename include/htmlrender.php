@@ -55,6 +55,7 @@ function render_messageList( $requestData, $requestParams ) {
 	// Capture the output - faster than strcatting.
 	ob_start();
 
+	echo genLinkForm( $requestParams, array(), array( "selector" ), "mailboxList", "ajax.php" );
 	echo htmlList_createPageBar( $requestData, $requestParams, true );
 
 	if ( $requestData['search'] != "" ) {
@@ -90,9 +91,6 @@ function render_messageList( $requestData, $requestParams ) {
 	} else {
 		$sortImg .= "/icons/sort_incr.png\" />";
 	}
-
-	// TODO: maybe select all/none instead of invert
-	echo "<th><input type=\"checkbox\" id=\"list-check-main\" value=\"0\" onclick=\"Lichen.MessageList.selectMessages(0)\" /></th><th></th>";
 
 	function getNextSort( $sort, $sortAsc, $sortCol ) {
 		$result = $sortCol;
@@ -142,10 +140,50 @@ function render_messageList( $requestData, $requestParams ) {
 
 		$thisRow .= "\">";
 
-		$thisRow .= "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" . $thisMsg['uid'] . "\" id=\"s-" . $thisMsg['uid'] . "\" value=\"" . $thisMsg['uid'] . "\" onclick=\"Lichen.MessageList.messageCheckboxClicked();\" /></td>";
+		$isChecked = false;
+		switch ( $requestParams['selector'] ) {
+			case 'all':
+				$isChecked = true;
+				break;
+			case 'read':
+				if ( $thisMsg['readStatus'] != 'U' ) {
+					$isChecked = true;
+				}
+				break;
+			case 'unread':
+				if ( $thisMsg['readStatus'] == 'U' ) {
+					$isChecked = true;
+				}
+				break;
+			case 'flagged':
+				if ( $thisMsg['flagged'] ) {
+					$isChecked = true;
+				}
+				break;
+			case 'unflagged':
+				if ( !$thisMsg['flagged'] ) {
+					$isChecked = true;
+				}
+				break;
+			case 'none':
+			default:
+				$isChecked = false;
+				break;
+		}
+
+		if ( $isChecked ) {
+			$isChecked = "checked=\"checked\"";
+		} else {
+			$isChecked = "";
+		}
+
+		$thisRow .= "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" . $thisMsg['uid'] . "\" id=\"s-" . $thisMsg['uid'] . "\" value=\"" . $thisMsg['uid'] . "\" {$isChecked} /></td>";
 
 		$flagImage = $thisMsg['flagged'] ? "/icons/flag.png" : "/icons/flag_off.png";
-		$thisRow .= "<td><img src=\"themes/" . $USER_SETTINGS['theme'] . $flagImage . "\" id=\"f-" . $thisMsg['uid'] . "\" alt=\"\" onclick=\"Lichen.MessageList.twiddleFlag('" . $thisMsg['uid'] . "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
+		$thisRow .= "<td><a href=\"ajax.php?" . 
+			genLinkQuery( $requestParams, array( "s-{$thisMsg['uid']}" => $thisMsg['uid'], "listaction" => "flagtoggle" ) ) . "\">".
+			"<img src=\"themes/" . $USER_SETTINGS['theme'] . $flagImage . "\" id=\"f-" . $thisMsg['uid'] . 
+			"\" alt=\"\" title=\"Flag this message\" class=\"list-flag\" /></td>";
 
 		$displayUrl = "ajax.php?" . genLinkQuery( $requestParams, array( 'msg' => $thisMsg['uid'], 'sequence' => 'disp' ) );
 
@@ -183,6 +221,7 @@ function render_messageList( $requestData, $requestParams ) {
 
 	echo "</tbody></table>";
 	echo htmlList_createPageBar( $requestData, $requestParams, false );
+	echo "</form>"; // Close the surrounding form.
 
 	return ob_get_clean();
 }
@@ -209,7 +248,7 @@ function htmlList_createPageBar( $requestData, $requestParams, $isTopBar ) {
 	}
 
 	$newPageBar .= "<div class=\"header-left\">";
-	$newPageBar .= "<select onchange=\"Lichen.MessageList.withSelected(this)\">";
+	$newPageBar .= "<select name=\"movemessage\">";
 	$newPageBar .= "<option value=\"noop\" selected=\"selected\">move selected to ...</option>";
 
 	// Build a list of mailboxes.
@@ -221,17 +260,32 @@ function htmlList_createPageBar( $requestData, $requestParams, $isTopBar ) {
 	}
 
 	$newPageBar .= "</select>";
-	$newPageBar .= " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.deleteMessages();return false\" value=\"delete\" />";
-	$newPageBar .= " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.withSelected(null, 'flag');return false\" value=\"flag\" />";
-	$newPageBar .= " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.withSelected(null, 'markseen');return false\" value=\"mark read\" /><br />";
+	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"move\" />";
+	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"delete\" />";
+	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"flag\" />";
+	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"mark read\" /><br />";
 	if ( !$isTopBar ) {
-		$newPageBar .= "select: <a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(1);return false\">all</a> | ";
-		$newPageBar .= "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(2);return false\">none</a> | ";
-		$newPageBar .= "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(3);return false\">read</a> | ";
-		$newPageBar .= "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(4);return false\">unread</a> | ";
-		$newPageBar .= "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(5);return false\">flagged</a> | ";
-		$newPageBar .= "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(6);return false\">unflagged</a> | ";
-		$newPageBar .= "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(0);return false\">invert</a>";
+		$newPageBar .= "select: <a href=\"ajax.php?" .
+			genLinkQuery( $requestParams, array( "selector" => 'all' ) ) .
+			"\">". _('all') ."</a> | ";
+		$newPageBar .= "<a href=\"ajax.php?".
+			genLinkQuery( $requestParams, array( "selector" => 'none' ) ) .
+			"\">". _('none') ."</a> | ";
+		$newPageBar .= "<a href=\"ajax.php?".
+			genLinkQuery( $requestParams, array( "selector" => 'read' ) ) .
+			"\">". _('read') ."</a> | ";
+		$newPageBar .= "<a href=\"ajax.php?".
+			genLinkQuery( $requestParams, array( "selector" => 'unread' ) ) .
+			"\">". _('unread') ."</a> | ";
+		$newPageBar .= "<a href=\"ajax.php?".
+			genLinkQuery( $requestParams, array( "selector" => 'flagged' ) ) .
+			"\">". _('flagged') . "</a> | ";
+		$newPageBar .= "<a href=\"ajax.php?".
+			genLinkQuery( $requestParams, array( "selector" => 'unflagged' ) ) .
+			"\">". _('unflagged') . "</a>";
+		// Invert would have to be a form postback, so we don't implement that at the
+		// moment.
+		//$newPageBar .= "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(0);return false\">invert</a>";
 	}
 
 	$newPageBar .= "</div><div class=\"header-right\">";

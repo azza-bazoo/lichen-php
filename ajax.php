@@ -1191,6 +1191,58 @@ if ( !isHtmlSession() ) {
 			//
 			// Prep any extra request params.
 			$requestParams['sequence'] = 'list';
+			$requestParams['selector'] = _GETORPOST( 'selector', 'none' );
+
+			// Perform any actions if we need to.
+			$subaction = _GETORPOST( 'listaction' );
+			if ( !empty( $subaction ) ) {
+				// Build a list of UIDs that we will work on.
+				$uids = array();
+				foreach ( $_POST as $postvar => $uid ) {
+					if ( substr( $postvar, 0, 2 ) == 's-' ) {
+						$uids[] = $uid;
+					}
+				}
+				foreach ( $_GET as $postvar => $uid ) {
+					if ( substr( $postvar, 0, 2 ) == 's-' ) {
+						$uids[] = $uid;
+					}
+				}
+				$_POST['uid'] = implode( ",", $uids );
+
+				// Determine what action to take and make it happen!
+				switch ( $subaction ) {
+					case 'move':
+						// Move messages to a given mailbox.
+						$_POST['destbox'] = substr( _GETORPOST( 'movemessage' ), 5 );
+
+						$saResult = request_moveMessage();
+						break;
+					case 'delete':
+						$saResult = request_deleteMessage();
+						break;
+					case 'flag':
+						$_POST['flag'] = 'flagged';
+						$_POST['state'] = "true";
+
+						$saResult = request_setFlag();
+						break;
+					case 'flagtoggle':
+						$_POST['flag'] = 'flagged';
+						$_POST['state'] = "toggle";
+
+						$saResult = request_setFlag();
+						break;
+					case 'mark read':
+						$_POST['flag'] = "seen";
+						$_POST['state'] = "true";
+
+						$saResult = request_setFlag();
+						break;
+				}
+
+				// TODO: Error checking.
+			}
 			
 			// Show the toolbar.
 			drawToolbar( 'list-bar', true, $requestParams );

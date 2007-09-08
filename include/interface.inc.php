@@ -224,14 +224,14 @@ function drawToolbar( $toolbarName, $htmlMode = false, $toolbarData = array() ) 
 			// TODO: fix HTML hacks in the search form.
 			if ( $htmlMode ) {
 				echo "<li id=\"btn-search\"><form action=\"ajax.php\" style=\"display:inline;margin:0;\">",
-					"<label for=\"qsearch\">",
+					"<label for=\"search\">",
 					"<img src=\"themes/{$USER_SETTINGS['theme']}/icons/mail_find.png\" alt=\"\" title=\"",
 					_("Search messages"),
 					"\" /></label>",
 					" <input type=\"text\" name=\"search\" id=\"search\" style=\"display:inline;vertical-align:middle\" />",
 					" <input type=\"submit\" value=\"", _("search"), "\" style=\"display:inline;vertical-align:middle\" />",
 					"<input type=\"hidden\" name=\"mailbox\" value=\"", htmlentities($mailbox) , "\" />",
-					"<input type=\"hidden\" name=\"reqmode\" value=\"list\" />",
+					"<input type=\"hidden\" name=\"sequence\" value=\"list\" />",
 					"</form></li>";
 			} else {
 				echo "<li id=\"btn-search\"><form action=\"$LICHEN_URL\" onsubmit=\"Lichen.action('list','MessageList','setSearch',[$('qsearch').value]);return false\" style=\"display:inline;margin:0;\"><label for=\"qsearch\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/mail_find.png\" alt=\"\" title=\"", _("Search messages"), "\" /></label> <input type=\"text\" name=\"qsearch\" id=\"qsearch\" style=\"display:inline;vertical-align:middle\" /> <input type=\"submit\" value=\"", _("search"), "\" style=\"display:inline;vertical-align:middle\" /></form></li>";
