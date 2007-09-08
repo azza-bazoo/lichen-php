@@ -304,7 +304,7 @@ function drawToolbarButton( $buttonLabel, $icon, $anchorTarget, $id, $clickHandl
 // Display a login form with optional user message.
 function drawLoginForm( $message='' ) {
 	global $LICHEN_URL;
-
+	
 	echo "<form action=\"$LICHEN_URL\" method=\"post\" class=\"login\"><div class=\"input-block\">\n";
 
 	if ( $message ) {
@@ -315,8 +315,18 @@ function drawLoginForm( $message='' ) {
 	echo "<input type=\"text\" name=\"user\" id=\"user\" /></p>\n";
 	echo "<p><label for=\"pass\">", _("password"), "</label><br />";
 	echo "<input type=\"password\" name=\"pass\" id=\"pass\" /></p>\n";
+	echo "<p><label><input type=\"checkbox\" name=\"interface\" id=\"interface\" value=\"html\" checked=\"checked\" />";
+	echo _("HTML Mode"), "</label></p>\n";
 	echo "<p class=\"login-submit\"><input type=\"submit\" value=\"", _("Login"), "\" /></p>\n";
 	echo "</div></form>";
+	
+	echo <<<ENDJS
+<script language="JavaScript" type="text/javascript">
+if ( document.getElementById( 'interface' ) ) {
+	document.getElementById( 'interface' ).checked = false;
+}
+</script>
+ENDJS;
 }
 
 ?>

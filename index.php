@@ -107,34 +107,34 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 		date_default_timezone_set( $USER_SETTINGS['timezone'] );
 	}
 
-	printPageHeader();
+	if ( !isHtmlSession() ) {
+		printPageHeader();
 
-	// This is a hack.
-	// Return the user settings here - this is the initial set.
-	// We do this here so that all the startup JS has
-	// access to it on initialisation.
-	// TODO: Just get the client to request it via ajax callback;
-	// also allows the client to cache it.
-	echo "<script type=\"text/javascript\">";
-	echo "var userSettings = ";
-	$settings = json_encode_assoc( $USER_SETTINGS );
-	if ( $settings == "null" ) {
-		echo "{};";
-	} else {
-		echo $settings, ";";
-	}
+		// This is a hack.
+		// Return the user settings here - this is the initial set.
+		// We do this here so that all the startup JS has
+		// access to it on initialisation.
+		// TODO: Just get the client to request it via ajax callback;
+		// also allows the client to cache it.
+		echo "<script type=\"text/javascript\">";
+		echo "var userSettings = ";
+		$settings = json_encode_assoc( $USER_SETTINGS );
+		if ( $settings == "null" ) {
+			echo "{};";
+		} else {
+			echo $settings, ";";
+		}
 
-	// TODO: this shouldn't be needed or should be cleaned up
-	echo "var serverUser = \"" . addslashes( $_SESSION['user'] ) . "\";";
-	echo "var specialFolders = " . json_encode_assoc( $SPECIAL_FOLDERS ) . ";";
-	echo "var lichenURL = \"" . addslashes( $LICHEN_URL ) . "\";";
-	echo "</script>";
+		// TODO: this shouldn't be needed or should be cleaned up
+		echo "var serverUser = \"" . addslashes( $_SESSION['user'] ) . "\";";
+		echo "var specialFolders = " . json_encode_assoc( $SPECIAL_FOLDERS ) . ";";
+		echo "var lichenURL = \"" . addslashes( $LICHEN_URL ) . "\";";
+		echo "</script>";
 
 
 //------------------------------------------------------------------------------
 // Draw toolbars
 
-	if ( !isHtmlSession() ) {
 		echo <<<ENDJS
 <script type="text/javascript" src="js/mootools.v1.11.js"></script>
 <script type="text/javascript" src="js/tinymce/tiny_mce.js"></script>
@@ -175,6 +175,9 @@ ENDJS;
 		$imapErrors = imap_errors();
 		@imap_close($mbox);
 		echo "</body></html>";
+	} else {
+		// Redirect the user to ajax.php.
+		header( "Location: ajax.php" );
 	}
 
 
