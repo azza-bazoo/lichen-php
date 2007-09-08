@@ -477,7 +477,7 @@ function render_displayMessage( $requestData, $requestParams ) {
 		// Display HTML in preference.
 		foreach ( $message['texthtml'] as $htmlpart ) {
 			echo "<div class=\"html-message\">";
-			echo $htmlPart;
+			echo $htmlpart;
 			echo "</div>";
 		}
 	} else {
