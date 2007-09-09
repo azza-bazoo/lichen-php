@@ -362,7 +362,9 @@ function render_mailboxList( $requestData, $requestParams ) {
 
 	ob_start();
 
-	echo "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"#manage-mailboxes\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\">edit</a>]</li>";
+	echo "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"ajax.php?" .
+		genLinkQuery( $requestParams, array( "sequence" => "settings", "tab" => "mailboxes" ) ) .
+		"\">edit</a>]</li>";
 
 	foreach ( $requestData['mailboxList'] as $thisMailbox ) {
 		echo "<li id=\"mb-" , $thisMailbox['fullboxname'];

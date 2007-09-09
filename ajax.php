@@ -1081,6 +1081,7 @@ function request_identityEditor() {
 		case "delete":
 			// Delete an identity.
 			// TODO: assign new default if need be
+			// TODO: Don't let it delete the last identity!
 			$delIndex = -1;
 			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
 				if ( $USER_SETTINGS['identities'][$i]['address'] == $workingid ) {
@@ -1477,6 +1478,13 @@ if ( !isHtmlSession() ) {
 			// Settings toolbar.
 			// Perform an action if we need to.
 			$setaction = _GETORPOST( 'setaction', 'nothing' );
+			if ( $setaction == 'cancel' ) $setaction = 'nothing';
+
+			// For the mailbox manager...
+			$setactionReturn = _GETORPOST( 'setactionreturn', false );
+			if ( $setactionReturn == "true" ) $setactionReturn = true;
+			$requestParams['mbm-mailbox'] = _GETORPOST( 'mbm-mailbox' );
+			$requestParams['setaction'] = $setaction;
 
 			$result = array();
 
@@ -1486,7 +1494,7 @@ if ( !isHtmlSession() ) {
 				$selectedIdentity = explode( ",", $_POST['opts-identity-list'] );
 				$selectedIdentity = $selectedIdentity[0];
 			}
-
+			
 			switch ( $setaction ) {
 				// Ordinary settings - save them.
 				case 'save changes':
@@ -1535,6 +1543,45 @@ if ( !isHtmlSession() ) {
 					break;
 
 				// Mailbox manager actions.
+				// mbm-mailbox
+				// newname
+				// newparent
+				case "add mailbox":
+				case "add subfolder":
+					if ( $setactionReturn ) {
+						$_POST['action'] = 'create';
+						$_POST['mailbox1'] = $_POST['mbm-mailbox'];
+						$_POST['mailbox2'] = $_POST['newname'];
+
+						$result = request_wrapper( 'mailboxAction' );
+					}
+					break;
+				case "move mailbox":
+					if ( $setactionReturn ) {
+						$_POST['action'] = 'move';
+						$_POST['mailbox1'] = $_POST['mbm-mailbox'];
+						$_POST['mailbox2'] = $_POST['newparent'];
+
+						$result = request_wrapper( 'mailboxAction' );
+					}
+					break;
+				case "rename mailbox":
+					if ( $setactionReturn ) {
+						$_POST['action'] = 'rename';
+						$_POST['mailbox1'] = $_POST['mbm-mailbox'];
+						$_POST['mailbox2'] = $_POST['newname'];
+						
+						$result = request_wrapper( 'mailboxAction' );
+					}
+					break;
+				case "delete mailbox":
+					if ( $setactionReturn ) {
+						$_POST['action'] = 'delete';
+						$_POST['mailbox1'] = $_POST['mbm-mailbox'];
+
+						$result = request_wrapper( 'mailboxAction' );
+					}
+					break;
 
 				// The do-nothing handler...
 				default:

@@ -497,9 +497,25 @@ function generateIdentityEditor( $htmlMode = false, $htmlData = array(), $htmlPa
 function generateMailboxManager( $htmlMode = false, $htmlData = array(), $htmlPars = array() ) {
 	global $USER_SETTINGS;
 
-	$result = "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
-	$result .= "<button onclick=\"Lichen.MailboxManager.newChild('');return false\">" . _("add mailbox") . "</button>";
-	$result .= "<div id=\"mbm-changearea-\"></div>";
+	$result = "";
+
+	if ( $htmlMode ) {
+		//$result .= "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" action=\"ajax.php\">";
+		$result .= genLinkForm( $htmlPars, array(), array(), "opts-mailboxes", "ajax.php" );
+		$result .= "<input type=\"submit\" name=\"setaction\" value=\"add mailbox\" />";
+		$result .= "</form>";
+	} else {
+		$result .= "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
+		$result .= "<button onclick=\"Lichen.MailboxManager.newChild('');return false\">" . _("add mailbox") . "</button>";
+	}
+	$result .= "<div id=\"mbm-changearea-\">";
+	if ( $htmlMode && $htmlPars['setaction'] == "add mailbox" ) {
+		$result .= genLinkForm( $htmlPars, array( "setactionreturn" => "true", "mbm-mailbox" => "" ), array(), "opts-mailboxes", "ajax.php" );
+		$result .= "<input type=\"text\" size=\"20\" name=\"newname\" />";
+		$result .= "<input type=\"submit\" value=\"add\" />";
+		$result .= "</form>";
+	}
+	$result .= "</div>";
 
 // 	$result .= "<div class=\"sidebar-panel\">";
 // 	$result .= "<img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_add.png\" alt=\"\" /> <strong>" . _("add mailbox") . "</strong><br />";
@@ -508,31 +524,76 @@ function generateMailboxManager( $htmlMode = false, $htmlData = array(), $htmlPa
 // 	$result .= "</div>";
 
 	$result .= "<ul id=\"opts-mbm-list\">";
+	$mailboxList = getMailboxList();
 
-	foreach ( getMailboxList() as $thisMailbox ) {
+	foreach ( $mailboxList as $thisMailbox ) {
 		$result .= "<li>";
-		$result .= "[<a href=\"#\" onclick=\"Lichen.MailboxManager.changeParentInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">move</a>] ";
+		if ( $htmlMode ) {
+			$result .= genLinkForm( $htmlPars, array( "mbm-mailbox" => $thisMailbox['fullboxname'] ), array(), "opts-mailboxes", "ajax.php" );
+			$result .= "<input type=\"submit\" name=\"setaction\" value=\"move mailbox\" /> ";
+		} else {
+			$result .= "[<a href=\"#\" onclick=\"Lichen.MailboxManager.changeParentInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">move</a>] ";
+		}
 
 		$result .= "<span class=\"opts-mbm-name\" id=\"mbm-namearea-{$thisMailbox['fullboxname']}\">";
-		for ( $j = 0; $j < $thisMailbox['folderdepth']; $j ++ ) {
-			$result .= "-"; // Poor man's indenting.
-		}
+		$result .= str_repeat( "-", $thisMailbox['folderdepth'] );
 		$result .= $thisMailbox['mailbox'];
 		$result .= "</span>";
 
-		$result .= " [<a href=\"#\" onclick=\"Lichen.MailboxManager.renameInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">rename</a>] ";
-		$result .= "[<a href=\"#\" onclick=\"Lichen.MailboxManager.mailboxDelete('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">delete</a>]";
+		if ( $htmlMode ) {
+			$result .= " <input type=\"submit\" name=\"setaction\" value=\"rename mailbox\" /> ";
+			$result .= "<input type=\"submit\" name=\"setaction\" value=\"delete mailbox\" />";
+		} else {
+			$result .= " [<a href=\"#\" onclick=\"Lichen.MailboxManager.renameInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">rename</a>] ";
+			$result .= "[<a href=\"#\" onclick=\"Lichen.MailboxManager.mailboxDelete('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">delete</a>]";
+		}
 
-		$result .= "<br />[<a href=\"#\" onclick=\"Lichen.MailboxManager.newChild('{$thisMailbox['fullboxname']}'); return false\">add subfolder</a>]";
-		$result .= "<div id=\"mbm-changearea-{$thisMailbox['fullboxname']}\"></div>";
+		if ( $htmlMode ) {
+			$result .= "<br /><input type=\"submit\" name=\"setaction\" value=\"add subfolder\" />";
+			$result .= "</form>";
+		} else {
+			$result .= "<br />[<a href=\"#\" onclick=\"Lichen.MailboxManager.newChild('{$thisMailbox['fullboxname']}'); return false\">add subfolder</a>]";
+		}
+		$result .= "<div id=\"mbm-changearea-{$thisMailbox['fullboxname']}\">";
+		if ( $htmlMode && $htmlPars['mbm-mailbox'] == $thisMailbox['fullboxname'] && $htmlPars['setaction'] != "nothing" ) {
+			$result .= genLinkForm( $htmlPars, array( "setactionreturn" => "true" ), array(), "opts-mailboxes", "ajax.php" );
+			switch ( $htmlPars['setaction'] ) {
+				case "move mailbox":
+					$result .= "<select name=\"newparent\">";
+					$result .= "<option value=\"\">-- Top Level</option>";
+					foreach ( $mailboxList as $mbox ) {
+						$result .= "<option value=\"" . htmlentities( $mbox['fullboxname'] ) . "\">";
+						$result .= str_repeat( "-", $mbox['folderdepth'] ) . htmlentities( $mbox['mailbox'] );
+						$result .= "</option>";
+					}
+					$result .= "</select>";
+					break;
+				case "rename mailbox":
+					$result .= "<input type=\"text\" size=\"20\" name=\"newname\" value=\"" . 
+						htmlentities( $thisMailbox['mailbox'] ) . "\" />";
+					break;
+				case "delete mailbox":
+					$result .= "Are you sure you want to do this? This is irreversable!";
+					break;
+				case "add subfolder":
+					$result .= "<input type=\"text\" size=\"20\" name=\"newname\" />";
+					break;
+			}
+			$result .= "<input type=\"submit\" value=\"{$htmlPars['setaction']}\" />";
+			$result .= "<input type=\"submit\" name=\"setaction\" value=\"cancel\" />";
+			$result .= "</form>";
+		}
+		$result .= "</div>";
 
 		$result .= "</li>";
 	}
 
 	$result .= "</ul>";
 
-	$result .= "<p class=\"opts-close\"><button onclick=\"Lichen.OptionsEditor.closePanel();return false\">" . _( "close" ) . "</button></p></form>";
-	$result .= "</form>";
+	if ( !$htmlMode ) {
+		$result .= "<p class=\"opts-close\"><button onclick=\"Lichen.OptionsEditor.closePanel();return false\">" . _( "close" ) . "</button></p></form>";
+		$result .= "</form>";
+	}
 
 	return $result;
 }
