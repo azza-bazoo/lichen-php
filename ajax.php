@@ -1195,6 +1195,34 @@ if ( !isHtmlSession() ) {
 
 		return $result;
 	}
+	function request_setFlash( $flashMessage ) {
+		$_SESSION['flash'] = $flashMessage;
+	}
+	function request_displayFlash( $requestResult = array(), $flashMessage = "" ) {
+		// Display a flash message, if set... and an error or message, if needed.
+		$result = "";
+
+		if ( isset( $_SESSION['flash'] ) ) {
+			$result .= $_SESSION['flash'];
+			unset( $_SESSION['flash'] );
+		}
+
+		if ( !empty( $flashMessage ) ) {
+			$result .= $flashMessage;
+		}
+
+		if ( isset( $requestResult['success'] ) && $requestResult['success'] == false ) {
+			$result .= $requestResult['errorCode'] . " / ";
+			$result .= $requestResult['errorString'];
+		}
+
+		if ( !empty( $result ) ) {
+			$result = "<div id=\"notification\" style=\"display: block;\">" . htmlentities( $result );
+			$result .= "</div>";
+		}
+
+		return $result;
+	}
 
 	// Prepare core variables.
 	$requestParams = array();
@@ -1204,6 +1232,7 @@ if ( !isHtmlSession() ) {
 	$requestParams['page']    = _GETORPOST( 'page', 0 );
 
 	// Step 1: basic page layout.
+	ob_start();
 	printPageHeader();
 	drawToolbar( 'corner-bar', true );
 
@@ -1227,6 +1256,7 @@ if ( !isHtmlSession() ) {
 
 			// Perform any actions if we need to.
 			$subaction = _GETORPOST( 'listaction' );
+			$saResult = array();
 			if ( !empty( $subaction ) ) {
 				// Build a list of UIDs that we will work on.
 				$uids = array();
@@ -1272,27 +1302,26 @@ if ( !isHtmlSession() ) {
 						$saResult = request_setFlag();
 						break;
 				}
-
-				// TODO: Error checking.
 			}
 			
 			// Show the toolbar.
 			drawToolbar( 'list-bar', true, $requestParams );
 
+			// Show any error messages.
+			echo request_displayFlash( $saResult );
+
 			// Get the list of messages.
 			$result = request_wrapper( 'mailboxContentsList' );
 
-			if ( !request_failed( $result ) ) {
-				// Hack... the data we need is in the key 'data' in request,
-				// but we want it up one level.
-				$result['sort'] = $requestParams['sort'];
-				$result = array_merge( $result, $result['data'] );
+			// Hack... the data we need is in the key 'data' in request,
+			// but we want it up one level.
+			$result['sort'] = $requestParams['sort'];
+			$result = array_merge( $result, $result['data'] );
 
-				// List mode - list toolbar and message listing.
-				echo "<div id=\"list-wrapper\">";
-				echo render_messageList( $result, $requestParams );
-				echo "</div>";
-			}
+			// Render the list.
+			echo "<div id=\"list-wrapper\">";
+			echo render_messageList( $result, $requestParams );
+			echo "</div>";
 			
 			break;
 		case "comp":
@@ -1378,16 +1407,16 @@ if ( !isHtmlSession() ) {
 							"size" => $result['size'],
 							"isforwardedmessage" => false
 						) );
-					} else {
-						// TODO: handle upload errors.
-						print_r($result);
 					}
 
 					$mergeBack = true;
 					break;
 			}
-
+			
 			if ( $displayComposer ) {
+				// Show any error messages.
+				echo request_displayFlash( $result );
+
 				if ( $mergeBack ) {
 					// Assemble some data that we'll need.
 					$result = array_merge( $_POST, $result );
@@ -1422,10 +1451,11 @@ if ( !isHtmlSession() ) {
 				echo render_composer( $result, $requestParams );
 				echo "</div>";
 			} else {
-				// TODO: Not so hackish!
-				echo "<div id=\"comp-wrapper\" style=\"display: block;\">";
-				echo $result['message'], " <a href=\"ajax.php\">Return to Inbox</a>.";
-				echo "</div>";
+				// TODO: Include proper query string below.
+				request_setFlash( $result['message'] );
+				ob_end_clean();
+				header( "Location: ajax.php?" . html_entity_decode( genLinkQuery( $requestParams, array( 'sequence' => 'list' ) ) ) );
+				die();
 			}
 			break;
 		case "disp":
@@ -1444,7 +1474,7 @@ if ( !isHtmlSession() ) {
 			// Draw the toolbar.
 			// This toolbar is depenant on the request parameters.
 			drawToolbar( 'msg-bar', true, $requestParams );
-
+			
 			if ( !request_failed( $result ) ) {
 				// Load data on the next/previous messages.
 				// TODO: Make it increment/decrement the page counter when it goes
@@ -1472,6 +1502,12 @@ if ( !isHtmlSession() ) {
 				echo "<div id=\"msg-wrapper\" style=\"display: block;\">\n";
 				echo render_displayMessage( $result, $requestParams );
 				echo "\n</div>";
+			} else {
+				// Set a flash message of the error, then return to the inbox.
+				request_setFlash( $result['errorString'] );
+				ob_end_clean();
+				header( "Location: ajax.php?" . html_entity_decode( genLinkQuery( $requestParams, array( "sequence" => "list" ) ) ) );
+				die();
 			}
 			break;
 		case "settings":
@@ -1589,7 +1625,8 @@ if ( !isHtmlSession() ) {
 					break;
 			}
 
-			// TODO: If a request failed, display its errors!
+			// Show any error messages.
+			echo request_displayFlash( $result );
 
 			$requestParams['sequence'] = 'settings';
 			$requestParams['tab']      = _GETORPOST( 'tab', 'settings' );
@@ -1612,6 +1649,7 @@ if ( !isHtmlSession() ) {
 
 	// Step 4. Display page footers.
 	echo "</body></html>";
+	ob_flush();
 }
 
 imap_errors();
