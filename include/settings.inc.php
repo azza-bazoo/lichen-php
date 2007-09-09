@@ -307,9 +307,14 @@ function generateOptionsPanel( $htmlMode = false, $htmlData = array(), $htmlPars
 function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars = array() ) {
 	global $USER_SETTINGS;
 
-	$result = "<form class=\"opts-tab\" id=\"opts-settings\" method=\"post\" action=\"ajax.php\">";
+	$result = "";
 
-	$result .= genLinkForm( $htmlPars );
+	if ( $htmlMode ) {
+		$result .= "<form class=\"opts-tab\" id=\"opts-settings\" method=\"post\" action=\"ajax.php\">";
+		$result .= genLinkForm( $htmlPars );
+	} else {
+		$result .= "<form class=\"opts-tab\" id=\"opts-settings\" method=\"post\" onsubmit=\"return Lichen.action('options','OptionsEditor','saveOptions')\" action=\"#\">";
+	}
 
 	//--------------------
 	// Timezone selector
@@ -397,7 +402,7 @@ function generateIdentityEditor( $htmlMode = false, $htmlData = array(), $htmlPa
 	$defaultIdentity = $USER_SETTINGS['identities'][count($USER_SETTINGS['identities']) - 1];
 
 	$result = "<form class=\"opts-tab\" id=\"opts-identities\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
-
+	
 	$result .= "<div id=\"opts-identity-sel\"><select size=\"10\" id=\"opts-identity-list\" onchange=\"Lichen.OptionsEditor.identity_edit()\">";
 
 	foreach ( $USER_SETTINGS['identities'] as $thisIdentity ) {
