@@ -1020,19 +1020,7 @@ function request_sendMessage() {
 //
 // AJAX/HTML versions.
 function request_settingsPanel() {
-	// This is a cludge.
-	$htmlMode = false;
-	$htmlData = array();
-	$htmlPars = array();
-	if ( isHtmlSession() ) {
-		if ( isset( $_POST['htmlmode'] ) ) {
-			$htmlMode = true;
-			$htmlData = $_POST['htmlmode'];
-			$htmlPars = $_POST['htmlreqs'];
-		}
-	}
-
-	$settingsPanel = generateOptionsPanel( $htmlMode, $htmlData, $htmlPars );
+	$settingsPanel = generateOptionsPanel();
 
 	$result = array(
 		"success" => true
