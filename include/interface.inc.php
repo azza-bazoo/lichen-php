@@ -205,7 +205,7 @@ function drawToolbar( $toolbarName, $htmlMode = false, $toolbarData = array() ) 
 	switch ( $toolbarName ) {
 		case 'corner-bar':
 			if ( $htmlMode ) {
-				drawToolbarButton( "settings", "configure", "#settings", "settings", "" );
+				drawToolbarButton( "settings", "configure", "ajax.php?" . genLinkQuery( $toolbarData, array( 'sequence' => 'settings' ) ), "settings", "" );
 			} else {
 				drawToolbarButton( "settings", "configure", "#settings", "settings", "Lichen.action('options','OptionsEditor','showEditor',['settings'])" );
 			}

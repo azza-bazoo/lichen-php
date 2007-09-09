@@ -1020,7 +1020,19 @@ function request_sendMessage() {
 //
 // AJAX/HTML versions.
 function request_settingsPanel() {
-	$settingsPanel = generateOptionsPanel();
+	// This is a cludge.
+	$htmlMode = false;
+	$htmlData = array();
+	$htmlPars = array();
+	if ( isHtmlSession() ) {
+		if ( isset( $_POST['htmlmode'] ) ) {
+			$htmlMode = true;
+			$htmlData = $_POST['htmlmode'];
+			$htmlPars = $_POST['htmlreqs'];
+		}
+	}
+
+	$settingsPanel = generateOptionsPanel( $htmlMode, $htmlData, $htmlPars );
 
 	$result = array(
 		"success" => true
@@ -1474,6 +1486,31 @@ if ( !isHtmlSession() ) {
 			break;
 		case "settings":
 			// Settings toolbar.
+			// Perform an action if we need to.
+			$setaction = _GETORPOST( 'setaction', 'nothing' );
+
+			$result = array();
+
+			switch ( $setaction ) {
+				case 'save changes':
+					$result = request_wrapper( 'settingsPanelSave' );
+					break;
+				default:
+				case 'nothing':
+					break;
+			}
+
+			$requestParams['sequence'] = 'settings';
+			$requestParams['tab']      = _GETORPOST( 'tab', 'settings' );
+
+			$result = generateOptionsPanel( true, $result, $requestParams );
+
+			// Render the settings panel.
+			// TODO: We have to force display with inline style below,
+			// because it is display: none by default in layout.css.
+			echo "<div id=\"opts-wrapper\" style=\"display: block;\">\n";
+			echo $result['htmlFragment'];
+			echo "\n</div>";
 			break;
 		case "error";
 			break;

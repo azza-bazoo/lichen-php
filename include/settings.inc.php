@@ -138,6 +138,21 @@ function parseUserSettings() {
 
 	$settingErrors = array();
 
+	// To handle ye-old-fashioned HTML settings... we note
+	// that if a checkbox is unchecked, nothing is returned.
+	// The code below looks for keys and sets/unsets them...
+	// which doesn't work if we posted back a form, because
+	// the unset values don't get posted back. So merge in the
+	// default values first (false) and then superimpose the real
+	// values from $_POST.
+	$_POST = array_merge(
+		array(
+			"opts-list_showpreviews" => "false",
+			"opts-list_showsize" => "false",
+			"opts-boxlist_showtotal" => "false"
+		),
+		$_POST );
+
 	foreach ( $_POST as $keyName => $value ) {
 		$value = urldecode( $value );
 
@@ -202,6 +217,8 @@ function parseUserSettings() {
 				}
 				break;
 
+			case 'opts-forward_as_attach':
+				// This handles the old-skool HTML POST query style.
 			case 'opts-forward_as_attach-true':
 				if ( $value == 'true' ) {
 					$USER_SETTINGS['forward_as_attach'] = true;
@@ -229,7 +246,7 @@ function parseUserSettings() {
 
 
 // Generate the HTML for the settings interface
-function generateOptionsPanel() {
+function generateOptionsPanel( $htmlMode = false, $htmlData = array(), $htmlPars = array() ) {
 	global $USER_SETTINGS, $DEFAULT_SETTINGS;
 
 	// It-will-do-for-now hack to display only the requested tab;
@@ -240,29 +257,45 @@ function generateOptionsPanel() {
 	$panel = "<div class=\"header-bar\"><img src=\"themes/{$USER_SETTINGS['theme']}/top-corner.png\" alt=\"\" class=\"top-corner\" />";
 	$panel .= "<div class=\"header-right\">&nbsp;</div>";
 
+	$tab = _GETORPOST( 'tab', 'settings' );
+
 	// Boring, repetitive 'if's for the tab bar
-	$panel .= "<div class=\"opts-tabbar\"><a href=\"#\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['settings'])\"";
-	if ( $_POST['tab'] == 'settings' ) { $panel .= " class=\"opts-activetab\""; }
-	$panel .= ">" . _("Lichen settings") . "</a> <a href=\"#\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['identities'])\"";
-	if ( $_POST['tab'] == 'identities' ) { $panel .= " class=\"opts-activetab\""; }
-	$panel .= ">" . _("Sending identities") . "</a> <a href=\"#\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\"";
-	if ( $_POST['tab'] == 'mailboxes' ) { $panel .= " class=\"opts-activetab\""; }
+	if ( $htmlMode ) {
+		$panel .= "<div class=\"opts-tabbar\"><a href=\"ajax.php?" . genLinkQuery( $htmlPars, array( "tab" => 'settings' ) ) . "\"";
+	} else {
+		$panel .= "<div class=\"opts-tabbar\"><a href=\"#\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['settings'])\"";
+	}
+	if ( $tab == 'settings' ) { $panel .= " class=\"opts-activetab\""; }
+	$panel .= ">" . _("Lichen settings") . "</a> ";
+	if ( $htmlMode ) {
+		$panel .= "<a href=\"ajax.php?" . genLinkQuery( $htmlPars, array( "tab" => 'identities' ) ) . "\"";
+	} else {
+		$panel .= "<a href=\"#\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['identities'])\"";
+	}
+	if ( $tab == 'identities' ) { $panel .= " class=\"opts-activetab\""; }
+	$panel .= ">" . _("Sending identities") . "</a> ";
+	if ( $htmlMode ) {
+		$panel .= "<a href=\"ajax.php?" . genLinkQuery( $htmlPars, array( "tab" => 'mailboxes' ) ) . "\"";
+	} else {
+		$panel .= "<a href=\"#\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\"";
+	}
+	if ( $tab == 'mailboxes' ) { $panel .= " class=\"opts-activetab\""; }
 	$panel .= ">" . _("Mailbox manager") . "</a></div></div>";
 
-	switch ( $_POST['tab'] ) {
+	switch ( $tab ) {
 		case 'settings':
-			$panel .= generateSettingsForm();
+			$panel .= generateSettingsForm( $htmlMode, $htmlData, $htmlPars );
 			break;
 		case 'identities':
-			$panel .= generateIdentityEditor();
+			$panel .= generateIdentityEditor( $htmlMode, $htmlData, $htmlPars );
 			break;
 		case 'mailboxes':
-			$panel .= generateMailboxManager();
+			$panel .= generateMailboxManager( $htmlMode, $htmlData, $htmlPars );
 			break;
 	}
 
 	$resultData = array( "htmlFragment" => $panel );
-	if ( $_POST['tab'] == 'mailboxes' ) {
+	if ( $tab == 'mailboxes' ) {
 		$resultData['mailboxes'] = getMailboxList();
 	}
 
@@ -271,10 +304,12 @@ function generateOptionsPanel() {
 
 
 // Generate HTML for the form to edit general preferences
-function generateSettingsForm() {
+function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars = array() ) {
 	global $USER_SETTINGS;
 
-	$result = "<form class=\"opts-tab\" id=\"opts-settings\" method=\"post\" onsubmit=\"return Lichen.action('options','OptionsEditor','saveOptions')\" action=\"#\">";
+	$result = "<form class=\"opts-tab\" id=\"opts-settings\" method=\"post\" action=\"ajax.php\">";
+
+	$result .= genLinkForm( $htmlPars );
 
 	//--------------------
 	// Timezone selector
@@ -302,7 +337,7 @@ function generateSettingsForm() {
 
 	if ( $USER_SETTINGS['list_showpreviews'] ) { $result .= "checked=\"checked\" "; }
 
-	$result .= "/> <label for=\"opts-list_showpreviews\" class=\"opts-name\">show message previews</label><br />";
+	$result .= " value=\"true\" /> <label for=\"opts-list_showpreviews\" class=\"opts-name\">show message previews</label><br />";
 
 	//--------------------
 	// Show 'size' column
@@ -310,7 +345,7 @@ function generateSettingsForm() {
 
 	if ( $USER_SETTINGS['list_showsize'] ) { $result .= "checked=\"checked\" "; }
 
-	$result .= "/> <label for=\"opts-list_showsize\" class=\"opts-name\">show size</label></div></div>";
+	$result .= " value=\"true\" /> <label for=\"opts-list_showsize\" class=\"opts-name\">show size</label></div></div>";
 
 	//--------------------
 	// Show totals in mailbox list
@@ -318,7 +353,7 @@ function generateSettingsForm() {
 
 	if ( $USER_SETTINGS['boxlist_showtotal'] ) { $result .= "checked=\"checked\" "; }
 
-	$result .= "/> <label for=\"opts-boxlist_showtotal\" class=\"opts-name\">Show total count for each mailbox</label></div>";
+	$result .= " value=\"true\" /> <label for=\"opts-boxlist_showtotal\" class=\"opts-name\">Show total count for each mailbox</label></div>";
 
 	//--------------------
 	// Default forward mode
@@ -336,9 +371,16 @@ function generateSettingsForm() {
 	// OK/cancel buttons
 	$result .= "<p class=\"opts-buttons\">";
 
-	$result .= "<button type=\"submit\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_ok.png\" alt=\"\" /> " . _( "save changes" ) . "</button>";
+	if ( $htmlMode ) {
+		$result .= "<button type=\"submit\" name=\"setaction\" value=\"save changes\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_ok.png\" alt=\"\" /> " . _( "save changes" ) . "</button>";
 
-	$result .= "<button onclick=\"return Lichen.action('options','OptionsEditor','closePanel'])\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</button>";
+		$result .= "<a href=\"ajax.php?" . genLinkQuery( $htmlPars, array( 'sequence' => 'list' ) ) . "\">" .
+			"<img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</a>";
+	} else {
+		$result .= "<button type=\"submit\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_ok.png\" alt=\"\" /> " . _( "save changes" ) . "</button>";
+
+		$result .= "<button onclick=\"return Lichen.action('options','OptionsEditor','closePanel'])\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</button>";
+	}
 
 	$result .= "</p></form>";
 
@@ -347,7 +389,7 @@ function generateSettingsForm() {
 
 
 // Generate HTML for the sending identities editor
-function generateIdentityEditor() {
+function generateIdentityEditor( $htmlMode = false, $htmlData = array(), $htmlPars = array() ) {
 	global $USER_SETTINGS;
 
 	// Temporary workaround in case a default identity isn't set
@@ -400,7 +442,7 @@ function generateIdentityEditor() {
 
 
 // Generate HTML for the mailbox manager, polling the IMAP server for a list.
-function generateMailboxManager() {
+function generateMailboxManager( $htmlMode = false, $htmlData = array(), $htmlPars = array() ) {
 	global $USER_SETTINGS;
 
 	$result = "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
