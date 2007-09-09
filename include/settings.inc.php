@@ -401,14 +401,35 @@ function generateIdentityEditor( $htmlMode = false, $htmlData = array(), $htmlPa
 	// (the saving code should check for & prevent this scenario)
 	$defaultIdentity = $USER_SETTINGS['identities'][count($USER_SETTINGS['identities']) - 1];
 
-	$result = "<form class=\"opts-tab\" id=\"opts-identities\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
+	$result = "";
+
+	if ( $htmlMode ) {
+		$result .= "<form class=\"opts-tab\" id=\"opts-identities\" method=\"post\" action=\"ajax.php\">";
+		$result .= genLinkForm( $htmlPars );
+	} else {
+		$result .= "<form class=\"opts-tab\" id=\"opts-identities\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
+	}
 	
-	$result .= "<div id=\"opts-identity-sel\"><select size=\"10\" id=\"opts-identity-list\" onchange=\"Lichen.OptionsEditor.identity_edit()\">";
+	$result .= "<div id=\"opts-identity-sel\"><select size=\"10\" id=\"opts-identity-list\" name=\"opts-identity-list\" ";
+	if ( !$htmlMode ) {
+		$result .= "onchange=\"Lichen.OptionsEditor.identity_edit()\"";
+	}
+	$result .= ">";
 
 	foreach ( $USER_SETTINGS['identities'] as $thisIdentity ) {
 
+		// TODO: Don't do this comma seperated address/name thing.
+		// Will probably come out when signatures get worked into the mix.
 		$result .= "<option value=\"" . htmlentities( $thisIdentity['address'] ) . "," . htmlentities( $thisIdentity['name'] ) . "\" ";
-		if ( $thisIdentity['isdefault'] ) { $result .= "selected=\"selected\" "; }
+		$isSelected = false;
+		if ( isset( $htmlData['workingident'] ) && $thisIdentity['address'] == $htmlData['workingident'] ) {
+			$isSelected = true;
+		} else if ( $thisIdentity['isdefault'] ) {
+			$isSelected = true;
+		}
+		if ( $isSelected ) {
+			$result .= "selected=\"selected\" ";
+		}
 //		$result .= " onclick=\"OptionsEditor.identity_edit()\">";
 		$result .= ">";
 
@@ -425,22 +446,48 @@ function generateIdentityEditor( $htmlMode = false, $htmlData = array(), $htmlPa
 
 	$result .= "</select>";
 
-	$result .= "<p class=\"opts-buttons\"><button onclick=\"return Lichen.OptionsEditor.identity_add()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_add.png\" alt=\"\" />" . _("add identity") . "</button> ";
-	$result .= "<button onclick=\"return Lichen.OptionsEditor.identity_setdefault()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/filenew.png\" alt=\"\" />" . _("set as default") . "</button> ";
-	$result .= "<button onclick=\"return Lichen.OptionsEditor.identity_remove()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_remove.png\" alt=\"\" />" . _("remove") . "</button></p></div>";
+	if ( $htmlMode ) {
+		// TODO: Fix the layout of these buttons.
+		$result .= "<p class=\"opts-buttons\"><input type=\"submit\" name=\"setaction\" value=\"add identity\" />";
+		$result .= "<input type=\"submit\" name=\"setaction\" value=\"edit identity\" /><br />";
+		$result .= "<input type=\"submit\" name=\"setaction\" value=\"set as default\" />";
+		$result .= "<input type=\"submit\" name=\"setaction\" value=\"remove identity\" /></p></div>";
+	} else {
+		$result .= "<p class=\"opts-buttons\"><button onclick=\"return Lichen.OptionsEditor.identity_add()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_add.png\" alt=\"\" />" . _("add identity") . "</button> ";
+		$result .= "<button onclick=\"return Lichen.OptionsEditor.identity_setdefault()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/filenew.png\" alt=\"\" />" . _("set as default") . "</button> ";
+		$result .= "<button onclick=\"return Lichen.OptionsEditor.identity_remove()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_remove.png\" alt=\"\" />" . _("remove") . "</button></p></div>";
+	}
 
 	$result .= "<div id=\"opts-identity-edit\">";
 
-	$result .= "<p><label for=\"opts-identity-name\">" . _("your name:") . "</label> ";
-	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-name\" value=\"" . $defaultIdentity['name'] . "\" /><br />";
-	$result .= "<label for=\"opts-identity-address\">" . _("e-mail address:") . "</label> ";
-	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-address\" value=\"" . $defaultIdentity['address'] . "\" /></p>";
+	$detailsToShow = $defaultIdentity;
+	if ( isset( $htmlData['workingident'] ) ) {
+		$detailsToShow = array( "name" => "", "address" => "" );
 
-	$result .= "<p><button id=\"opts-identity-save\" onclick=\"return Lichen.OptionsEditor.identity_edit_done('" . $defaultIdentity['address'] . "')\">" . _("save changes") . "</button></p>";
+		foreach ( $USER_SETTINGS['identities'] as $identity ) {
+			if ( $identity['address'] == $htmlData['workingident'] ) {
+				$detailsToShow = $identity;
+			}
+		}
+		$result .= "<input type=\"hidden\" name=\"opts-identity-working\" value=\"". htmlentities( $htmlData['workingident'] ) . "\" />";
+	}
+
+	$result .= "<p><label for=\"opts-identity-name\">" . _("your name:") . "</label> ";
+	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-name\" name=\"opts-identity-name\" value=\"" . $detailsToShow['name'] . "\" /><br />";
+	$result .= "<label for=\"opts-identity-address\">" . _("e-mail address:") . "</label> ";
+	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-address\" name=\"opts-identity-address\" value=\"" . $detailsToShow['address'] . "\" /></p>";
+	
+	if ( $htmlMode ) {
+		$result .= "<p><input type=\"submit\" name=\"setaction\" value=\"save identity\" /></p>";
+	} else {
+		$result .= "<p><button id=\"opts-identity-save\" onclick=\"return Lichen.OptionsEditor.identity_edit_done('" . $defaultIdentity['address'] . "')\">" . _("save changes") . "</button></p>";
+	}
 
 	$result .= "</div>";
 
-	$result .= "<p class=\"opts-close\"><button onclick=\"Lichen.action('options','OptionsEditor','closePanel');return false\">" . _( "close" ) . "</button></p></form>";
+	if ( !$htmlMode ) {
+		$result .= "<p class=\"opts-close\"><button onclick=\"Lichen.action('options','OptionsEditor','closePanel');return false\">" . _( "close" ) . "</button></p></form>";
+	}
 
 	return $result;
 }

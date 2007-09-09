@@ -1071,6 +1071,7 @@ function request_identityEditor() {
 		case "add":
 			// Add a new identity.
 			// TODO: check for conflicts with existing identity names
+			// TODO: Check for blank/invalid data!
 			array_push( $USER_SETTINGS['identities'], array(
 				"name" => $idname,
 				"address" => $idemail,
@@ -1479,14 +1480,69 @@ if ( !isHtmlSession() ) {
 
 			$result = array();
 
+			// Temporary hack for identities; split up the incoming opts-identity-list value.
+			$selectedIdentity = "";
+			if ( isset( $_POST['opts-identity-list'] ) ) {
+				$selectedIdentity = explode( ",", $_POST['opts-identity-list'] );
+				$selectedIdentity = $selectedIdentity[0];
+			}
+
 			switch ( $setaction ) {
+				// Ordinary settings - save them.
 				case 'save changes':
 					$result = request_wrapper( 'settingsPanelSave' );
 					break;
+
+				// Identity editor actions.
+				// opts-identity-list
+				// opts-identity-working
+				// opts-identity-name
+				// opts-identity-address
+				case 'add identity':
+					// Just set the workingident flag, and the form will do the rest!
+					$result['workingident'] = "";
+					break;
+				case 'edit identity':
+					// Display an identity...
+					// All we have to do here is say which one to show.
+					$result['workingident'] = $selectedIdentity;
+					break;
+				case 'set as default':
+					$_POST['action'] = "setdefault";
+					$_POST['oldid'] = $selectedIdentity;
+
+					$result = request_wrapper( 'identityEditor' );
+					break;
+				case 'remove identity':
+					$_POST['action'] = "delete";
+					$_POST['oldid'] = $selectedIdentity;
+
+					$result = request_wrapper( 'identityEditor' );
+					break;
+				case 'save identity':
+					if ( empty( $_POST['opts-identity-working'] ) ) {
+						// New identity!
+						$_POST['action'] = "add";
+					} else {
+						// Edit identity.
+						$_POST['action'] = "edit";
+						$_POST['oldid'] = $_POST['opts-identity-working'];
+					}
+					$_POST['idname'] = $_POST['opts-identity-name'];
+					$_POST['idemail'] = $_POST['opts-identity-address'];
+
+					$result = request_wrapper( 'identityEditor' );
+					break;
+
+				// Mailbox manager actions.
+
+				// The do-nothing handler...
 				default:
 				case 'nothing':
 					break;
 			}
+
+			// TODO: If a request failed, display its errors!
 
 			$requestParams['sequence'] = 'settings';
 			$requestParams['tab']      = _GETORPOST( 'tab', 'settings' );
