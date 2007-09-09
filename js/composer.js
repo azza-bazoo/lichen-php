@@ -187,8 +187,8 @@ var MessageComposer = new Class({
 		composer += "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return Lichen.MessageCompose.asyncUploadFile($('comp-uploadform'))\">";
 		composer += "<input type=\"hidden\" name=\"request\" id=\"request\" value=\"uploadAttachment\" />";
 		composer += "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"" + compData.maxattachmentsize + "\" />";
-		composer += "<label for=\"comp-attachfile\">add new</label><br />";
-		composer += "<input type=\"file\" name=\"comp-attachfile\" id=\"comp-attachfile\" />";
+		composer += "<label for=\"comp_attachfile\">add new</label><br />";
+		composer += "<input type=\"file\" name=\"comp_attachfile\" id=\"comp_attachfile\" />";
 		composer += "<div class=\"comp-attach-submit\"><input type=\"submit\" value=\"upload file\" /></div>";
 		composer += "<input type=\"hidden\" name=\"upattach\" value=\"1\" />";
 		composer += "</form></div>";

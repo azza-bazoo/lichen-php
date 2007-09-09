@@ -539,10 +539,10 @@ function request_uploadAttachment() {
 
 	$result = array();
 
-	if ( isset( $_FILES['comp-attachfile'] ) ) {
-		if ( $_FILES['comp-attachfile']['error'] != 0 ) {
+	if ( isset( $_FILES['comp_attachfile'] ) ) {
+		if ( $_FILES['comp_attachfile']['error'] != 0 ) {
 			$errorMessage = _("Unknown upload error.");
-			switch ( $_FILES['comp-attachfile']['error'] ) {
+			switch ( $_FILES['comp_attachfile']['error'] ) {
 				case UPLOAD_ERR_INI_SIZE:
 					$errorMessage = _("Uploaded file exceeds what is allowed by the server.");
 					break;
@@ -571,12 +571,12 @@ function request_uploadAttachment() {
 			$result['errorMessage'] = $errorMessage;
 		} else {
 			$destinationDirectory = getUserDirectory() . "/attachments";
-			$serverFilename = hashifyFilename( $_FILES['comp-attachfile']['name'] );
-			if (move_uploaded_file( $_FILES['comp-attachfile']['tmp_name'], "{$destinationDirectory}/$serverFilename" ) ) {
+			$serverFilename = hashifyFilename( $_FILES['comp_attachfile']['name'] );
+			if (move_uploaded_file( $_FILES['comp_attachfile']['tmp_name'], "{$destinationDirectory}/$serverFilename" ) ) {
 				$result['success']  = true;
-				$result['filename'] = $_FILES['comp-attachfile']['name'];
-				$result['type']     = $_FILES['comp-attachfile']['type'];
-				$result['size']     = $_FILES['comp-attachfile']['size'];
+				$result['filename'] = $_FILES['comp_attachfile']['name'];
+				$result['type']     = $_FILES['comp_attachfile']['type'];
+				$result['size']     = $_FILES['comp_attachfile']['size'];
 			} else {
 				$result['success']     = false;
 				$result['errorCode']   = 'UPLOAD';
@@ -588,6 +588,36 @@ function request_uploadAttachment() {
 		$result['success']     = false;
 		$result['errorCode']   = 'UPLOAD';
 		$result['errorString'] = _('Failed to specify a file to upload.');
+	}
+
+	return $result;
+}
+
+// Helper function to rengenerate attachment data.
+// This function should not be here, but doesn't seem to fit anywhere else.
+// Input is an array of attachments that should be uploaded into the users attachment
+// directory.
+function regenerateAttachmentData( $fileList ) {
+	$result = array();
+
+	$attachDir = getUserDirectory() . "/attachments/";
+
+	foreach ( $fileList as $file ) {
+		var_dump( $file );
+		if ( is_string( $file ) ) {
+			$serverFilename = $attachDir . hashifyFilename( $file );
+			if ( file_exists( $serverFilename ) ) {
+				$result[] = array(
+					"filename" => $file,
+					"type" => mime_content_type( $serverFilename ),
+					"size" => filesize( $serverFilename ),
+					"isforwardedmessage" => false
+				);
+			}
+		} else {
+			// Just append the array, it's already ready.
+			$result[] = $file;
+		}
 	}
 
 	return $result;
@@ -1273,7 +1303,20 @@ if ( !isHtmlSession() ) {
 			drawToolbar( 'comp-bar', true, $requestParams );
 
 			$displayComposer = true;
+			$mergeBack = false;
 			$result = array();
+			
+			// Strip attachments that are no longer present.
+			$outputAttachments = array();
+			if ( isset( $_POST['comp_attach'] ) ) {
+				foreach ( $_POST['comp_attach'] as $key => $attach ) {
+					if ( isset( $_POST['comp_keepattach'][$key] ) ) {
+						// Keep this attachment.
+						$outputAttachments[] = $attach;
+					}
+				}
+				$_POST['comp_attach'] = $outputAttachments;
+			}
 
 			$compAction = "new";
 			if ( isset( $_POST['compaction'] ) ) {
@@ -1281,6 +1324,15 @@ if ( !isHtmlSession() ) {
 			}
 
 			switch ( $compAction ) {
+				// Force the mode of the forward. This is a hack...
+				case "forward inline":
+					$_POST['mode'] = "forwardinline";
+				case "forward message as attachment":
+					if ( !isset( $_POST['mode'] ) || $_POST['mode'] != "forwardinline" ) {
+						$_POST['mode'] = "forwardasattach";
+					}
+					$_POST['uid'] = $_POST['comp_quoteuid'];
+					// Fall through and act like this is a normal new composer.
 				default:
 				case "new":
 					// Generate data for the composer.
@@ -1295,12 +1347,7 @@ if ( !isHtmlSession() ) {
 						$displayComposer = false;
 					} else {
 						// Restore the data that the user posted.
-						$result = array_merge( $_POST, $result );
-						$result['identities'] = $USER_SETTINGS['identities'];
-						$result['action']     = $result['comp_mode'];
-						if ( !isset( $result['comp_attach'] ) ) {
-							$result['comp_attach'] = array();
-						}
+						$mergeBack = true;
 					}
 					break;
 				case "Save Draft":
@@ -1310,21 +1357,66 @@ if ( !isHtmlSession() ) {
 					$result = request_wrapper( 'sendMessage' );
 					
 					// Restore the data that the user posted.
-					$result = array_merge( $_POST, $result );
-					$result['identities'] = $USER_SETTINGS['identities'];
-					$result['action']     = $result['comp_mode'];
-					if ( !isset( $result['comp_attach'] ) ) {
-						$result['comp_attach'] = array();
-					}
+					$mergeBack = true;
 
 					if ( !request_failed( $result ) ) {
 						// Save the draft UID - we need it later.
 						$result['comp_draftuid'] = $result['draftUid'];
 					}
 					break;
+				case "upload file":
+					// Uploaded a new file...
+
+					$result = request_wrapper( 'uploadAttachment' );
+
+					if ( !request_failed( $result ) ) {
+						$result['comp_attach'] = array( array(
+							"filename" => $result['filename'],
+							"type" => $result['type'],
+							"size" => $result['size'],
+							"isforwardedmessage" => false
+						) );
+					} else {
+						// TODO: handle upload errors.
+						print_r($result);
+					}
+
+					$mergeBack = true;
+					break;
 			}
 
 			if ( $displayComposer ) {
+				if ( $mergeBack ) {
+					// Assemble some data that we'll need.
+					$result = array_merge( $_POST, $result );
+					$result['identities'] = $USER_SETTINGS['identities'];
+					$result['action']     = $result['comp_mode'];
+					// Wee! Attachments are fun.
+					// What we're trying to accomplish here:
+					// If the request gave us new attachments, merge them with the list
+					// of attachments posted back. The rengenerateAttachmentData, below,
+					// will fix up the ones that don't have all the data they need.
+					if ( !isset( $result['comp_attach'] ) ) {
+						$result['comp_attach'] = array();
+					}
+					if ( isset( $_POST['comp_attach'] ) ) {
+						// PHP doesn't seem to have a way to glue two arrays together simply.
+						// array_merge doesn't do what I want, and the + operator doesn't either
+						// (read up on that one, it can be useful, but not here!)
+						foreach ( $_POST['comp_attach'] as $att ) {
+							$result['comp_attach'][] = $att;
+						}
+					}
+				}
+
+				// Regenerate data on the attachments...
+				print_r($_POST);
+				print_r($result['comp_attach']);
+				$result['comp_attach'] = regenerateAttachmentData( $result['comp_attach'] );
+				print_r($result['comp_attach']);
+
+				$result['maxattachmentsize'] = $UPLOAD_ATTACHMENT_MAX;
+
 				// TODO: We have to force display with inline style below,
 				// because it is display: none by default in layout.css.
 				echo "<div id=\"comp-wrapper\" style=\"display: block;\">";

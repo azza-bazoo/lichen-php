@@ -108,7 +108,7 @@ img.bottom-corner { bottom: 0; }
 .sidebar-head img { vertical-align: middle; }
 
 #comp-attachlist li { margin-bottom: 6px; }
-#comp-attachfile, .comp-attach-submit input { font-size: inherit; }
+#comp_attachfile, .comp-attach-submit input { font-size: inherit; }
 #comp-uploadform { padding-top: 2px; margin-top: 5px; border-top: solid 1px #f0f0f0; }
 .comp-attach-submit { padding: 2px; background: #f0f0f0; }
 

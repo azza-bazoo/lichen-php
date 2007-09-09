@@ -550,7 +550,7 @@ function render_composer( $requestData, $requestParams ) {
 	// Right-side float here is to prevent IE7 from collapsing the div
 	echo "<div class=\"header-bar\"><img src=\"themes/", $USER_SETTINGS['theme'], "/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">", _('New message'), "</div></div>";
 
-	echo "<form action=\"", $LICHEN_URL, "ajax.php\" method=\"post\" id=\"compose\">";
+	echo "<form enctype=\"multipart/form-data\" action=\"", $LICHEN_URL, "ajax.php\" method=\"post\" id=\"compose\">";
 	echo "<input type=\"hidden\" name=\"sequence\" value=\"comp\" />";
 	echo "<input type=\"hidden\" name=\"format\" value=\"text/plain\" />";
 
@@ -572,7 +572,7 @@ function render_composer( $requestData, $requestParams ) {
 		echo "<input name=\"comp_identity\" id=\"comp_identity\" type=\"hidden\" value=\"",
 		       htmlentities( $requestData['identities'][0]['address'] ), "\" />";
 	} else {
-		echo "<label class=\"comp-label\" for=\"comp_identity\">From:</label> <select name=\"comp_identity\" id=\"comp_identity\">";
+		echo "<label class=\"comp-label\" for=\"comp_identity\">", _('From:'), "</label> <select name=\"comp_identity\" id=\"comp_identity\">";
 		foreach ( $requestData['identities'] as $identity ) {
 			echo "<option value=\"", $identity['address'], "\"";
 			if ( $requestData['action'] == 'reply' || $requestData['action'] == 'replyall' ) {
@@ -622,34 +622,33 @@ function render_composer( $requestData, $requestParams ) {
 
 	if ( $requestData['action'] == "forwardinline" ) {
 		// If we have an inline-forwarded message, provide a link to forward as attachment instead.
-		// TODO: Implement this so that it preserves the message.
-		echo "<input type=\"submit\" name=\"compaction\" value=\"forward_attach\" />";
-		echo "<p><a href=\"#\">", _('&raquo; forward message as attachment'), "</a></p>";
+		echo "<p><input type=\"submit\" name=\"compaction\" value=\"forward message as attachment\" /></p>";
 	}
 
 	// Build a set of hidden elements with the current attachments.
 	// At the same time, build the HTML for listing those attachments.
 	// TODO: Make these things below work - they should be buttons!
 	$attachListHtml = "";
+	$attachCtr = 0;
 	foreach ( $requestData['comp_attach'] as $attachment ) {
-		$attachListHtml .= "<li>" . $attachment['filename'] . " (" . $attachment['type'] . ", " . $attachment['size'] . ") ";
+		$attachListHtml .= "<li>";
+		$attachListHtml .= "<input type=\"checkbox\" name=\"comp_keepattach[{$attachCtr}]\" value=\"keep\" checked=\"checked\" />";
+		$attachListHtml .= $attachment['filename'] . " (" . $attachment['type'] . ", " . $attachment['size'] . ") ";
 		if ( $attachment['isforwardedmessage'] ) {
-			$attachListHtml .= "<a href=\"#\">" . _('[forward inline]') . "</a>";
-		} else {
-			$attachListHtml .= "<a href=\"#\">";
-			$attachListHtml .= _("[remove]") . "</a>";
+			$attachListHtml .= "<input type=\"submit\" name=\"compaction\" value=\"forward inline\" />";
 		}
 		$attachListHtml .= "</li>";
 
-		echo "<input type=\"hidden\" name=\"comp_attach[]\" value=\"", htmlentities( $attachment['filename'] ), "\" />";
+		echo "<input type=\"hidden\" name=\"comp_attach[{$attachCtr}]\" value=\"", htmlentities( $attachment['filename'] ), "\" />";
+
+		$attachCtr++;
 	}
 
 	// TODO: The values (the descriptions on the buttons) are not translatable - the dispatcher code uses it to figure out
 	// what the hell the user clicked.
+	echo "<br />";
 	echo "<input type=\"submit\" name=\"compaction\" value=\"Send Message\" />";
 	echo "<input type=\"submit\" name=\"compaction\" value=\"Save Draft\" />";
-		
-	echo "</form>";
 	
 	// Build a list of attachments.
 	echo "<div class=\"sidebar-panel\" id=\"comp-attachments\">";
@@ -660,14 +659,15 @@ function render_composer( $requestData, $requestParams ) {
 	echo "</ul>";
 		
 	// Create the upload form.
-	echo "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\">";
-	echo "<input type=\"hidden\" name=\"request\" id=\"request\" value=\"uploadAttachment\" />";
+	//echo "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\">";
 	echo "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"", $requestData['maxattachmentsize'], "\" />";
-	echo "<label for=\"comp-attachfile\">", _('add new'), "</label><br />";
-	echo "<input type=\"file\" name=\"comp-attachfile\" id=\"comp-attachfile\" />";
-	echo "<div class=\"comp-attach-submit\"><input type=\"submit\" value=\"", _('upload file'), "\" /></div>";
-	echo "<input type=\"hidden\" name=\"upattach\" value=\"1\" />";
-	echo "</form></div>";
+	echo "<label for=\"comp_attachfile\">", _('add new'), "</label><br />";
+	echo "<input type=\"file\" name=\"comp_attachfile\" id=\"comp_attachfile\" />";
+	echo "<div class=\"comp-attach-submit\"><input type=\"submit\" name=\"compaction\" value=\"upload file\" /></div>";
+	//echo "</form></div>";
+	echo "</div>";
+	
+	echo "</form>";
 
 	return ob_get_clean();
 }
