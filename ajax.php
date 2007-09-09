@@ -1410,10 +1410,7 @@ if ( !isHtmlSession() ) {
 				}
 
 				// Regenerate data on the attachments...
-				print_r($_POST);
-				print_r($result['comp_attach']);
 				$result['comp_attach'] = regenerateAttachmentData( $result['comp_attach'] );
-				print_r($result['comp_attach']);
 
 				$result['maxattachmentsize'] = $UPLOAD_ATTACHMENT_MAX;
 
