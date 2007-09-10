@@ -36,8 +36,7 @@ if ( !isset( $_SESSION['pass'] ) || !isset( $_SESSION['user'] ) ) {
 	}
 }
 
-// TODO: Read the default below from the SPECIAL_FOLDERS array.
-connectToServer( $_SESSION['user'], $_SESSION['pass'], _GETORPOST( 'mailbox', 'INBOX' ) );
+connectToServer( $_SESSION['user'], $_SESSION['pass'], _GETORPOST( 'mailbox', $SPECIAL_FOLDERS['inbox'] ) );
 
 // Load the user settings.
 $USER_SETTINGS = getUserSettings();

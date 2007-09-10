@@ -33,7 +33,7 @@ include( "lichen-config.php" );
 
 $LICHEN_VERSION = "0.3";
 
-$mailbox = "INBOX";
+$mailbox = $SPECIAL_FOLDERS['inbox'];
 
 // URL for this installation of Lichen - automagically determined.
 $LICHEN_URL = dirname($_SERVER['SCRIPT_NAME']);

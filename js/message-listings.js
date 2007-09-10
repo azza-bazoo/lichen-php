@@ -25,7 +25,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 var MessageLister = new Class({
 	initialize: function ( dataStore, wrapper ) {
 		this.parseSort( userSettings.list_sortmode );
-		this.mailbox = "INBOX";
+		this.mailbox = specialFolders.inbox;
 		this.page    = 0;
 		this.search  = "";
 		this.wrapper = wrapper;

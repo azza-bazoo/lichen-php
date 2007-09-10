@@ -28,6 +28,7 @@ $IMAP_SERVER = "localhost";
 //------------------------------------------------------------------------------
 
 // Names of the three special IMAP folders.
+$SPECIAL_FOLDERS['inbox']  = "INBOX";
 $SPECIAL_FOLDERS['sent']   = "Sent";
 $SPECIAL_FOLDERS['drafts'] = "Drafts";
 $SPECIAL_FOLDERS['trash']  = "Trash";
