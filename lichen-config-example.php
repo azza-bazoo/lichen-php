@@ -48,6 +48,7 @@ $IMAP_CHECK_CERTS  = true;
 // the same credentials as for the IMAP server.
 $SMTP_PORT    = 25;
 $SMTP_USE_SSL = false;
+$SMTP_USE_TLS = false;
 $SMTP_AUTH    = true;
 
 // Date formats to use for new/old messages in mailbox lists, and when showing

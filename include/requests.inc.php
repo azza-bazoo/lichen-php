@@ -643,7 +643,7 @@ function request_setFlag() {
 //
 function request_sendMessage() {
 	global $mbox, $IMAP_CONNECT, $mailbox;
-	global $IMAP_PORT, $IMAP_SERVER, $IS_SSL;
+	global $IMAP_PORT, $IMAP_SERVER, $IS_SSL, $IMAP_USE_TLS;
 	global $LICHEN_VERSION, $SPECIAL_FOLDERS;
 	global $SMTP_SERVER, $SMTP_PORT, $SMTP_USE_SSL, $SMTP_AUTH;
 
@@ -848,7 +848,7 @@ function request_sendMessage() {
 		}
 
 		// Stream the message to the IMAP server, so that emails of any size can be saved.
-		$res = streamSaveMessage( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
+		$res = streamSaveMessage( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $IMAP_USE_TLS, $_SESSION['user'], $_SESSION['pass'],
 				$SPECIAL_FOLDERS['drafts'], $rawMessage, $messageLength, "\\Draft" );
 
 		// This is a hack: search for the message with that ID. This is how
@@ -889,7 +889,7 @@ function request_sendMessage() {
 			
 			return $result; // TODO: Returning in the middle of a function... don't do it!
 		}
-		$res = streamSaveMessage( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
+		$res = streamSaveMessage( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $IMAP_USE_TLS, $_SESSION['user'], $_SESSION['pass'],
 			$SPECIAL_FOLDERS['sent'], $rawMessage, $messageLength, "");
 		if ( $res != null ) {
 			$msg = sprintf( _("Unable to save sent message: %s - message NOT sent."), $res );
@@ -906,6 +906,8 @@ function request_sendMessage() {
 		$smtpConnection = null;
 		if ( $SMTP_USE_SSL ) {
 			$smtpConnection =& new Swift_Connection_SMTP( $SMTP_SERVER, $SMTP_PORT, SWIFT_SMTP_ENC_SSL );
+		} else if ( $SMTP_USE_TLS ) {
+			$smtpConnection =& new Swift_Connection_SMTP( $SMTP_SERVER, $SMTP_PORT, SWIFT_SMTP_ENC_TLS );
 		} else {
 			$smtpConnection =& new Swift_Connection_SMTP( $SMTP_SERVER, $SMTP_PORT, SWIFT_SMTP_ENC_OFF );
 		}

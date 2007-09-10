@@ -123,7 +123,7 @@ function imapDebugLog( $string ) {
 // Connect to the given IMAP server and login.
 // Returns a socket stream if successful, or an error message on failure.
 // Check the return value with is_resource().
-function imapConnectAndLogin( $server, $port, $ssl, $username, $password ) {
+function imapConnectAndLogin( $server, $port, $ssl, $tls, $username, $password ) {
 
 	// Open our socket connection to the server.
 	if ( $ssl ) $server = "tls://{$server}";
@@ -145,6 +145,57 @@ function imapConnectAndLogin( $server, $port, $ssl, $username, $password ) {
 	if ( strstr( $response, "OK" ) === FALSE ) {
 		// Hmm. Something went wrong.
 		return _("Server did not respond when we opened the connection.");
+	}
+
+	// Find out the capabilities.
+	$capUID = imapGetUID();
+
+	$result = fwrite( $imap_stream, sprintf( "%s CAPABILITY\r\n", $capUID ) );
+
+	if ( $result === FALSE ) {
+		return _("Unable to write to IMAP server.");
+	}
+
+	$serverResponse = imapGetResponse( $imap_stream, $capUID );
+
+	if ( $serverResponse['code'] != "OK" ) {
+		return _("Unable to get IMAP server capabilities: ") . $serverResponse['message'];
+	}
+
+	// Upgrade to TLS? Only if we're not SSL and we wanted TLS.
+	// (This code was developed by looking at what SquirrelMail does)
+	if ( !$ssl && $tls ) {
+		if ( function_exists( 'stream_socket_enable_crypto' ) ) {
+			if ( strstr( implode( "\n", $serverResponse['otherlines'] ), 'STARTTLS' ) === false ) {
+				// Server does not support this...
+				return _("The IMAP server does not support TLS, but you have requested it.");
+			} else {
+				// Inform the server that we're about to start TLS.
+				$startUID = imapGetUID();
+
+				$result = fwrite( $imap_stream, sprintf( "%s STARTTLS\r\n", $startUID ) );
+
+				if ( $result === FALSE ) {
+					return _("Unable to write to IMAP server.");
+				}
+
+				$serverResponse = imapGetResponse( $imap_stream, $startUID );
+
+				if ( $serverResponse['code'] != "OK" ) {
+					return _("Unable to upgrade to TLS - server said: ") . $serverResponse['message'];
+				} else {
+					if ( @stream_socket_enable_crypto( $imap_stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT ) ) {
+						// All good.
+						// We should be nice and encrypted now.
+						// We also ignore RFC2595, and don't bother getting the capabilities.
+					} else {
+						return _("Unable to start TLS conversation with the server. This can be a broken certificate or another SSL error.");
+					}
+				}
+			}
+		} else {
+			return _("This version of PHP does not support TLS.");
+		}
 	}
 
 	// imapDebugLog("Server has responded.");
@@ -360,7 +411,7 @@ function imapAppendComplete( $imap_stream, $uid ) {
 // Set filename to "LICHENSOURCE" to stream the entire message's source.
 // Pass a valid resource that can be fwrite()'d as outputStream if you need to save it to a local file.
 // Returns NULL on success, error string on failure.
-function streamLargeAttachment($server, $port, $usessl, $user, $pass, $mailbox, $uid, $filename, $outputStream = NULL) {
+function streamLargeAttachment($server, $port, $usessl, $usetls, $user, $pass, $mailbox, $uid, $filename, $outputStream = NULL) {
 	global $mbox;
 
 	$getMessageSource = FALSE;
@@ -418,7 +469,7 @@ function streamLargeAttachment($server, $port, $usessl, $user, $pass, $mailbox, 
 	}
 
 	// Make the connection to the server.
-	$imap_stream = imapConnectAndLogin( $server, $port, $usessl, $user, $pass );
+	$imap_stream = imapConnectAndLogin( $server, $port, $usessl, $usetls, $user, $pass );
 	if ( !is_resource( $imap_stream ) ) {
 		return $imap_stream;
 	}
@@ -446,11 +497,11 @@ function streamLargeAttachment($server, $port, $usessl, $user, $pass, $mailbox, 
 	imapLogout( $imap_stream );
 }
 
-function streamSaveMessage($server, $port, $usessl, $user, $pass, $mailbox, $swift_ioobject, $contentSize, $extraFlags) {
+function streamSaveMessage($server, $port, $usessl, $usetls, $user, $pass, $mailbox, $swift_ioobject, $contentSize, $extraFlags) {
 	global $mbox;
 
 	// Make the connection to the server.
-	$imap_stream = imapConnectAndLogin( $server, $port, $usessl, $user, $pass );
+	$imap_stream = imapConnectAndLogin( $server, $port, $usessl, $usetls, $user, $pass );
 	if ( !is_resource( $imap_stream ) ) {
 		return $imap_stream;
 	}

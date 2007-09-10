@@ -52,8 +52,8 @@ if ( isset( $_GET['filename'] ) ) {
 //
 	include( "libs/streamattach.php" );
 
-	$result = streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
-	       $mailbox, $msgUid, $_GET['filename'] );
+	$result = streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $IMAP_USE_TLS,
+		$_SESSION['user'], $_SESSION['pass'], $mailbox, $msgUid, $_GET['filename'] );
 
 	if ( $result != NULL ) {
 		echo _("Error getting attachment: "), $result;
@@ -89,7 +89,8 @@ if ( isset( $_GET['filename'] ) ) {
 
 	include ( 'libs/streamattach.php' );
 
-	$result = streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'], $mailbox, $msgUid, "LICHENSOURCE" );
+	$result = streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $IMAP_USE_TLS,
+		$_SESSION['user'], $_SESSION['pass'], $mailbox, $msgUid, "LICHENSOURCE" );
 
 	if ( $result != NULL ) {
 		// Something went wrong.
@@ -102,7 +103,7 @@ if ( isset( $_GET['filename'] ) ) {
 // that PHP generates when not using TLS on Localhost.
 imap_errors();
 
-imap_close($mbox);
+imap_close( $mbox );
 exit;
 
 ?>
