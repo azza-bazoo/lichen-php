@@ -24,13 +24,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // Connect to the IMAP server. By default, connects to INBOX.
-function connectToServer( $user, $pass, $mailbox_to_open = "INBOX", $localRequest = false ) {
+function connectToServer( $user, $pass, $mailbox_to_open = "INBOX" ) {
 	global $mbox, $mailbox, $IMAP_CONNECT;
 
 	$mbox = @imap_open( $IMAP_CONNECT . $mailbox_to_open, $user, $pass );
-	if ( $mbox === false && !$localRequest ) {
-		die( remoteRequestFail( "IMAP", _("Can't connect: ") . imap_last_error() ) );
-	} else if ( $mbox === false ) {
+	if ( $mbox === false ) {
 		return false;
 	}
 	$mailbox = $mailbox_to_open;
@@ -44,9 +42,11 @@ function changeMailbox( $mailbox_to_use ) {
 	global $mbox, $mailbox, $IMAP_CONNECT;
 
 	if ( !@imap_reopen( $mbox, $IMAP_CONNECT . $mailbox_to_use ) ) {
-		die( remoteRequestFail( "IMAP", _("Can't connect: ") . imap_last_error() ) );
+		return false;
 	}
 	$mailbox = $mailbox_to_use;
+
+	return true;
 }
 
 // Helper sorting function used by getMailboxList().

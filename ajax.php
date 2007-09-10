@@ -30,13 +30,25 @@ session_start();
 
 if ( !isset( $_SESSION['pass'] ) || !isset( $_SESSION['user'] ) ) {
 	if ( isHtmlSession() ) {
-		// TODO: Do something here. Preferably call our dispatcher, below.
+		// Redirect the user back to the login page.
+		header( "Location: index.php?autologout" );
 	} else {
 		die( remoteRequestFailure( 'AUTH', _("Sorry, you're not logged in!") ));
 	}
 }
 
-connectToServer( $_SESSION['user'], $_SESSION['pass'], _GETORPOST( 'mailbox', $SPECIAL_FOLDERS['inbox'] ) );
+$result = connectToServer( $_SESSION['user'], $_SESSION['pass'], _GETORPOST( 'mailbox', $SPECIAL_FOLDERS['inbox'] ) );
+
+if ( !$result ) {
+	if ( isHtmlSession() ) {
+		printPageHeader();
+		echo "<div>", _("Unable to connect to the IMAP server: "), imap_last_error(), "</div>";
+		echo "</body></html>";
+		die();
+	} else {
+		die( remoteRequestFailure( 'IMAP', _("Unable to connect to the IMAP server: ") . imap_last_error() ));
+	}
+}
 
 // Load the user settings.
 $USER_SETTINGS = getUserSettings();
