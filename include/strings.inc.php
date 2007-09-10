@@ -459,6 +459,32 @@ function markupQuotedMessage( $input, $inputType, $mode ) {
 }
 
 
+// Determine the date format to use.
+// This varies depending on how old the message is.
+function chooseDateFormat( $timeStamp ) {
+	global $DATE_FORMAT_NEW, $DATE_FORMAT_OLD, $DATE_FORMAT_LONG;
+
+	$nowTimestamp = time();
+	$now = localtime( $nowTimestamp, true );
+	$msgTime = localtime( $timeStamp, true );
+
+	$format = "";
+
+	if ( $nowTimestamp - ( 60 * 60 * 24 * 6 ) < $timeStamp ) {
+		// In the last 6 days.
+		$format = $DATE_FORMAT_NEW;
+	} else if ( $msgTime['tm_year'] == $now['tm_year'] ) {
+		// In the current year.
+		$format = $DATE_FORMAT_OLD;
+	} else {
+		// Not the current year, use the full date format.
+		$format = $DATE_FORMAT_LONG;
+	}
+
+	return $format;
+}
+
+
 // Takes the e-mail header Date: and converts it to the user's local
 // time zone, formatted according to their preferences.
 // PHP 5.1 introduced much-improved timezone handling that we use if
@@ -467,7 +493,7 @@ function markupQuotedMessage( $input, $inputType, $mode ) {
 if ( version_compare( PHP_VERSION, '5.2.0', '>=' ) ) {
 
 	function processDate( $headerString, $dateFormat='' ) {
-		global $DATE_FORMAT_OLD, $DATE_FORMAT_NEW;
+		global $DATE_FORMAT_OLD, $DATE_FORMAT_NEW, $DATE_FORMAT_LONG;
 
 		if ( substr( $headerString, -3 ) == " UT" ) {
 			// Hack: UT is a valid abbreviation for UTC in
@@ -481,7 +507,7 @@ if ( version_compare( PHP_VERSION, '5.2.0', '>=' ) ) {
 		$adjustedTime = strtotime( $headerString );
 
 		if ( $dateFormat == '' ) {
-			$dateFormat = $DATE_FORMAT_OLD;
+			$dateFormat = chooseDateFormat( $adjustedTime );
 		}
 
 		return date( $dateFormat, $adjustedTime );
@@ -515,7 +541,7 @@ if ( version_compare( PHP_VERSION, '5.2.0', '>=' ) ) {
 		$adjustedTime = convertToOrFromUTC( $timestamp, $USER_SETTINGS['timezone'], 1 );
 
 		if ( $dateFormat == '' ) {
-			$dateFormat = $DATE_FORMAT_OLD;
+			$dateFormat = chooseDateFormat( $adjustedTime );
 		}
 
 		return date( $dateFormat, $adjustedTime );

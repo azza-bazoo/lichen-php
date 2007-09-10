@@ -87,7 +87,7 @@ function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 
 		// TODO: Date should be formatted elsewhere?
 		if ( isset( $headerObj->date ) ) {
-			$processedResult['localdate'] = processDate( $headerObj->date, $DATE_FORMAT_LONG );
+			$processedResult['localdate'] = processDate( $headerObj->date );
 		}
 	}
 
