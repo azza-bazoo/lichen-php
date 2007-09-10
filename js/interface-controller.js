@@ -36,6 +36,11 @@ var InterfaceController = new Class({
 		this.MessageList      = new MessageLister( this.Messages, 'list-wrapper' );
 		this.MailboxList      = new MailboxLister( 'mailboxes' );
 		this.MessageCompose   = new MessageComposer( 'comp-wrapper' );
+
+		this.ActionCounter    = 1;
+		this.historyTrail     = Array( Array( 'list', 'MessageList', 'listUpdate' ) );
+		this.historyChecker   = null;
+		this.lastHash         = "";
 	},
 
 	onLoadInit: function () {
@@ -75,6 +80,9 @@ var InterfaceController = new Class({
 			}
 			$('corner-bar').style.width = (document.body.clientWidth-128)+'px';
 		}
+
+		// Kick off the AJAX-back-button thingy.
+		this.checkUrl();
 	},
 
 	checkCount: function () {
@@ -95,7 +103,7 @@ var InterfaceController = new Class({
 		}
 	},
 
-	action: function ( mode, controller, action, data ) {
+	action: function ( mode, controller, action, data, noRecordHistory ) {
 		if ( mode && this.mode == 'compose' && mode != this.mode ) {
 			// A hack, clean up the composer if we're exiting the composer.
 			this.MessageCompose.cleanupComposer();
@@ -114,8 +122,29 @@ var InterfaceController = new Class({
 			this.setTimer();
 		}
 
+		//console.log( "%s / %s / %s", mode, controller, action );
+
 		// If a fade was in effect, finish it - action gets called on the callbacks from the
 		// server.
+
+		// Record the history of what the hell we just did.
+		// Ignore Callbacks; we don't care about them!
+		if ( !noRecordHistory && action.indexOf( 'CB' ) == -1 ) {
+			// Create a new hashpoint.
+			if ( window.location && window.location.href ) {
+				var hashIndex = window.location.href.indexOf( '#' );
+				var currentUrl = window.location.href;
+				if ( hashIndex != -1 ) {
+					currentUrl = currentUrl.substr( 0, hashIndex );
+				}
+				currentUrl += "#" + this.ActionCounter;
+				window.location = currentUrl;
+				this.ActionCounter++;
+			}
+
+			// Take a note of what this action was.
+			this.historyTrail.push( Array( mode, controller, action, data ) );
+		}
 
 		// Call the appropriate action.
 		// This looks rather grubby.
@@ -125,6 +154,34 @@ var InterfaceController = new Class({
 
 		// TODO: Make this "true" to force the href to visit the #href link.
 		return false;
+	},
+
+	checkUrl: function () {
+		//console.log( 'Checking: "%s" "%s"', window.location.hash, this.lastHash );
+		//if ( window.location && window.location.hash ) {
+			if ( window.location.hash != this.lastHash ) {
+				// Location has changed. Replay the action at that time.
+				var actionIndex = "";
+				if ( window.location.hash == "" ) {
+					actionIndex = 0;
+				} else {
+					actionIndex = window.location.hash.substr( 1 );
+					actionIndex = actionIndex.toInt();
+				}
+				//console.log( "%d is %s", actionIndex, this.historyTrail[actionIndex] );
+
+				this.lastHash = window.location.hash;
+
+				if ( this.historyTrail[actionIndex] ) {
+					this.action( this.historyTrail[actionIndex][0], this.historyTrail[actionIndex][1],
+						this.historyTrail[actionIndex][2], this.historyTrail[actionIndex][3], true );
+				}
+
+				//this.historyTrail.pop();
+			}
+		//}
+
+		this.historyChecker = setTimeout( this.checkUrl.bind( this ), 200 ); // Check every 200ms.
 	},
 
 	clearScreen: function () {
