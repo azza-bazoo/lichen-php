@@ -165,8 +165,8 @@ if ( !isHtmlSession() ) {
 		}
 
 		if ( isset( $requestResult['success'] ) && $requestResult['success'] == false ) {
-			$result .= $requestResult['errorCode'] . " / ";
-			$result .= $requestResult['errorString'];
+			$result .= _('Error:');
+			$result .= " " . $requestResult['errorString'];
 		}
 
 		if ( !empty( $result ) ) {
@@ -185,14 +185,27 @@ if ( !isHtmlSession() ) {
 	$requestParams['page']    = _GETORPOST( 'page', 0 );
 
 	// Step 1: basic page layout.
+	// We use tables so that browsers that don't support
+	// all the fancy CSS stuff do look alright.
+	// (And browsers using CSS will ignore the table)
 	ob_start();
 	printPageHeader();
-	drawToolbar( 'corner-bar', true );
+	echo "<table border=\"0\" width=\"100%\">";
+	echo "<tr><td valign=\"top\" rowspan=\"2\" style=\"border: none;\">";
 
 	// Step 2: Mailbox list (always visible)
 	echo "<ul id=\"mailboxes\">\n";
 	echo render_mailboxList( array( "mailboxList" => $mailboxList ), $requestParams );
 	echo "</ul>\n";
+	
+	echo "</td><td style=\"border: none;\">";
+	drawToolbar( 'corner-bar', true );
+
+	// Function to end the toolbar area and show the content area.
+	function html_startContentArea() {
+		echo "</td></tr>";
+		echo "<tr><td valign=\"top\" style=\"border: none;\">";
+	}
 
 	// Step 3: Run through the sequence of actions we need to do.
 	// This will involve running some request, and then running
@@ -262,6 +275,7 @@ if ( !isHtmlSession() ) {
 
 			// Show any error messages.
 			echo request_displayFlash( $saResult );
+			html_startContentArea();
 
 			// Get the list of messages.
 			$result = request_wrapper( 'mailboxContentsList' );
@@ -275,7 +289,7 @@ if ( !isHtmlSession() ) {
 			echo "<div id=\"list-wrapper\">";
 			echo render_messageList( $result, $requestParams );
 			echo "</div>";
-			
+
 			break;
 		case "comp":
 			// ---------------------
@@ -369,6 +383,7 @@ if ( !isHtmlSession() ) {
 			if ( $displayComposer ) {
 				// Show any error messages.
 				echo request_displayFlash( $result );
+				html_startContentArea();
 
 				if ( $mergeBack ) {
 					// Assemble some data that we'll need.
@@ -427,6 +442,7 @@ if ( !isHtmlSession() ) {
 			// Draw the toolbar.
 			// This toolbar is depenant on the request parameters.
 			drawToolbar( 'msg-bar', true, $requestParams );
+			html_startContentArea();
 			
 			if ( !request_failed( $result ) ) {
 				// Load data on the next/previous messages.
@@ -580,6 +596,7 @@ if ( !isHtmlSession() ) {
 
 			// Show any error messages.
 			echo request_displayFlash( $result );
+			html_startContentArea();
 
 			$requestParams['sequence'] = 'settings';
 			$requestParams['tab']      = _GETORPOST( 'tab', 'settings' );
@@ -593,14 +610,13 @@ if ( !isHtmlSession() ) {
 			echo $result['htmlFragment'];
 			echo "\n</div>";
 			break;
-		case "error";
-			break;
 		default:
 			// Do nothing.
 			break;
 	}
 
 	// Step 4. Display page footers.
+	echo "</td></tr></table>";
 	echo "</body></html>";
 	ob_flush();
 }

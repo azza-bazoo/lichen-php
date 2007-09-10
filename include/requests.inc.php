@@ -546,7 +546,7 @@ function request_uploadAttachment() {
 			}
 			$result['success']      = false;
 			$result['errorCode']    = 'UPLOAD';
-			$result['errorMessage'] = $errorMessage;
+			$result['errorString'] = $errorMessage;
 		} else {
 			$destinationDirectory = getUserDirectory() . "/attachments";
 			$serverFilename = hashifyFilename( $_FILES['comp_attachfile']['name'] );
