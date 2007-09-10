@@ -89,6 +89,16 @@ function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 		if ( isset( $headerObj->date ) ) {
 			$processedResult['localdate'] = processDate( $headerObj->date );
 		}
+
+		// Create HTML encoded versions of all of these keys, in case they have special characters.
+		// These are stored alongside. This is useful for code that displays the results of this -
+		// for example, the JavaScript, for which it would be computationaly expensive to try and
+		// insert entities for.
+		foreach ( array_keys( $processedResult ) as $key ) {
+			if ( is_string( $processedResult[$key] ) ) {
+				$processedResult["{$key}_html"] = htmlentities( $processedResult[$key] );
+			}
+		}
 	}
 
 	// ----------------------------------------------------------------

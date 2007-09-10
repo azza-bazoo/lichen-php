@@ -95,7 +95,7 @@ var MessageDisplay = new Class({
 			
 		messageNavBar += "<div class=\"header-right\">";
 		if ( adjacentMessages.previous ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.previous.uid + "'])\">" + "&laquo; " + adjacentMessages.previous.subject;
+			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.previous.uid + "'])\">" + "&laquo; " + adjacentMessages.previous.subject_html;
 			if ( adjacentMessages.next ) {
 				messageNavBar += "</a> | ";
 			} else {
@@ -103,7 +103,7 @@ var MessageDisplay = new Class({
 			}
 		}
 		if ( adjacentMessages.next ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.next.uid + "'])\">" + adjacentMessages.next.subject + " &raquo;" + "</a>";
+			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.next.uid + "'])\">" + adjacentMessages.next.subject_html + " &raquo;" + "</a>";
 		}
 
 		messageNavBar += "</div></div>";
@@ -122,9 +122,9 @@ var MessageDisplay = new Class({
 		htmlFragment += "<option value=\"source\">" + _('message source') + "</option>";
 		htmlFragment += "</select>";
 
-		htmlFragment += "<h1 class=\"msg-head-subject\">" + message.subject + "</h1>";
-		htmlFragment += "<p class=\"msg-head-line2\">from <span class=\"msg-head-sender\">" + message.from + "</span> ";
-		htmlFragment += "at <span class=\"msg-head-date\">" + message.localdate + "</span></p>";
+		htmlFragment += "<h1 class=\"msg-head-subject\">" + message.subject_html + "</h1>";
+		htmlFragment += "<p class=\"msg-head-line2\">from <span class=\"msg-head-sender\">" + message.from_html + "</span> ";
+		htmlFragment += "at <span class=\"msg-head-date\">" + message.localdate_html + "</span></p>";
 
 		if ( message.htmlhasremoteimages ) {
 			htmlFragment += "<div class=\"msg-notification\">";

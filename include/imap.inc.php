@@ -456,6 +456,13 @@ function fetchMessages( $messageUids ) {
 		}
 		$thisMessage['dateString'] = $localDate;
 
+		// Make all the fields be HTML entity encoded.
+		foreach ( $thisMessage as $key => $value ) {
+			if ( is_string( $value ) ) {
+				$thisMessage[$key] = htmlentities( $value );
+			}
+		}
+
 		// Produce a message preview to show in the list.
 		// (We do the substr after filtering because it improves display
 		// for HTML mail, but there's one case where that method fails.)

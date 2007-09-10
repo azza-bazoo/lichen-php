@@ -438,7 +438,7 @@ function render_displayMessage( $requestData, $requestParams ) {
 	if ( $previousMessage ) {
 		$messageNavBar .= "<a href=\"ajax.php?" .
 			genLinkQuery( $requestParams, array( 'msg' => $previousMessage['uid'], 'sequence' => 'disp' ) ) .
-			"\">&laquo; " . $previousMessage['subject'];
+			"\">&laquo; " . $previousMessage['subject']; // Already HTML encoded.
 		if ( $nextMessage ) {
 			$messageNavBar .= "</a> | ";
 		} else {
@@ -448,7 +448,7 @@ function render_displayMessage( $requestData, $requestParams ) {
 	if ( $nextMessage ) {
 		$messageNavBar .= "<a href=\"ajax.php?" .
 			genLinkQuery( $requestParams, array( 'msg' => $nextMessage['uid'], 'sequence' => 'disp' ) ) .
-			"\">" . $nextMessage['subject'] . " &raquo;</a>";
+			"\">" . $nextMessage['subject'] . " &raquo;</a>"; // Already HTML encoded.
 	}
 
 	$messageNavBar .= "</div></div>\n";
