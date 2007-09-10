@@ -499,12 +499,22 @@ function request_getComposeData() {
 	$uid    = _GETORPOST( 'uid' );
 	$mailto = _GETORPOST( 'mailto' );
 
+	$result = array();
+
 	$composeData = generateComposerData( $mode, $uid, $mailto );
 
-	$result = array(
-		"success" => true,
-		"composedata" => $composeData
-	);
+	if ( $composeData == null ) {
+		$result = array(
+			"success" => false,
+			"errorCode" => "COMPOSE",
+			"errorString" => _("Error: cannot find message to reply to or forward.")
+		);
+	} else {
+		$result = array(
+			"success" => true,
+			"composedata" => $composeData
+		);
+	}
 
 	return $result;
 }

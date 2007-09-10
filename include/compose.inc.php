@@ -44,8 +44,7 @@ function generateComposerData( $mode, $uid, $mailto ) {
 		$msgArray = retrieveMessage( $uid, false );
 
 		if ( $msgArray == null ) {
-			// TODO: Don't die here. That's just bad form.
-			die( remoteRequestFailure( 'COMPOSER', _("Error: cannot find message to reply to or forward.") ) );
+			return null;
 		}
 	}
 
