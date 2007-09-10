@@ -59,9 +59,11 @@ function render_messageList( $requestData, $requestParams ) {
 	echo htmlList_createPageBar( $requestData, $requestParams, true );
 
 	if ( $requestData['search'] != "" ) {
-		echo "<div class=\"list-notification\"><strong>Search results for &#8220;",
+		echo "<div class=\"list-notification\"><strong>", _('Search results for'), " &#8220;",
 			$requestData['search'], "&#8221;</strong> ",
-			"[<a href=\"ajax.php?" . genLinkQuery( $requestParams, array(), array( "search", "page" ) ) . "\">clear search</a>]</div>";
+			"[<a href=\"ajax.php?" . genLinkQuery( $requestParams, array(), array( "search", "page" ) ) . "\">",
+			_("clear search"),
+			"</a>]</div>";
 	}
 
 	echo "<table id=\"list-data-tbl\">";
@@ -102,23 +104,31 @@ function render_messageList( $requestData, $requestParams ) {
 
 	echo "<th class=\"list-sortlabel\"><a href=\"ajax.php?",
 		genLinkQuery( $requestParams, array( 'sort' => getNextSort( $requestData['sort'], $requestData['sortAsc'], "from" ) ) ),
-		"\" id=\"list-sort-from\">sender</a>", ($requestData['sort'] == "from" ? $sortImg : "" ), "</th>";
+		"\" id=\"list-sort-from\">",
+		_('sender'),
+		"</a>", ($requestData['sort'] == "from" ? $sortImg : "" ), "</th>";
 	echo "<th class=\"list-sortlabel\"><a href=\"ajax.php?",
 		genLinkQuery( $requestParams, array( 'sort' => getNextSort( $requestData['sort'], $requestData['sortAsc'], "subject" ) ) ),
-		"\" id=\"list-sort-subject\">subject</a>", ($requestData['sort'] == "subject" ? $sortImg : "" ), "</th>";
+		"\" id=\"list-sort-subject\">",
+		_('subject'),
+		"</a>", ($requestData['sort'] == "subject" ? $sortImg : "" ), "</th>";
 	if ( $USER_SETTINGS['list_showsize'] ) {
 		echo "<th class=\"list-sortlabel\"><a href=\"ajax.php?",
 			genLinkQuery( $requestParams, array( 'sort' => getNextSort( $requestData['sort'], $requestData['sortAsc'], "size" ) ) ),
-			"\" id=\"list-sort-size\">size</a>", ($requestData['sort'] == "size" ? $sortImg : "" ), "</th>";
+			"\" id=\"list-sort-size\">",
+			_('size'),
+			"</a>", ($requestData['sort'] == "size" ? $sortImg : "" ), "</th>";
 	}
 	echo "<th class=\"list-sortlabel\"><a href=\"ajax.php?",
 		genLinkQuery( $requestParams, array( 'sort' => getNextSort( $requestData['sort'], $requestData['sortAsc'], "date" ) ) ),
-		"\" id=\"list-sort-date\">date</a>", ($requestData['sort'] == "date" ? $sortImg : "" ), "</th>";
+		"\" id=\"list-sort-date\">",
+		_('date'),
+		"</a>", ($requestData['sort'] == "date" ? $sortImg : "" ), "</th>";
 	echo "</tr></thead><tbody>";
 
 	$messages = $requestData['messages'];
 	if ( count( $messages ) == 0 ) {
-		echo "<tr><td colspan=\"5\" class=\"list-nothing\">No messages in this mailbox.</td></tr>";
+		echo "<tr><td colspan=\"5\" class=\"list-nothing\">", _('No messages in this mailbox.'), "</td></tr>";
 	}
 
 	// Hack: use a better loop later, but this avoids scoping problems.
@@ -183,7 +193,7 @@ function render_messageList( $requestData, $requestParams ) {
 		$thisRow .= "<td><a href=\"ajax.php?" . 
 			genLinkQuery( $requestParams, array( "s-{$thisMsg['uid']}" => $thisMsg['uid'], "listaction" => "flagtoggle" ) ) . "\">".
 			"<img src=\"themes/" . $USER_SETTINGS['theme'] . $flagImage . "\" id=\"f-" . $thisMsg['uid'] . 
-			"\" alt=\"\" title=\"Flag this message\" class=\"list-flag\" /></td>";
+			"\" alt=\"\" title=\"" . _('Flag this message') . "\" class=\"list-flag\" /></td>";
 
 		$displayUrl = "ajax.php?" . genLinkQuery( $requestParams, array( 'msg' => $thisMsg['uid'], 'sequence' => 'disp' ) );
 
@@ -249,7 +259,7 @@ function htmlList_createPageBar( $requestData, $requestParams, $isTopBar ) {
 
 	$newPageBar .= "<div class=\"header-left\">";
 	$newPageBar .= "<select name=\"movemessage\">";
-	$newPageBar .= "<option value=\"noop\" selected=\"selected\">move selected to ...</option>";
+	$newPageBar .= "<option value=\"noop\" selected=\"selected\">" . _('move selected to ...') . "</option>";
 
 	// Build a list of mailboxes.
 	foreach ( $requestData['mailboxList'] as $mailbox ) {
@@ -260,10 +270,10 @@ function htmlList_createPageBar( $requestData, $requestParams, $isTopBar ) {
 	}
 
 	$newPageBar .= "</select>";
-	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"move\" />";
-	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"delete\" />";
-	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"flag\" />";
-	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"mark read\" /><br />";
+	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"" . _('move') . "\" />";
+	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"" . _('delete') . "\" />";
+	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"" . _('flag') . "\" />";
+	$newPageBar .= " &nbsp; <input type=\"submit\" name=\"listaction\" value=\"" . _('mark read') . "\" /><br />";
 	if ( !$isTopBar ) {
 		$newPageBar .= "select: <a href=\"ajax.php?" .
 			genLinkQuery( $requestParams, array( "selector" => 'all' ) ) .
@@ -291,17 +301,17 @@ function htmlList_createPageBar( $requestData, $requestParams, $isTopBar ) {
 	$newPageBar .= "</div><div class=\"header-right\">";
 
 	if ( $requestData['numberpages'] > 1 ) {
-		$lowerPageLabel = "previous";
-		$upperPageLabel = "next";
+		$lowerPageLabel = _("previous");
+		$upperPageLabel = _("next");
 
 
 		if ( $requestData['sort'] == "date" ) {
 			if ( $requestData['sortAsc'] ) {
-				$lowerPageLabel = "earlier";
-				$upperPageLabel = "later";
+				$lowerPageLabel = _("earlier");
+				$upperPageLabel = _("later");
 			} else {
-				$lowerPageLabel = "later";
-				$upperPageLabel = "earlier";
+				$lowerPageLabel = _("later");
+				$upperPageLabel = _("earlier");
 			}
 		}
 
@@ -331,7 +341,7 @@ function htmlList_createPageBar( $requestData, $requestParams, $isTopBar ) {
 			$pageCounter++;
 		}
 		$newPageBar .= "</select>";
-		$newPageBar .= "<input type=\"submit\" value=\"Go\" />";
+		$newPageBar .= "<input type=\"submit\" value=\"" . _('Go') . "\" />";
 		$newPageBar .= "</form>";
 
 		// (resultObj.thispage * resultObj.pagesize + 1) + " to " + lastMsgThisPage
@@ -344,7 +354,7 @@ function htmlList_createPageBar( $requestData, $requestParams, $isTopBar ) {
 	// 		newPageBar += " | <a href=\"#\" onclick=\"MessageList.lastPage(); return false\">last</a>";
 	// 	}
 	} else if ( $requestData['numbermessages'] > 0 && !$isTopBar ) {
-		$newPageBar .= "showing 1 to " . $requestData['numbermessages'] . " of " . $requestData['numbermessages'];
+		$newPageBar .= sprintf( _("showing 1 to %d of %d"), $requestData['numbermessages'], $requestData['numbermessages'] );
 	}
 
 	$newPageBar .= "</div></div>";
@@ -362,9 +372,9 @@ function render_mailboxList( $requestData, $requestParams ) {
 
 	ob_start();
 
-	echo "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"ajax.php?" .
+	echo "<li id=\"mb-header\"><span class=\"s-head\">", _('Mailboxes'), "</span> [<a href=\"ajax.php?" .
 		genLinkQuery( $requestParams, array( "sequence" => "settings", "tab" => "mailboxes" ) ) .
-		"\">edit</a>]</li>";
+		"\">", _('edit'), "</a>]</li>";
 
 	foreach ( $requestData['mailboxList'] as $thisMailbox ) {
 		echo "<li id=\"mb-" , $thisMailbox['fullboxname'];
@@ -447,20 +457,20 @@ function render_displayMessage( $requestData, $requestParams ) {
 
 	echo genLinkForm( $requestParams, array(), array( 'mode' ), "typeChanger", "ajax.php" );
 	echo "<select id=\"mode\" name=\"mode\">";
-	echo "<option value=\"auto\">switch view ...</option>";
+	echo "<option value=\"auto\">", _('switch view ...'), "</option>";
 
 	$message = $requestData['data'];
 
 	if ( $message['texthtmlpresent'] ) {
-		echo "<option value=\"html\">HTML part</option>";
+		echo "<option value=\"html\">", _('HTML part'), "</option>";
 	}
 	if ( $message['textplainpresent'] ) {
-		echo "<option value=\"text\">text part</option>";
-		echo "<option value=\"text-mono\">monospace text</option>";
+		echo "<option value=\"text\">", _('text part'), "</option>";
+		echo "<option value=\"text-mono\">", _('monospace text'), "</option>";
 	}
-	echo "<option value=\"source\">message source</option>";
+	echo "<option value=\"source\">", _('message source'), "</option>";
 	echo "</select>";
-	echo "<input type=\"submit\" value=\"Change\" />";
+	echo "<input type=\"submit\" value=\"", _('Change'), "\" />";
 	echo "</form>";
 
 	echo "<h1 class=\"msg-head-subject\">", htmlentities( $message['subject'] ), "</h1>";
@@ -469,7 +479,9 @@ function render_displayMessage( $requestData, $requestParams ) {
 
 	if ( isset( $message['htmlhasremoteimages'] ) && $message['htmlhasremoteimages'] ) {
 		echo "<div class=\"msg-notification\">";
-		echo "Remote images are not displayed. [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteImages()\">show images</a>]";
+		echo _('Remote images are not displayed.');
+		echo " [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteImages()\">";
+		echo _('show images'), "</a>]";
 		echo "</div>";
 	}
 
@@ -500,7 +512,7 @@ function render_displayMessage( $requestData, $requestParams ) {
 				$messagePart = $messagePart[0];
 				echo "<a href=\"#\" onclick=\"Lichen.MessageDisplayer.getLargePart('",
 					$message['uid'], "', '", $message['mailbox'], "','", $messagePart, "',",
-					$i, ");return false\">This message part was too large to return directly. Click here to load it.</a>";
+					$i, ");return false\">", _('This message part was too large to return directly. Click here to load it.'), "</a>";
 			} else {
 				echo $message['textplain'][$i]; // This is linkified/cleaned on the server.
 			}
@@ -603,13 +615,13 @@ function render_composer( $requestData, $requestParams ) {
 	echo "</div> <textarea name=\"comp_to\" id=\"comp_to\">", $requestData['comp_to'], "</textarea>";
 
 	echo "<div id=\"comp-cceditor\">";
-	echo "<label class=\"comp-label\" for=\"comp_cc\">", _('CC:'), "</label> <textarea name=\"comp_cc\" id=\"comp_cc\">";
-	echo $requestData['comp_cc'];
-	echo "</textarea></div>";
+	echo "<label class=\"comp-label\" for=\"comp_cc\">", _('CC:'), "</label> <input type=\"text\" name=\"comp_cc\" id=\"comp_cc\" ";
+	echo "value=\"", $requestData['comp_cc'], "\" />"; // Already HTMLentityorised.
+	echo "</div>";
 
 	echo "<div id=\"comp-bcceditor\">";
-	echo "<label class=\"comp-label\" for=\"comp_bcc\">", _('BCC:'), "</label> <textarea name=\"comp_bcc\" id=\"comp_bcc\">";
-	echo $requestData['comp_bcc'];
+	echo "<label class=\"comp-label\" for=\"comp_bcc\">", _('BCC:'), "</label> <input type=\"text\" name=\"comp_bcc\" id=\"comp_bcc\" ";
+	echo "value=\"", $requestData['comp_bcc'], "\" />"; // Already HTMLentityorised.
 	echo "</textarea></div>";
 
 	// Build the subject area.
@@ -624,7 +636,7 @@ function render_composer( $requestData, $requestParams ) {
 
 	if ( $requestData['action'] == "forwardinline" ) {
 		// If we have an inline-forwarded message, provide a link to forward as attachment instead.
-		echo "<p><input type=\"submit\" name=\"compaction\" value=\"forward message as attachment\" /></p>";
+		echo "<p><input type=\"submit\" name=\"compaction\" value=\"", _('forward message as attachment'), "\" /></p>";
 	}
 
 	// Build a set of hidden elements with the current attachments.
@@ -637,7 +649,7 @@ function render_composer( $requestData, $requestParams ) {
 		$attachListHtml .= "<input type=\"checkbox\" name=\"comp_keepattach[{$attachCtr}]\" value=\"keep\" checked=\"checked\" />";
 		$attachListHtml .= $attachment['filename'] . " (" . $attachment['type'] . ", " . $attachment['size'] . ") ";
 		if ( $attachment['isforwardedmessage'] ) {
-			$attachListHtml .= "<input type=\"submit\" name=\"compaction\" value=\"forward inline\" />";
+			$attachListHtml .= "<input type=\"submit\" name=\"compaction\" value=\"" . _('forward inline') . "\" />";
 		}
 		$attachListHtml .= "</li>";
 
@@ -649,8 +661,8 @@ function render_composer( $requestData, $requestParams ) {
 	// TODO: The values (the descriptions on the buttons) are not translatable - the dispatcher code uses it to figure out
 	// what the hell the user clicked.
 	echo "<br />";
-	echo "<input type=\"submit\" name=\"compaction\" value=\"Send Message\" />";
-	echo "<input type=\"submit\" name=\"compaction\" value=\"Save Draft\" />";
+	echo "<input type=\"submit\" name=\"compaction\" value=\"" . _('Send Message') . "\" />";
+	echo "<input type=\"submit\" name=\"compaction\" value=\"" . _('Save Draft') . "\" />";
 	
 	// Build a list of attachments.
 	echo "<div class=\"sidebar-panel\" id=\"comp-attachments\">";
@@ -665,7 +677,7 @@ function render_composer( $requestData, $requestParams ) {
 	echo "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"", $requestData['maxattachmentsize'], "\" />";
 	echo "<label for=\"comp_attachfile\">", _('add new'), "</label><br />";
 	echo "<input type=\"file\" name=\"comp_attachfile\" id=\"comp_attachfile\" />";
-	echo "<div class=\"comp-attach-submit\"><input type=\"submit\" name=\"compaction\" value=\"upload file\" /></div>";
+	echo "<div class=\"comp-attach-submit\"><input type=\"submit\" name=\"compaction\" value=\"" . _('upload file') . "\" /></div>";
 	//echo "</form></div>";
 	echo "</div>";
 	

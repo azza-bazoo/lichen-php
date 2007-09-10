@@ -181,8 +181,7 @@ if ( !isHtmlSession() ) {
 		}
 
 		if ( !empty( $result ) ) {
-			$result = "<div id=\"notification\" style=\"display: block;\">" . htmlentities( $result );
-			$result .= "</div>";
+			$result = "<div id=\"notification\" style=\"display: block;\">" . $result . "</div>";
 		}
 
 		return $result;
@@ -251,28 +250,28 @@ if ( !isHtmlSession() ) {
 
 				// Determine what action to take and make it happen!
 				switch ( $subaction ) {
-					case 'move':
+					case _('move'):
 						// Move messages to a given mailbox.
 						$_POST['destbox'] = substr( _GETORPOST( 'movemessage' ), 5 );
 
 						$saResult = request_moveMessage();
 						break;
-					case 'delete':
+					case _('delete'):
 						$saResult = request_deleteMessage();
 						break;
-					case 'flag':
+					case _('flag'):
 						$_POST['flag'] = 'flagged';
 						$_POST['state'] = "true";
 
 						$saResult = request_setFlag();
 						break;
-					case 'flagtoggle':
+					case 'flagtoggle': // Not translated: internal only.
 						$_POST['flag'] = 'flagged';
 						$_POST['state'] = "toggle";
 
 						$saResult = request_setFlag();
 						break;
-					case 'mark read':
+					case _('mark read'):
 						$_POST['flag'] = "seen";
 						$_POST['state'] = "true";
 
@@ -334,9 +333,9 @@ if ( !isHtmlSession() ) {
 
 			switch ( $compAction ) {
 				// Force the mode of the forward. This is a hack...
-				case "forward inline":
+				case _("forward inline"):
 					$_POST['mode'] = "forwardinline";
-				case "forward message as attachment":
+				case _("forward message as attachment"):
 					if ( !isset( $_POST['mode'] ) || $_POST['mode'] != "forwardinline" ) {
 						$_POST['mode'] = "forwardasattach";
 					}
@@ -348,7 +347,7 @@ if ( !isHtmlSession() ) {
 					$result = request_wrapper( 'getComposeData' );
 					$result = array_merge( $result, $result['composedata'] );
 					break;
-				case "Send Message":
+				case _("Send Message"):
 					$result = request_wrapper( 'sendMessage' );
 
 					if ( !request_failed( $result ) ) {
@@ -359,7 +358,7 @@ if ( !isHtmlSession() ) {
 						$mergeBack = true;
 					}
 					break;
-				case "Save Draft":
+				case _("Save Draft"):
 					// Force request_sendMessage to save a draft instead.
 					$_POST['draft'] = true;
 
@@ -373,7 +372,7 @@ if ( !isHtmlSession() ) {
 						$result['comp_draftuid'] = $result['draftUid'];
 					}
 					break;
-				case "upload file":
+				case _("upload file"):
 					// Uploaded a new file...
 
 					$result = request_wrapper( 'uploadAttachment' );
