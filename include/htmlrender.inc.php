@@ -6,7 +6,7 @@ version 0.3 by Hourann Bosci and Daniel Foote
 http://lichen-mail.org/
 
 --------------------------------------------------------------------------------
-include/htmlrender.php - HTML renderer for the HTML version of Lichen
+include/htmlrender.inc.php - HTML renderer for the HTML version of Lichen
 --------------------------------------------------------------------------------
 
 This file is part of Lichen. Lichen is free software; you can redistribute it
