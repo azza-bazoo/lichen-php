@@ -25,77 +25,14 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 window.onload = if_init;
 
-var msgCount = 0;
-//var lastUIDconst = "";
-//var lastShownUID = "";
-//var listCurrentMailbox = 'INBOX';
-//var listCurrentPage = 0;
-//var listCurrentSearch = '';
-//var listCurrentSort = userSettings.list_sortmode;
-//var mailboxCount = 0;
 var activeFadeEffect = false;
-var refreshTimer;
 var userSettings;
 
-//var MessageDisplayer;		// also a hack
-//var Flash;
-//var MailboxManager;
-//var OptionsEditor;
-//var Messages;
-//var MessageList;
 var Lichen;
 
 tinyMCE.init({mode: 'none', theme: 'advanced'});
 
 // Interface initialisation, set mailbox autorefresh
 function if_init() {
-	//opts_get();
-
 	Lichen.onLoadInit();
-	return;
-
-	// Instantiate new objects for display and storage
-	Messages = new MessagesDatastore( true );
-	OptionsEditor = new OptionsEditorClass('opts-wrapper');
-	MailboxManager = new MailboxManagerClass();
-	MessageDisplayer = new MessageDisplay( 'msg-wrapper' );
-	Flash = new FlashArea('notification');
-
-	// Load mailbox list
-	// TODO: the message list display steps (started by list_show() below)
-	// rely on this to have completed to get a mailbox listing for the
-	// "move message to" dropdown.
-	Messages.fetchMailboxList();
-	refreshTimer = setTimeout( list_checkCount, 5 * 60 * 1000 );
-
-	// Load default mailbox (inbox)
-	MessageList.listUpdate();
-
-	// Workaround for a bug in KHTML
-	if ( window.khtml ) {
-		var tbWidth = (window.innerWidth-350) + 'px';
-		$('list-bar').style.width = tbWidth;
-		$('comp-bar').style.width = tbWidth;
-		$('opts-bar').style.width = tbWidth;
-		$('msg-bar').style.width = tbWidth;
-//		var _subjWidth = window.getWidth - 411;
-//		document.write("<style type=\"text/css\">td.subject { width: "+_subjWidth+"px; }</style>");
-	}
-
-	if ( window.ie6 ) {
-		// PNG fix: http://homepage.ntlworld.com/bobosola/
-		for( var i = 0; i < document.images.length; i ++ ) {
-			var img = document.images[i];
-			var imgName = img.src.toUpperCase();
-			if (imgName.substring(imgName.length-3, imgName.length) == "PNG") {
-				var strNewHTML = "<span style=\"width:22px;height:22px;cursor:hand;"
-				+ "display:inline-block;vertical-align:middle;"
-				+ "filter:progid:DXImageTransform.Microsoft.AlphaImageLoader"
-				+ "(src=\'" + img.src + "\', sizingMethod='crop');\"></span>";
-				img.outerHTML = strNewHTML;
-				i = i-1;
-			}
-		}
-		$('corner-bar').style.width = (document.body.clientWidth-128)+'px';
-	}
 }

@@ -65,9 +65,6 @@ var MessageDisplay = new Class({
 			mode = this.displayMode;
 		}
 
-		clearTimeout( refreshTimer );
-		if_hideWrappers();
-		if_hideToolbars();
 		$(this.wrapperdiv).empty();
 		$(this.wrapperdiv).setHTML( this._render( message, mode ) );
 		$(this.wrapperdiv).style.display = 'block';

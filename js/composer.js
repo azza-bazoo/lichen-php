@@ -376,4 +376,3 @@ var MessageComposer = new Class({
 	}
 });
 
-//var MessageCompose = new MessageComposer( 'comp-wrapper' );

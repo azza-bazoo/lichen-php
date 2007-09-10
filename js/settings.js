@@ -272,19 +272,3 @@ function opts_getCB( responseText ) {
 	userSettings = result.settings;
 }
 
-
-// Save our settings to the server.
-// function opts_save() {
-// //	if_remoteRequestStart();
-// 	new Ajax( 'ajax.php', {
-// 		postBody: 'request=saveUserSettings&settings=' + encodeURIComponent( Json.toString( userSettings ) ),
-// 		onComplete: opts_saveCB,
-// 		onFailure: if_remoteRequestFailed
-// 		} ).request();
-// }
-
-
-// function opts_saveCB( responseText ) {
-// 	var result = if_checkRemoteResult( responseText );
-// 	if (!result) return;
-// }

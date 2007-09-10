@@ -24,10 +24,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var MailboxLister = new Class({
 	initialize: function ( wrapper ) {
-		this.wrapper = wrapper;
+		this.wrapper      = wrapper;
 		this.mailboxCount = 0;
 		this.lastUIDconst = 0;
 		this.mailboxCount = -1;
+		this.msgCount     = -1;
 	},
 
 	listUpdate: function () {
@@ -52,8 +53,7 @@ var MailboxLister = new Class({
 				if ( this.lastUIDconst != "" && lastUIDconst != msgCounts[i].uidConst ) {
 					Lichen.action( 'list', 'MessageList', 'listUpdate' );
 				} else if ( this.msgCount != 0 && this.msgCount != msgCounts[i].messages ) {
-					// TODO: this should be a less intrusive "add new
-					// message rows", not a complete refresh.
+					// Refresh the mailbox list. There are new/different messages.
 					Lichen.action( 'list', 'MessageList', 'listUpdate' );
 				}
 				this.lastUIDconst = msgCounts[i].uidConst;
@@ -147,12 +147,4 @@ var MailboxLister = new Class({
 		return false;
 	}
 });
-
-// Refresh the mailbox listing and set a timeout to do it again in five minutes
-//function list_checkCount() {
-//	Messages.fetchMailboxList();
-//	refreshTimer = setTimeout( list_checkCount, 5 * 60 * 1000 );
-//}
-
-//var MailboxList = new MailboxLister( 'mailboxes' );
 

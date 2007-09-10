@@ -210,7 +210,6 @@ var MessageLister = new Class({
 
 		tableContents += "<thead><tr class=\"list-sortrow\">";
 
-		// TODO: maybe select all/none instead of invert
 		tableContents += "<th><input type=\"checkbox\" id=\"list-check-main\" value=\"0\" onclick=\"Lichen.MessageList.selectMessages(0)\" /></th><th></th>";
 
 		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-from\" id=\"list-sort-from\" onclick=\"Lichen.MessageList.setSort('from');return false\">sender</a></th>";
@@ -631,4 +630,3 @@ var MessageLister = new Class({
 	}
 });
 
-//var MessageList = new MessageLister( 'list-wrapper' );
