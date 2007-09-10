@@ -35,7 +35,7 @@ var MailboxManagerClass = new Class({
 		// plus a button to submit it.
 		if ( $('mbm-namearea-' + fullboxname) ) {
 			var editHtml = "<input id=\"mbm-rename-" + fullboxname + "\" type=\"text\" size=\"20\" value=\"" + boxname + "\" />";
-			editHtml += "<button onclick=\"Lichen.MailboxManager.renameDone('" + fullboxname + "', '" + boxname + "');return false\">save</button> <button onclick=\"Lichen.MailboxManager.renameCancel('" + fullboxname + "');return false\">cancel</button> ";
+			editHtml += "<button onclick=\"Lichen.MailboxManager.renameDone('" + fullboxname + "', '" + boxname + "');return false\">" + _('save') + "</button> <button onclick=\"Lichen.MailboxManager.renameCancel('" + fullboxname + "');return false\">" + _('cancel') + "</button> ";
 
 			$('mbm-namearea-' + fullboxname).setHTML( editHtml );
 
@@ -83,7 +83,7 @@ var MailboxManagerClass = new Class({
 	},
 
 	mailboxDelete: function ( fullboxname, boxname ) {
-		if ( confirm("Are you sure you want to delete '" + boxname + "'?\nAll messages in this mailbox will be deleted.\nThis cannot be undone.") ) {
+		if ( confirm(_("Are you sure you want to delete '") + boxname + _("'?\nAll messages in this mailbox will be deleted.\nThis cannot be undone.")) ) {
 //			if_remoteRequestStart();
 			new Ajax( 'ajax.php', {
 				postBody: 'request=mailboxAction&action=delete&mailbox1=' + encodeURIComponent(fullboxname),
@@ -101,9 +101,9 @@ var MailboxManagerClass = new Class({
 
 		if ( nameArea ) {
 			var childHtml = "<div id=\"mbm-newchild-wrapper-" + fullboxname + "\">";
-			childHtml += "New Subfolder: <input id=\"mbm-newchild-" + fullboxname + "\" type=\"text\" size=\"20\" />";
-			childHtml += "<button onclick=\"Lichen.MailboxManager.newChildSubmit('" + fullboxname + "'); return false\">Add</button>";
-			childHtml += "<button onclick=\"Lichen.MailboxManager.newChildCancel('" + fullboxname + "'); return false\">Cancel</button>";
+			childHtml += _("New Subfolder:") + " <input id=\"mbm-newchild-" + fullboxname + "\" type=\"text\" size=\"20\" />";
+			childHtml += "<button onclick=\"Lichen.MailboxManager.newChildSubmit('" + fullboxname + "'); return false\">" + _('Add') + "</button>";
+			childHtml += "<button onclick=\"Lichen.MailboxManager.newChildCancel('" + fullboxname + "'); return false\">" + _('Cancel') + "</button>";
 			childHtml += "</div>";
 
 			nameArea.setHTML( childHtml );
@@ -146,9 +146,9 @@ var MailboxManagerClass = new Class({
 
 		if ( nameArea ) {
 			var childHtml = "<div id=\"mbm-changeparent-wrapper-" + fullboxname + "\">";
-			childHtml += "Move to subfolder of: ";
+			childHtml += _("Move to subfolder of: ");
 			childHtml += "<select id=\"mbm-changeparent-" + fullboxname + "\">";
-			childHtml += "<option value=\"\">[Top Level]</option>";
+			childHtml += "<option value=\"\">" + _('[Top Level]') + "</option>";
 			for ( var i = 0; i < this.mailboxCache.length; i++ ) {
 				var thisMailbox = this.mailboxCache[i];
 				childHtml += "<option value=\"" + thisMailbox.fullboxname + "\"";
@@ -164,8 +164,8 @@ var MailboxManagerClass = new Class({
 			}
 			childHtml += "</select>";
 
-			childHtml += "<button onclick=\"Lichen.MailboxManager.changeParentSubmit('" + fullboxname + "', '" + boxname + "'); return false\">Move</button>";
-			childHtml += "<button onclick=\"Lichen.MailboxManager.changeParentCancel('" + fullboxname + "', '" + boxname + "'); return false\">Cancel</button>";
+			childHtml += "<button onclick=\"Lichen.MailboxManager.changeParentSubmit('" + fullboxname + "', '" + boxname + "'); return false\">" + _('Move') + "</button>";
+			childHtml += "<button onclick=\"Lichen.MailboxManager.changeParentCancel('" + fullboxname + "', '" + boxname + "'); return false\">" + _('Cancel') + "</button>";
 			childHtml += "</div>";
 
 			nameArea.setHTML( childHtml );

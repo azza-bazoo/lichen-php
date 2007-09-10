@@ -187,9 +187,10 @@ var MessageLister = new Class({
 		tableContents += this._createPageBar( resultObj, true );
 
 		if ( this.search != "" ) {
-			tableContents += "<div class=\"list-notification\"><strong>Search results for &#8220;"
+			tableContents += "<div class=\"list-notification\"><strong>" + _('Search results for') + " &#8220;"
 				+ this.search + "&#8221;</strong> "
-				+ "[<a href=\"#clearsearch\" onclick=\"return Lichen.action('list','MessageList','setSearch',[''])\">clear search</a>]</div>";
+				+ "[<a href=\"#clearsearch\" onclick=\"return Lichen.action('list','MessageList','setSearch',[''])\">"
+				+ _('clear search') + "</a>]</div>";
 		}
 
 		tableContents += "<table id=\"list-data-tbl\">";
@@ -212,16 +213,16 @@ var MessageLister = new Class({
 
 		tableContents += "<th><input type=\"checkbox\" id=\"list-check-main\" value=\"0\" onclick=\"Lichen.MessageList.selectMessages(0)\" /></th><th></th>";
 
-		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-from\" id=\"list-sort-from\" onclick=\"Lichen.MessageList.setSort('from');return false\">sender</a></th>";
-		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-subject\" id=\"list-sort-subject\" onclick=\"Lichen.MessageList.setSort('subject');return false\">subject</a></th>";
+		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-from\" id=\"list-sort-from\" onclick=\"Lichen.MessageList.setSort('from');return false\">" + _('sender') + "</a></th>";
+		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-subject\" id=\"list-sort-subject\" onclick=\"Lichen.MessageList.setSort('subject');return false\">" + _('subject') + "</a></th>";
 		if ( userSettings.list_showsize ) {
-			tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-size\" id=\"list-sort-size\" onclick=\"Lichen.MessageList.setSort('size');return false\">size</a></th>";
+			tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-size\" id=\"list-sort-size\" onclick=\"Lichen.MessageList.setSort('size');return false\">" + _('size') + "</a></th>";
 		}
-		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-date\" id=\"list-sort-date\" onclick=\"Lichen.MessageList.setSort('date');return false\">date</a></th>";
+		tableContents += "<th class=\"list-sortlabel\"><a href=\"#sort-date\" id=\"list-sort-date\" onclick=\"Lichen.MessageList.setSort('date');return false\">" + _('date') + "</a></th>";
 		tableContents += "</tr></thead><tbody>";
 
 		if ( messages.length == 0 ) {
-			tableContents += "<tr><td colspan=\"5\" class=\"list-nothing\">No messages in this mailbox.</td></tr>";
+			tableContents += "<tr><td colspan=\"5\" class=\"list-nothing\">" + _('No messages in this mailbox.') + "</td></tr>";
 		}
 
 		// Hack: use a better loop later, but this avoids scoping problems.
@@ -325,7 +326,7 @@ var MessageLister = new Class({
 
 		newPageBar += "<div class=\"header-left\">";
 		newPageBar += "<select onchange=\"Lichen.MessageList.withSelected(this)\">";
-		newPageBar += "<option value=\"noop\" selected=\"selected\">move selected to ...</option>";
+		newPageBar += "<option value=\"noop\" selected=\"selected\">" + _('move selected to ...') + "</option>";
 
 		// Build a list of mailboxes.
 		// Only use a version that the MessagesDatastore has cached.
@@ -345,33 +346,33 @@ var MessageLister = new Class({
 		}
 
 		newPageBar += "</select>";
-		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.deleteMessages();return false\" value=\"delete\" />";
-		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.withSelected(null, 'flag');return false\" value=\"flag\" />";
-		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.withSelected(null, 'markseen');return false\" value=\"mark read\" /><br />";
+		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.deleteMessages();return false\" value=\"" + _('delete') + "\" />";
+		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.withSelected(null, 'flag');return false\" value=\"" + _('flag') + "\" />";
+		newPageBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.withSelected(null, 'markseen');return false\" value=\"" + _('mark read') + "\" /><br />";
 
 		if ( !isTopBar ) {
-			newPageBar += "select: <a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(1);return false\">all</a> | ";
-			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(2);return false\">none</a> | ";
-			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(3);return false\">read</a> | ";
-			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(4);return false\">unread</a> | ";
-			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(5);return false\">flagged</a> | ";
-			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(6);return false\">unflagged</a> | ";
-			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(0);return false\">invert</a>";
+			newPageBar += "select: <a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(1);return false\">" + _('all') + "</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(2);return false\">" + _('none') + "</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(3);return false\">" + _('read') + "</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(4);return false\">" + _('unread') + "</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(5);return false\">" + _('flagged') + "</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(6);return false\">" + _('unflagged') + "</a> | ";
+			newPageBar += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(0);return false\">" + _('invert') + "</a>";
 		}
 
 		newPageBar += "</div><div class=\"header-right\">";
 
 		if ( resultObj.numberpages > 1 ) {
-			var lowerPageLabel = "previous";
-			var upperPageLabel = "next";
+			var lowerPageLabel = _("previous");
+			var upperPageLabel = _("next");
 
 			if ( this.sort == "date" ) {
 				if ( this.sortAsc ) {
-					lowerPageLabel = "earlier";
-					upperPageLabel = "later";
+					lowerPageLabel = _("earlier");
+					upperPageLabel = _("later");
 				} else {
-					lowerPageLabel = "later";
-					upperPageLabel = "earlier";
+					lowerPageLabel = _("later");
+					upperPageLabel = _("earlier");
 				}
 			}
 
@@ -410,7 +411,7 @@ var MessageLister = new Class({
 		// 		newPageBar += " | <a href=\"#\" onclick=\"MessageList.lastPage(); return false\">last</a>";
 		// 	}
 		} else if ( resultObj.numbermessages > 0 && !isTopBar ) {
-			newPageBar += "showing 1 to " + resultObj.numbermessages + " of " + resultObj.numbermessages;
+			newPageBar += _("showing 1 to ") + resultObj.numbermessages + _(" of ") + resultObj.numbermessages;
 		}
 
 		newPageBar += "</div></div>";
@@ -568,7 +569,7 @@ var MessageLister = new Class({
 		}
 
 		if ( uidsAffected.length > 1 ) {
-			Lichen.Flash.flashMessage( "Updated " + uidsAffected.length + " messages." );
+			Lichen.Flash.flashMessage( _("Updated ") + uidsAffected.length + _(" messages.") );
 		}
 
 		// Update the flag indicator ...?

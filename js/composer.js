@@ -72,7 +72,7 @@ var MessageComposer = new Class({
 		var action = compData.comp_mode;
 
 		// Right-side float here is to prevent IE7 from collapsing the div
-		composer = "<div class=\"header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">New message</div></div>";
+		composer = "<div class=\"header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">" + _('New message') + "</div></div>";
 
 		composer += "<form action=\"" + lichenURL + "\" method=\"post\" id=\"compose\" onsubmit=\"Lichen.MessageCompose.sendMessage();return false\">";
 
@@ -95,7 +95,7 @@ var MessageComposer = new Class({
 			composer += "<input name=\"comp_identity\" id=\"comp_identity\" type=\"hidden\" value=\"" +
 			       compData.identities[0].address + "\" />";
 		} else {
-			composer += "<label class=\"comp-label\" for=\"comp_identity\">From:</label> <select name=\"comp_identity\" id=\"comp_identity\">";
+			composer += "<label class=\"comp-label\" for=\"comp_identity\">" + _('From:') + "</label> <select name=\"comp_identity\" id=\"comp_identity\">";
 			for ( var i = 0; i < compData.identities.length; i++ ) {
 				var identity = compData.identities[i];
 				composer += "<option value=\"" + identity.address + "\"";
@@ -118,29 +118,29 @@ var MessageComposer = new Class({
 		}
 
 		// Build to To: area, including buttons to display CC and BCC fields
-		composer += "<div class=\"comp-label\"><label for=\"comp_to\">To:</label>";
+		composer += "<div class=\"comp-label\"><label for=\"comp_to\">" + _('To:') + "</label>";
 
-		composer += "<p class=\"comp-add-fields\"><a id=\"comp-ccshow\" href=\"#\"" + ( compData.show_cc ? " style=\"display:none\"" : "" ) + " onclick=\"$('comp-cceditor').style.display='block';$('comp-ccshow').style.display='none';return false\">add CC</a>";
-		composer += " <a id=\"comp-bccshow\" href=\"#\"" + ( compData.show_bcc ? " style=\"display:none\"" : "" ) + " onclick=\"$('comp-bcceditor').style.display='block';$('comp-bccshow').style.display='none';return false\">add BCC</a></p>";
+		composer += "<p class=\"comp-add-fields\"><a id=\"comp-ccshow\" href=\"#\"" + ( compData.show_cc ? " style=\"display:none\"" : "" ) + " onclick=\"$('comp-cceditor').style.display='block';$('comp-ccshow').style.display='none';return false\">" + _('add CC') + "</a>";
+		composer += " <a id=\"comp-bccshow\" href=\"#\"" + ( compData.show_bcc ? " style=\"display:none\"" : "" ) + " onclick=\"$('comp-bcceditor').style.display='block';$('comp-bccshow').style.display='none';return false\">" + _('add BCC') + "</a></p>";
 
 		composer += "</div> <textarea name=\"comp_to\" id=\"comp_to\">" + compData.comp_to + "</textarea>";
 
 		composer += "<div id=\"comp-cceditor\" style=\"display: " + ( compData.show_cc ? "block" : "none" ) + ";\">";
-		composer += "<label class=\"comp-label\" for=\"comp_cc\">CC:</label> <textarea name=\"comp_cc\" id=\"comp_cc\">";
+		composer += "<label class=\"comp-label\" for=\"comp_cc\">" + _('CC:') + "</label> <textarea name=\"comp_cc\" id=\"comp_cc\">";
 		composer += compData.comp_cc;
 		composer += "</textarea></div>";
 
 		composer += "<div id=\"comp-bcceditor\" style=\"display: " + ( compData.show_bcc ? "block" : "none" ) + ";\">";
-		composer += "<label class=\"comp-label\" for=\"comp_bcc\">BCC:</label> <textarea name=\"comp_bcc\" id=\"comp_bcc\">";
+		composer += "<label class=\"comp-label\" for=\"comp_bcc\">" + _('BCC:') + "</label> <textarea name=\"comp_bcc\" id=\"comp_bcc\">";
 		composer += compData.comp_bcc;
 		composer += "</textarea></div>";
 
 		// Build the subject area.
-		composer += "<label class=\"comp-label\" for=\"comp_subj\">Subject:</label> <input type=\"text\" name=\"comp_subj\" id=\"comp_subj\" value=\"";
+		composer += "<label class=\"comp-label\" for=\"comp_subj\">" + _('Subject:') + "</label> <input type=\"text\" name=\"comp_subj\" id=\"comp_subj\" value=\"";
 		composer += compData.comp_subj + "\" />";
 
-		composer += "<div><a href=\"#\" onclick=\"Lichen.MessageCompose.makeHTMLMail();return false\">HTML Message</a> | ";
-		composer += "<a href=\"#\" onclick=\"Lichen.MessageCompose.makePlainMail();return false\">Plain Message</a></div>";
+		composer += "<div><a href=\"#\" onclick=\"Lichen.MessageCompose.makeHTMLMail();return false\">" + _('HTML Message') + "</a> | ";
+		composer += "<a href=\"#\" onclick=\"Lichen.MessageCompose.makePlainMail();return false\">" + _('Plain Message') + "</a></div>";
 
 		// Build the text area. Text only at the moment.
 		composer += "<textarea name=\"comp_msg\" id=\"comp_msg\">";
@@ -150,7 +150,7 @@ var MessageComposer = new Class({
 		if ( action == "forwardinline" ) {
 			// If we have an inline-forwarded message, provide a link to forward as attachment instead.
 			// TODO: If the user clicks this, it WILL NOT preserve the message content or anything!
-			composer += "<p><a href=\"#\" onclick=\"Lichen.MessageCompose.showComposer('forwardasattach',Lichen.MessageDisplayer.getViewedUID()); return false\">&raquo; forward message as attachment</a></p>";
+			composer += "<p><a href=\"#\" onclick=\"Lichen.MessageCompose.showComposer('forwardasattach',Lichen.MessageDisplayer.getViewedUID()); return false\">&raquo; " + _('forward message as attachment') + "</a></p>";
 		}
 
 		// Build a set of hidden elements with the current attachments.
@@ -161,10 +161,10 @@ var MessageComposer = new Class({
 
 			attachListHtml += "<li>" + attachment.filename + " (" + attachment.type + ", " + attachment.size + ") ";
 			if ( attachment.isforwardedmessage ) {
-				attachListHtml += "<a href=\"#\" onclick=\"Lichen.MessageCompose.showComposer('forwardinline',Lichen.MessageDisplayer.getViewedUID()); return false\">[forward inline]</a>";
+				attachListHtml += "<a href=\"#\" onclick=\"Lichen.MessageCompose.showComposer('forwardinline',Lichen.MessageDisplayer.getViewedUID()); return false\">" + _('[forward inline]') + "</a>";
 			} else {
 				attachListHtml += "<a href=\"#\" onclick=\"Lichen.MessageCompose.removeAttachment('" + encodeURIComponent( attachment.filename ) + "');return false\">";
-				attachListHtml += "[remove]</a>";
+				attachListHtml += _("[remove]") + "</a>";
 			}
 			attachListHtml += "</li>";
 
@@ -176,7 +176,7 @@ var MessageComposer = new Class({
 	
 		// Build a list of attachments.
 		composer += "<div class=\"sidebar-panel\" id=\"comp-attachments\">";
-		composer += "<h2 class=\"sidebar-head\"><img src=\"themes/" + userSettings.theme + "/icons/attach.png\" alt=\"\" /> attachments</h2>";
+		composer += "<h2 class=\"sidebar-head\"><img src=\"themes/" + userSettings.theme + "/icons/attach.png\" alt=\"\" /> " + _('attachments') + "</h2>";
 	
 		composer += "<ul id=\"comp-attachlist\">";
 		composer += attachListHtml;
@@ -187,9 +187,9 @@ var MessageComposer = new Class({
 		composer += "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return Lichen.MessageCompose.asyncUploadFile($('comp-uploadform'))\">";
 		composer += "<input type=\"hidden\" name=\"request\" id=\"request\" value=\"uploadAttachment\" />";
 		composer += "<input type=\"hidden\" name=\"MAX_FILE_SIZE\" value=\"" + compData.maxattachmentsize + "\" />";
-		composer += "<label for=\"comp_attachfile\">add new</label><br />";
+		composer += "<label for=\"comp_attachfile\">" + _('add new') + "</label><br />";
 		composer += "<input type=\"file\" name=\"comp_attachfile\" id=\"comp_attachfile\" />";
-		composer += "<div class=\"comp-attach-submit\"><input type=\"submit\" value=\"upload file\" /></div>";
+		composer += "<div class=\"comp-attach-submit\"><input type=\"submit\" value=\"" + _('upload file') + "\" /></div>";
 		composer += "<input type=\"hidden\" name=\"upattach\" value=\"1\" />";
 		composer += "</form></div>";
 
@@ -204,9 +204,9 @@ var MessageComposer = new Class({
 		// Temporary hack to give sending or saving feedback, until
 		// interface feedback is properly rewritten.
 		if ( saveDraft ) {
-			Lichen.Flash.flashMessage( "Saving draft ..." );
+			Lichen.Flash.flashMessage( _("Saving draft ...") );
 		} else {
-			Lichen.Flash.flashMessage( "Sending message ..." );
+			Lichen.Flash.flashMessage( _("Sending message ...") );
 		}
 
 		var parameters = "request=sendMessage&";
@@ -246,7 +246,7 @@ var MessageComposer = new Class({
 			if ( min < 10 ) { min = '0'+min; }
 			if ( hr == 0 ) { hr = '12'; }
 			if ( hr > 12 ) { hr = hr-12; min += ' PM'; } else { min += ' AM'; }
-			Lichen.Flash.flashMessage( 'Draft saved at ' + hr + ':' + min );
+			Lichen.Flash.flashMessage( _('Draft saved at') + ' ' + hr + ':' + min );
 
 		} else {
 			// TODO: determine if we're returning to a message list or
@@ -363,7 +363,7 @@ var MessageComposer = new Class({
 
 		var displayAttach = new Element('li');
 		displayAttach.setHTML( result.filename + " (" + result.type + ", " + result.size + " bytes)" +
-			" (<a href=\"#\" onclick=\"Lichen.MessageCompose.removeAttachment('" + escape(result.filename) + "');return false\">remove</a>)" );
+			" (<a href=\"#\" onclick=\"Lichen.MessageCompose.removeAttachment('" + escape(result.filename) + "');return false\">" + _('remove') + "</a>)" );
 		$('comp-attachlist').adopt( displayAttach );
 
 		var uploadedFile = new Element('input');

@@ -73,7 +73,7 @@ function if_logoutSilentCB( responseText ) {
 	var result = if_checkRemoteResult( responseText );
 	if (!result) return;
 
-	Flash.flashMessage( "Silently logged out." );
+	Flash.flashMessage( _("Silently logged out.") );
 }
 
 

@@ -61,7 +61,7 @@ var MailboxLister = new Class({
 
 				// Update the highlight in the mailbox list, and the page title
 				$('mb-'+Lichen.MessageList.getMailbox()).addClass('mb-active');
-				document.title = msgCounts[i].mailbox +' ('+msgCounts[i].unseen+' unread, '+msgCounts[i].messages+' total)';
+				document.title = msgCounts[i].mailbox +' ('+msgCounts[i].unseen+' '+_('unread')+', '+msgCounts[i].messages+' '+_('total')+')';
 			}
 
 			var countresult = "";
@@ -92,7 +92,7 @@ var MailboxLister = new Class({
 		// IF YOU CHANGE THIS CODE, CHANGE THE MATCHING CODE IN
 		// include/htmlrender.php AS WELL.
 
-		var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">Mailboxes</span> [<a href=\"#manage-mailboxes\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\">edit</a>]</li>";
+		var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">" + _('Mailboxes') + "</span> [<a href=\"#manage-mailboxes\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\">" + _('edit') + "</a>]</li>";
 
 		for ( var i = 0; i < mailboxes.length; i++ ) {
 

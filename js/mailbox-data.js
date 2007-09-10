@@ -55,7 +55,7 @@ var MessagesDatastore = new Class({
 
 		if ( !this.online && !result ) {
 			// Cache miss + not online! Unable to do as the user wishes.
-			Lichen.Flash.flashMessage( "Not online, and that data is not cached." );
+			Lichen.Flash.flashMessage( _("Not online, and that data is not cached.") );
 		}
 	},
 
@@ -220,7 +220,7 @@ var MessagesDatastore = new Class({
 			Lichen.MailboxList.listUpdateCB( result );
 		} else {
 			// Not online, not in cache.
-			Lichen.Flash.flashMessage( "Unable to fetch mailbox list: not online and not cached." );
+			Lichen.Flash.flashMessage( _("Unable to fetch mailbox list: not online and not cached.") );
 		}
 	},
 
@@ -246,7 +246,7 @@ var MessagesDatastore = new Class({
 				this.server.messageBody( mailbox, uid, mode );
 			} else {
 				// We're not online.
-				Lichen.Flash.flashMessage( "Unable to view message: in offline mode, and not cached." );
+				Lichen.Flash.flashMessage( _("Unable to view message: in offline mode, and not cached.") );
 			}
 		}
 	},
@@ -271,7 +271,7 @@ var MessagesDatastore = new Class({
 			this.cache.storeLargePart( mailbox, uid, index, messagePart );
 			return messagePart;
 		} else {
-			return "Not online - unable to fetch that part of the message.";
+			return _("Not online - unable to fetch that part of the message.");
 		}
 	}
 });

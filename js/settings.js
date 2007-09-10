@@ -98,7 +98,7 @@ var OptionsEditorClass = new Class({
 		if (!result) return;
 
 		if ( result.errors && result.errors.length > 0 ) {
-			alert("There were some errors saving your settings.\nAny valid settings were saved.\n\n" + result.errors.join("\n"));
+			alert(_("There were some errors saving your settings.\nAny valid settings were saved.\n\n") + result.errors.join("\n"));
 		} else {
 			this.closePanel();
 		}
@@ -129,7 +129,7 @@ var OptionsEditorClass = new Class({
 
 		// TODO: check for conflicts with existing identity names
 		if ( idname == "" || idemail == "" ) {
-			Lichen.Flash.flashMessage( "Can't add an identity with a blank name or blank e-mail." );
+			Lichen.Flash.flashMessage( _("Can't add an identity with a blank name or blank e-mail.") );
 			return false;
 		}
 
@@ -169,7 +169,7 @@ var OptionsEditorClass = new Class({
 		var idemail = $('opts-identity-address').value;
 
 		if ( idname == "" || idemail == "" ) {
-			Lichen.Flash.flashMessage( "Can't edit an identity to have a blank name or blank e-mail." );
+			Lichen.Flash.flashMessage( _("Can't edit an identity to have a blank name or blank e-mail.") );
 			return false;
 		}
 

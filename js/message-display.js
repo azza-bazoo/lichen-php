@@ -91,7 +91,7 @@ var MessageDisplay = new Class({
 
 		var htmlFragment = "<div class=\"list-header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" />";
 
-		var messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"#inbox\" onclick=\"Lichen.action('list','MessageList','listUpdate');return false\">back to " + Lichen.MessageList.getMailbox() + "</a></div>";
+		var messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"#inbox\" onclick=\"Lichen.action('list','MessageList','listUpdate');return false\">" + _('back to ') + Lichen.MessageList.getMailbox() + "</a></div>";
 			
 		messageNavBar += "<div class=\"header-right\">";
 		if ( adjacentMessages.previous ) {
@@ -110,16 +110,16 @@ var MessageDisplay = new Class({
 		htmlFragment += messageNavBar;
 
 		htmlFragment += "<select id=\"msg-switch-view\" onchange=\"return Lichen.action('display','MessageDisplayer','switchView',[this.value])\">";
-		htmlFragment += "<option value=\"noop\">switch view ...</option>";
+		htmlFragment += "<option value=\"noop\">" + _('switch view ...') + "</option>";
 
 		if ( message.texthtml.length > 0 || message.texthtmlpresent ) {
-			htmlFragment += "<option value=\"html\">HTML part</option>";
+			htmlFragment += "<option value=\"html\">" + _('HTML part') + "</option>";
 		}
 		if ( message.textplain.length > 0 || message.textplainpresent ) {
-			htmlFragment += "<option value=\"text\">text part</option>";
-			htmlFragment += "<option value=\"text-mono\">monospace text</option>";
+			htmlFragment += "<option value=\"text\">" + _('text part') + "</option>";
+			htmlFragment += "<option value=\"text-mono\">" + _('monospace text') + "</option>";
 		}
-		htmlFragment += "<option value=\"source\">message source</option>";
+		htmlFragment += "<option value=\"source\">" + _('message source') + "</option>";
 		htmlFragment += "</select>";
 
 		htmlFragment += "<h1 class=\"msg-head-subject\">" + message.subject + "</h1>";
@@ -128,7 +128,7 @@ var MessageDisplay = new Class({
 
 		if ( message.htmlhasremoteimages ) {
 			htmlFragment += "<div class=\"msg-notification\">";
-			htmlFragment += "Remote images are not displayed. [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteImages()\">show images</a>]";
+			htmlFragment += _("Remote images are not displayed.") + " [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteImages()\">" + _('show images') + "</a>]";
 			htmlFragment += "</div>";
 		}
 
@@ -155,7 +155,7 @@ var MessageDisplay = new Class({
 					var messagePart = message.textplain[i].substr(15).split(")")[0];
 					htmlFragment += "<a href=\"#\" onclick=\"Lichen.MessageDisplayer.getLargePart('" +
 						message.uid + "', '" + message.mailbox + "','" + messagePart + "'," +
-						i + ");return false\">This message part was too large to return directly. Click here to load it.</a>";
+						i + ");return false\">" + ('This message part was too large to return directly. Click here to load it.') + "</a>";
 				} else {
 					htmlFragment += message.textplain[i]; // This is linkified/cleaned on the server.
 				}
@@ -234,7 +234,7 @@ var MessageDisplay = new Class({
 	getLargePart: function( uid, mailbox, part, index ) {
 		// Ask the server to fetch this part of the message.
 		// Do it synchonously.
-		$('plainmsg-' + index).setHTML( "Please wait... this might take a while..." );
+		$('plainmsg-' + index).setHTML( _("Please wait... this might take a while...") );
 
 		var contents = Lichen.Messages.fetchLargePart( mailbox, uid, part, index );
 		

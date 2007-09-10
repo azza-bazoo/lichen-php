@@ -36,3 +36,8 @@ tinyMCE.init({mode: 'none', theme: 'advanced'});
 function if_init() {
 	Lichen.onLoadInit();
 }
+
+// To support translations in JavaScript.
+function _( str ) {
+	return str;
+}

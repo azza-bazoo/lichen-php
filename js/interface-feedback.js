@@ -147,8 +147,8 @@ function if_checkRemoteResult( remoteText ) {
 
 	if (!result) {
 		// TODO: this shouldn't be an alert box.
-		alert( "Unable to Json decode what the server sent back.\n" +
-			"The server sent us: '" + remoteText + "'\n" );
+		alert( _("Unable to Json decode what the server sent back.\n The server sent us:") +
+			" '" + remoteText + "'\n" );
 		if_remoteRequestEnd();
 		return null;
 	}
@@ -164,11 +164,11 @@ function if_checkRemoteResult( remoteText ) {
 			// we can do it again!
 			var reloginBox = $('opts-wrapper');
 			var reloginHTML = "";
-			reloginHTML += "<h3>You were logged out.</h3>";
-			reloginHTML += "<p>The server said: " + result.errorMessage + "</p>";
-			reloginHTML += "<p>Enter your password to login again:</p>";
+			reloginHTML += "<h3>" + _('You were logged out.') + "</h3>";
+			reloginHTML += "<p>" + _('The server said:') + " " + result.errorMessage + "</p>";
+			reloginHTML += "<p>" + _('Enter your password to login again:') + "</p>";
 			reloginHTML += "<input type=\"password\" name=\"relogin_pass\" id=\"relogin_pass\" />";
-			reloginHTML += "<button onclick=\"if_relogin(); return false\">Login</button>";
+			reloginHTML += "<button onclick=\"if_relogin(); return false\">" + _('Login') + "</button>";
 
 			reloginBox.setHTML( reloginHTML );
 			reloginBox.setStyle( 'display', 'block' );
@@ -176,7 +176,7 @@ function if_checkRemoteResult( remoteText ) {
 		} else {
 			// Just alert the message we're given.
 			if ( result.imapNotices != "" ) {
-				Lichen.Flash.flashMessage( result.errorMessage, "IMAP messages: " + result.imapNotices );
+				Lichen.Flash.flashMessage( result.errorMessage, _("IMAP messages: ") + result.imapNotices );
 			} else {
 				Login.Flash.flashMessage( result.errorMessage, "" );
 			}
