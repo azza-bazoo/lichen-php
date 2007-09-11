@@ -448,6 +448,16 @@ function fetchMessages( $messageUids ) {
 			$subject = filterHeader( $headers->subject );
 		}
 		$thisMessage['subject'] = $subject;
+		
+		// Make all the fields be HTML entity encoded.
+		// (We do this before we process the date, below, because
+		// this doesn't need to be HTML encoded, and in fact causes
+		// odd results when it is HTML encoded.
+		foreach ( $thisMessage as $key => $value ) {
+			if ( is_string( $value ) ) {
+				$thisMessage[$key] = htmlentities( $value );
+			}
+		}
 
 		if ( isset( $headers->date ) ) {
 			$localDate = processDate( $headers->date );
@@ -456,12 +466,6 @@ function fetchMessages( $messageUids ) {
 		}
 		$thisMessage['dateString'] = $localDate;
 
-		// Make all the fields be HTML entity encoded.
-		foreach ( $thisMessage as $key => $value ) {
-			if ( is_string( $value ) ) {
-				$thisMessage[$key] = htmlentities( $value );
-			}
-		}
 
 		// Produce a message preview to show in the list.
 		// (We do the substr after filtering because it improves display
