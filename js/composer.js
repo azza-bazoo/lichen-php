@@ -26,6 +26,7 @@ var MessageComposer = new Class({
 	initialize: function ( wrapper ) {
 		this.wrapper = wrapper;
 		this.messageFormat = "text/plain";
+		this.sending = false;
 	},
 
 	// Show the form for a new message. If provided, prefill the
@@ -201,6 +202,13 @@ var MessageComposer = new Class({
 	sendMessage: function( saveDraft ) {
 	//	if_remoteRequestStart();
 
+		if ( this.sending ) {
+			Lichen.Flash.flashMessage( _("The message is sending. Please wait.") );
+			return false;
+		} else {
+			this.sending = true;
+		}
+
 		// Temporary hack to give sending or saving feedback, until
 		// interface feedback is properly rewritten.
 		if ( saveDraft ) {
@@ -230,6 +238,7 @@ var MessageComposer = new Class({
 	// Callback for message sending: return to the mailbox listing
 	// and give the user a feedback message.
 	sendMessageCB: function( responseText ) {
+		this.sending = false;
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
 
