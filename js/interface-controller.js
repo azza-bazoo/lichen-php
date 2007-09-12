@@ -129,7 +129,8 @@ var InterfaceController = new Class({
 
 		// Record the history of what the hell we just did.
 		// Ignore Callbacks; we don't care about them!
-		if ( !noRecordHistory && action.indexOf( 'CB' ) == -1 ) {
+		// Oh, and don't do anything in compose mode - it currently causes duplicates.
+		if ( !noRecordHistory && action.indexOf( 'CB' ) == -1 && mode != "compose" ) {
 			// Create a new hashpoint.
 			if ( window.location && window.location.href ) {
 				var hashIndex = window.location.href.indexOf( '#' );
