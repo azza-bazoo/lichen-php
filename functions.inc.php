@@ -29,7 +29,14 @@ if ( !file_exists( "lichen-config.php" ) ) {
 	die( _("<p><strong>Lichen isn&#8217;t set up yet.</strong></p><p>You need to edit the file <code>lichen-config-example.php</code> and save it with the name <code>lichen-config.php</code> to get started.</p><p>For more details, <a href=\"http://lichen-mail.org/docs/\">check the documentation</a>.</p>") );
 }
 
-include( "lichen-config.php" );
+// We include both files here.
+// The reason is that when we modify the example config, we often include new variables
+// that the installed version won't have in their config. This prevents those problems.
+// Obviously, this is not a long term solution - some of the variables could be critical
+// and need to be adjusted for your installation. But for the moment, this will save some
+// headaches.
+include( "lichen-config-example.php" ); // Include the defaults.
+include( "lichen-config.php" );         // The override them.
 
 $LICHEN_VERSION = "0.3";
 
