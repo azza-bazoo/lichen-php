@@ -655,7 +655,7 @@ function request_sendMessage() {
 	global $mbox, $IMAP_CONNECT, $mailbox;
 	global $IMAP_PORT, $IMAP_SERVER, $IS_SSL, $IMAP_USE_TLS;
 	global $LICHEN_VERSION, $SPECIAL_FOLDERS;
-	global $SMTP_SERVER, $SMTP_PORT, $SMTP_USE_SSL, $SMTP_AUTH;
+	global $SMTP_SERVER, $SMTP_PORT, $SMTP_USE_SSL, $SMTP_USE_TLS, $SMTP_AUTH;
 
 	include ( 'libs/Swift.php' );
 	include ( 'libs/Swift/Connection/SMTP.php' );
