@@ -451,7 +451,30 @@ function render_displayMessage( $requestData, $requestParams ) {
 			"\">" . $nextMessage['subject'] . " &raquo;</a>"; // Already HTML encoded.
 	}
 
-	$messageNavBar .= "</div></div>\n";
+	$messageNavBar .= "</div>";
+	$messageNavBar .= "<div class=\"header-left\">";
+	$overData = array();
+	if ( $nextMessage ) {
+		$overData['nextuid'] = $nextMessage['uid'];
+	}
+	$messageNavBar .= genLinkForm( $requestParams, $overData, array(), "dispmove", "ajax.php" );
+	$messageNavBar .= "<select name=\"movemessage\">";
+	$messageNavBar .= "<option value=\"noop\" selected=\"selected\">" . _('move selected to ...') . "</option>";
+
+	// Build a list of mailboxes.
+	foreach ( $requestData['mailboxList'] as $mailbox ) {
+		$messageNavBar .= "<option value=\"move-" . htmlentities( $mailbox['fullboxname'] ) . "\">";
+		$messageNavBar .= str_repeat( "-", $mailbox['folderdepth'] );
+		$messageNavBar .= $mailbox['mailbox'];
+		$messageNavBar .= "</option>";
+	}
+
+	$messageNavBar .= "</select>";
+	$messageNavBar .= " &nbsp; <input type=\"submit\" name=\"dispaction\" value=\"" . _('move') . "\" />";
+	$messageNavBar .= " &nbsp; <input type=\"submit\" name=\"dispaction\" value=\"" . _('delete message') . "\" />";
+	$messageNavBar .= "</form>";
+	$messageNavBar .= "</div>";
+	$messageNavBar .= "</div>\n";
 
 	echo $messageNavBar;
 

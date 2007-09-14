@@ -106,7 +106,34 @@ var MessageDisplay = new Class({
 			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.next.uid + "'])\">" + adjacentMessages.next.subject + " &raquo;" + "</a>";
 		}
 
-		messageNavBar += "</div></div>";
+		messageNavBar += "</div>";
+		/*
+		messageNavBar += "<div class=\"header-left\">";
+		messageNavBar += "<select onchange=\"Lichen.MessageList.withSelected(this)\">";
+		messageNavBar += "<option value=\"noop\" selected=\"selected\">" + _('move message to ...') + "</option>";
+
+		// Build a list of mailboxes.
+		// Only use a version that the MessagesDatastore has cached.
+		// TODO: Figure out how to make it synchonously request and return this data
+		// if needed. For the moment, we're relying on the fact that it's already
+		// been requested.
+		mailboxes = this.dataStore.fetchMailboxList( true );
+		if ( mailboxes ) {
+			for ( var i = 0; i < mailboxes.length; i++ ) {
+				messageNavBar += "<option value=\"move-" + mailboxes[i].fullboxname + "\">";
+				for ( var j = 0; j < mailboxes[i].folderdepth; j++ ) {
+					messageNavBar += "-";
+				}
+				messageNavBar += mailboxes[i].mailbox;
+				messageNavBar += "</option>";
+			}
+		}
+
+		messageNavBar += "</select>";
+		messageNavBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.deleteMessages();return false\" value=\"" + _('delete message') + "\" />";
+		messageNavBar += "</div>";
+		*/
+		messageNavBar += "</div>";
 		htmlFragment += messageNavBar;
 
 		htmlFragment += "<select id=\"msg-switch-view\" onchange=\"return Lichen.action('display','MessageDisplayer','switchView',[this.value])\">";

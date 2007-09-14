@@ -440,8 +440,50 @@ if ( !isHtmlSession() ) {
 			// ---------------------
 			// Display a message
 			//
+			$subaction = _GETORPOST( 'dispaction', '' );
+
+			$saResult = array(
+				"success" => true
+			);
+
+			switch ( $subaction ) {
+				case _('move'):
+					$_POST['destbox'] = substr( _GETORPOST( 'movemessage' ), 5 );
+					$_POST['uid']     = $_POST['msg'];
+
+					$saResult = request_moveMessage();
+					break;
+				case _('delete message'):
+					$_POST['uid'] = $_POST['msg'];
+					$saResult = request_deleteMessage();
+					break;
+			}
+
+			if ( request_failed( $saResult ) ) {
+				// Flash an error message.
+				// After the toolbar is drawn.
+			} else if ( !empty( $subaction ) ) {
+				// View the next message, if set. Otherwise, return to list.
+				request_setFlash( $saResult['message'] );
+				if ( isset( $_POST['nextuid'] ) ) {
+					// Slice out the UID from the boxcache list.
+					// We use this list to find the previous/next messages, and if we
+					// don't remove it from the cached list, things go strange.
+					$currentIndex = array_search( $_POST['msg'], $_SESSION['boxcache'] );
+					if ( $currentIndex !== false ) {
+						array_splice( $_SESSION['boxcache'], $currentIndex, 1 );
+					}
+					$_POST['msg'] = $_POST['nextuid'];
+				} else {
+					request_setFlash( _('End of mailbox reached.') );
+					ob_end_clean();
+					header( "Location: ajax.php?" . html_entity_decode( genLinkQuery( $requestParams, array( 'sequence' => 'list' ) ) ) );
+					die();
+				}
+			}
+
 			// Fetch the message data.
-			$result = request_getMessage();
+			$result = request_wrapper( 'getMessage' );
 
 			// Organise a few other parameters.
 			$result['sort'] = $requestParams['sort'];
@@ -452,6 +494,7 @@ if ( !isHtmlSession() ) {
 			// Draw the toolbar.
 			// This toolbar is depenant on the request parameters.
 			drawToolbar( 'msg-bar', true, $requestParams );
+			echo request_displayFlash( $saResult );
 			html_startContentArea();
 			
 			if ( !request_failed( $result ) ) {
