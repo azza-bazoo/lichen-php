@@ -381,7 +381,7 @@ var MessageComposer = new Class({
 		uploadedFile.value = result.filename;
 		$('compose').adopt( uploadedFile );
 
-		$('comp-attachfile').value = "";
+		$('comp_attachfile').value = "";
 	}
 });
 
