@@ -1032,44 +1032,65 @@ function request_identityEditor() {
 	if ( isset( $_POST['idemail'] ) ) $idemail   = $_POST['idemail'];
 	if ( isset( $_POST['idsig'] ) )   $idsig     = rtrim( $_POST['idsig'] );
 	if ( isset( $_POST['oldid'] ) )   $workingid = $_POST['oldid'];
+	
+	$result = array();
+	$result['success']    = true;
+	$result['errorCode']  = 'IDENTITY';
 
 	switch ( $action ) {
 		case "add":
 			// Add a new identity.
-			// TODO: check for conflicts with existing identity names
-			// TODO: Check for blank/invalid data!
-			array_push( $USER_SETTINGS['identities'], array(
-				"name" => $idname,
-				"address" => $idemail,
-				"signature" => $idsig,
-				"isdefault" => false
-			) );
+			if ( getUserIdentity( $idemail ) == null ) {
+				array_push( $USER_SETTINGS['identities'], array(
+					"name" => $idname,
+					"address" => $idemail,
+					"signature" => $idsig,
+					"isdefault" => false
+				) );
+			} else {
+				// Identity already exists...
+				$result['success'] = false;
+				$result['errorString'] = sprintf( _("An identity with the address '%s' already exists."), $idemail );
+			}
 			break;
 		case "delete":
 			// Delete an identity.
-			// TODO: assign new default if need be
-			// TODO: Don't let it delete the last identity!
-			$delIndex = -1;
-			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
-				if ( $USER_SETTINGS['identities'][(int)$i]['address'] == $workingid ) {
-					$delIndex = $i;
-					break;
+			if ( count( $USER_SETTINGS['identities'] ) == 1 ) {
+				$result['success'] = false;
+				$result['errorString'] = _("You must have at least one identity.");
+			} else {
+				$delIndex = -1;
+				for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
+					if ( $USER_SETTINGS['identities'][(int)$i]['address'] == $workingid ) {
+						$delIndex = $i;
+						break;
+					}
 				}
-			}
-			if ( $delIndex != -1 ) {
-				unset( $USER_SETTINGS['identities'][(int)$delIndex] );
+				if ( $delIndex != -1 ) {
+					$wasDefault = $USER_SETTINGS['identities'][(int)$delIndex]['isdefault'];
+					array_splice( $USER_SETTINGS['identities'], (int)$delIndex, 1 );
+					if ( $wasDefault ) {
+						// Reassign the default to the first identity.
+						$USER_SETTINGS['identities'][0]['isdefault'] = true;
+					}
+				}
 			}
 			break;
 		case "edit";
 			// Edit an identity.
 			// Find oldid, and then edit.
-			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
+			$foundId = false;
+			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ) && !$foundId; $i++ ) {
 				if ( $USER_SETTINGS['identities'][(int)$i]['address'] == $workingid ) {
 					$USER_SETTINGS['identities'][(int)$i]['address'] = $idemail;
 					$USER_SETTINGS['identities'][(int)$i]['name'] = $idname;
 					$USER_SETTINGS['identities'][(int)$i]['signature'] = $idsig;
-					break;
+					$foundId = true;
 				}
+			}
+			if ( !$foundId ) {
+				$result['success'] = false;
+				$result['errorString'] = sprintf( _("Unable to find an identity with address '%s'."), $workingid );
 			}
 			break;
 		case "setdefault";
@@ -1086,8 +1107,6 @@ function request_identityEditor() {
 
 	saveUserSettings( $USER_SETTINGS );
 
-	$result = array();
-	$result['success']    = true;
 	$result['identities'] = $USER_SETTINGS['identities'];
 
 	return $result;
