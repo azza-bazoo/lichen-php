@@ -387,6 +387,32 @@ if ( !isHtmlSession() ) {
 						$result['comp_draftuid'] = $result['draftUid'];
 					}
 					break;
+				case _("Change Identity"):
+					$oldIdentity = getUserIdentity( $_POST['comp_shipped_identity'] );
+					$newIdentity = getUserIdentity( $_POST['comp_identity'] );
+					
+					$mergeBack = true;
+
+					// What we need to do here is change the signature to match
+					// the new identity.
+					// If we can't replace it, just append the new signature to the end.
+					$data = $_POST['comp_msg'];
+					$data = str_replace( "\r\n", "\n", $data );
+					$sigIndex = false;
+					if ( !empty( $oldIdentity['signature'] ) ) {
+						$sigIndex = strpos( $data, $oldIdentity['signature'] );
+					}
+					if ( $sigIndex !== false ) {
+						// Replace the signature with the new one.
+						$data = substr( $data, 0, $sigIndex ) .
+							$newIdentity['signature'] .
+							substr( $data, $sigIndex + strlen( $oldIdentity['signature'] ) );
+					} else {
+						// Tack the new signature onto the end.
+						$data .= "\n" . $newIdentity['signature'];
+					}
+					$_POST['comp_msg'] = $data;
+					break;
 				case _("upload file"):
 					// Uploaded a new file...
 

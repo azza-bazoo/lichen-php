@@ -27,6 +27,7 @@ var MessageComposer = new Class({
 		this.wrapper = wrapper;
 		this.messageFormat = "text/plain";
 		this.sending = false;
+		this.composerData = null;
 	},
 
 	// Show the form for a new message. If provided, prefill the
@@ -49,19 +50,20 @@ var MessageComposer = new Class({
 		if (!result) return;
 	
 		this._render( result.composedata );
+		this.composerData = result.composedata;
 	},
 
 	makeHTMLMail: function () {
 		// Change the editor to HTML.
 		this.messageFormat = "text/html";
-		tinyMCE.execCommand( 'mceAddControl', false, 'comp-msg' );
+		tinyMCE.execCommand( 'mceAddControl', false, 'comp_msg' );
 	},
 
 	makePlainMail: function () {
 		// Change the editor to Plain.
 		// TODO... strip HTML?
 		this.messageFormat = "text/plain";
-		tinyMCE.execCommand( 'mceRemoveControl', false, 'comp-msg' );
+		tinyMCE.execCommand( 'mceRemoveControl', false, 'comp_msg' );
 	},
 
 	_render: function ( compData ) {
@@ -95,7 +97,8 @@ var MessageComposer = new Class({
 			composer += "<input name=\"comp_identity\" id=\"comp_identity\" type=\"hidden\" value=\"" +
 			       compData.identities[0].address_html + "\" />";
 		} else {
-			composer += "<label class=\"comp-label\" for=\"comp_identity\">" + _('From:') + "</label> <select name=\"comp_identity\" id=\"comp_identity\">";
+			composer += "<label class=\"comp-label\" for=\"comp_identity\">" + _('From:') + "</label> ";
+			composer += "<select name=\"comp_identity\" id=\"comp_identity\" onchange=\"Lichen.MessageCompose.changeIdentity();\">";
 			for ( var i = 0; i < compData.identities.length; i++ ) {
 				var identity = compData.identities[i];
 				composer += "<option value=\"" + identity.address_html + "\"";
@@ -171,7 +174,6 @@ var MessageComposer = new Class({
 		composer += "<ul id=\"comp-attachlist\">";
 		composer += attachListHtml;
 		composer += "</ul>";
-		
 
 		// Create the upload form.
 		composer += "<form enctype=\"multipart/form-data\" action=\"ajax.php\" id=\"comp-uploadform\" method=\"post\" onsubmit=\"return Lichen.MessageCompose.asyncUploadFile($('comp-uploadform'))\">";
@@ -184,6 +186,56 @@ var MessageComposer = new Class({
 		composer += "</form></div>";
 
 		$( this.wrapper ).setHTML( composer );
+	},
+
+	getIdentityFromCache: function ( address ) {
+		if ( this.composerData ) {
+			for ( var i = 0; i < this.composerData.identities.length; i++ ) {
+				if ( this.composerData.identities[i].address == address ) {
+					return this.composerData.identities[i];
+				}
+			}
+		}
+		return null;
+	},
+
+	changeIdentity: function () {
+		// The user changed the identity.
+		// Change the signature in the message to match it.
+		// This is not as reliable as it could be. But we try anyway.
+
+		// TODO: This does not work for the HTML composer.
+		// But that needs some work anyway.
+
+		var oldIdentity = this.getIdentityFromCache( this.composerData.identity.address );
+		var newIdentity = this.getIdentityFromCache( $('comp_identity').value );
+
+		var composerText = "";
+		if ( this.messageFormat == "text/html" ) {
+			composerText = tinyMCE.getContent( 'comp_msg' );
+		} else {
+			composerText = $('comp_msg').value;
+		}
+
+		var sigIndex = -1;
+		if ( oldIdentity.signature != "" ) {
+			sigIndex = composerText.indexOf( oldIdentity.signature );
+		}
+		if ( sigIndex != -1 ) {
+			// Found the signature. Replace it with the new signature.
+			composerText = composerText.substr( 0, sigIndex ) + newIdentity.signature + composerText.substr( sigIndex + oldIdentity.signature.length );
+		} else {
+			// Not found. Just tack the signature onto the end of the message.
+			composerText += "\n" + newIdentity.signature;
+		}
+
+		this.composerData.identity = newIdentity;
+
+		$('comp_msg').value = composerText;
+
+		if ( this.messageFormat == "text/html" ) {
+			tinyMCE.updateContent( 'comp_msg' );
+		}
 	},
 
 	// Check the input data in the new message form, and then

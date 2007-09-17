@@ -1028,9 +1028,9 @@ function request_identityEditor() {
 	$workingid = "";
 
 	$action = $_POST['action'];
-	if ( isset( $_POST['idname'] ) )  $idname = $_POST['idname'];
-	if ( isset( $_POST['idemail'] ) ) $idemail = $_POST['idemail'];
-	if ( isset( $_POST['idsig'] ) )   $idsig = $_POST['idsig'];
+	if ( isset( $_POST['idname'] ) )  $idname    = $_POST['idname'];
+	if ( isset( $_POST['idemail'] ) ) $idemail   = $_POST['idemail'];
+	if ( isset( $_POST['idsig'] ) )   $idsig     = rtrim( $_POST['idsig'] );
 	if ( isset( $_POST['oldid'] ) )   $workingid = $_POST['oldid'];
 
 	switch ( $action ) {

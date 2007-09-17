@@ -609,15 +609,18 @@ function render_composer( $requestData, $requestParams ) {
 		echo "<input name=\"comp_identity\" id=\"comp_identity\" type=\"hidden\" value=\"",
 		       $requestData['identities'][0]['address_html'], "\" />";
 	} else {
+		$selectedIdentity = "";
 		echo "<label class=\"comp-label\" for=\"comp_identity\">", _('From:'), "</label> <select name=\"comp_identity\" id=\"comp_identity\">";
 		foreach ( $requestData['identities'] as $identity ) {
 			echo "<option value=\"", $identity['address_html'], "\"";
 			if ( $requestData['identity']['address'] == $identity['address'] ) {
 				echo " selected=\"selected\"";
+				$selectedIdentity = $identity['address'];
 			}
 			echo ">", $identity['name_html'], " &lt;", $identity['address_html'], "&gt;</option>";
 		}
 		echo "</select>";
+		echo "<input name=\"comp_shipped_identity\" id=\"comp_shipped_identity\" type=\"hidden\" value=\"" . htmlentities( $selectedIdentity ) . "\" />";
 	}
 
 	// Build to To: area, including buttons to display CC and BCC fields
@@ -627,6 +630,8 @@ function render_composer( $requestData, $requestParams ) {
 
 	echo "</div> <textarea name=\"comp_to\" id=\"comp_to\">", $requestData['comp_to'], "</textarea>";
 
+	// TODO: These are <inputs> in the HTML mode, because they can not be hidden - we're trying to save
+	// screen realestate. However, the CSS rules make these higher than they should be. Please fix!
 	echo "<div id=\"comp-cceditor\">";
 	echo "<label class=\"comp-label\" for=\"comp_cc\">", _('CC:'), "</label> <input type=\"text\" name=\"comp_cc\" id=\"comp_cc\" ";
 	echo "value=\"", $requestData['comp_cc'], "\" />"; // Already HTMLentityorised.
@@ -676,6 +681,9 @@ function render_composer( $requestData, $requestParams ) {
 	echo "<br />";
 	echo "<input type=\"submit\" name=\"compaction\" value=\"" . _('Send Message') . "\" />";
 	echo "<input type=\"submit\" name=\"compaction\" value=\"" . _('Save Draft') . "\" />";
+	if ( count( $requestData['identities'] ) > 1 ) {
+		echo "<input type=\"submit\" name=\"compaction\" value=\"" . _('Change Identity') . "\" />";
+	}
 	
 	// Build a list of attachments.
 	echo "<div class=\"sidebar-panel\" id=\"comp-attachments\">";

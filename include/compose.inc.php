@@ -194,12 +194,12 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	switch ($action) {
 		case 'reply':
 		case 'replyall':
-			$compData['comp_msg']  = markupQuotedMessage( $msgArray['texthtml'], 'text/html', 'reply' );
+			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['texthtml'], 'text/html', 'reply' );
 			$compData['comp_msg'] .= "\n";
 			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['textplain'], 'text/plain', 'reply' );
 			break;
 		case 'forwardinline':
-			$compData['comp_msg']  = "--- ". _("Forwarded message"). " ---\n";
+			$compData['comp_msg'] .= "--- ". _("Forwarded message"). " ---\n";
 			$compData['comp_msg'] .= _("From"). ": " . formatIMAPAddress( $msgArray['from'] ) . "\n";
 			$compData['comp_msg'] .= _("To"). ": " . formatIMAPAddress( $msgArray['to'] ) . "\n";
 			$compData['comp_msg'] .= _("Subject"). ": " . $msgArray['subject'] . "\n";
@@ -215,6 +215,14 @@ function generateComposerData( $mode, $uid, $mailto ) {
 			if ( isset( $mailtoDetails['body'] ) ) {
 				$compData['comp_msg'] = $mailtoDetails['body'];
 			}
+			break;
+	}
+	if ( $action != "draft" ) {
+		$sigTest = trim( $compData['identity']['signature'] );
+		if ( !empty( $sigTest ) ) {
+			$compData['comp_msg'] .= "\n";
+			$compData['comp_msg'] .= $compData['identity']['signature'];
+		}
 	}
 	$compData['comp_msg'] = htmlentities( $compData['comp_msg'] );
 
