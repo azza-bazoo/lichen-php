@@ -26,7 +26,7 @@ var MailboxLister = new Class({
 	initialize: function ( wrapper ) {
 		this.wrapper      = wrapper;
 		this.mailboxCount = 0;
-		this.lastUIDconst = 0;
+		this.lastUIDconst = -1;
 		this.mailboxCount = -1;
 		this.msgCount     = -1;
 	},
@@ -42,17 +42,16 @@ var MailboxLister = new Class({
 			// A mailbox has been added/removed.
 			// Build the interface list.
 			this._render( msgCounts );
-			// And stop...
-			return;
+			this.mailboxCount = msgCounts.length;
 		}
 		var i = 0;
 
 		for (i = 0; i < msgCounts.length; i++) {
 			if ( Lichen.MessageList.getMailbox() == msgCounts[i].fullboxname ) {
 				// Do we need to update the list?
-				if ( this.lastUIDconst != "" && lastUIDconst != msgCounts[i].uidConst ) {
+				if ( this.lastUIDconst != -1 && this.lastUIDconst != msgCounts[i].uidConst ) {
 					Lichen.action( 'list', 'MessageList', 'listUpdate' );
-				} else if ( this.msgCount != 0 && this.msgCount != msgCounts[i].messages ) {
+				} else if ( this.msgCount != -1 && this.msgCount != msgCounts[i].messages ) {
 					// Refresh the mailbox list. There are new/different messages.
 					Lichen.action( 'list', 'MessageList', 'listUpdate' );
 				}

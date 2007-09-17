@@ -82,7 +82,7 @@ var InterfaceController = new Class({
 		}
 
 		// Kick off the AJAX-back-button thingy.
-		this.checkUrl();
+		//this.checkUrl();
 	},
 
 	checkCount: function () {
@@ -174,6 +174,7 @@ var InterfaceController = new Class({
 				this.lastHash = window.location.hash;
 
 				if ( this.historyTrail[actionIndex] ) {
+					//console.log('History replay:');
 					this.action( this.historyTrail[actionIndex][0], this.historyTrail[actionIndex][1],
 						this.historyTrail[actionIndex][2], this.historyTrail[actionIndex][3], true );
 				}
