@@ -51,7 +51,30 @@ function changeMailbox( $mailbox_to_use ) {
 
 // Helper sorting function used by getMailboxList().
 function mailboxSort( $a, $b ) {
-	return strcmp( $a['fullboxname'], $b['fullboxname'] );
+	/* Ok, someone is going to ask why we do some str_replace() foo in the comparison below.
+	 * Alright, take this example.
+	 * You have this folder list:
+	 * toplevel
+	 * toplevel.subfolder
+	 * toplevel.subfolder2
+	 * toplevel-folder
+	 * toplevel-folder.subfolder
+	 * The original sort just strcmp()'d the whole folder name. However,
+	 * what would happen is that you would end up with:
+	 * toplevel
+	 * toplevel-folder
+	 * toplevel-folder.subfolder
+	 * toplevel.subfolder
+	 * toplevel.subfolder2
+	 * Which is not what we want.
+	 * The reason this occurs is that "-" comes before "." in terms of ASCII sort order.
+	 * So what I do here is replace the delimiter (as it might not be a dot) with a space
+	 * which forces things with the delimiter to sort earlier.
+	 * However, then we had the case where you have the same thing, but a folder with a space
+	 * in its name. Thus, we put 5 spaces in it, to force it to sort ealier.
+	 * It appears to work well enough.
+	 */
+	return strcmp( str_replace( $a['delimiter'], "     ", $a['fullboxname'] ), str_replace( $b['delimiter'], "     ", $b['fullboxname'] ) );
 }
 
 // Returns a list of mailboxes for this user - a complete list with
