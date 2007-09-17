@@ -194,6 +194,25 @@ if ( !isHtmlSession() ) {
 	$requestParams['sort']    = _GETORPOST( 'sort' );
 	$requestParams['page']    = _GETORPOST( 'page', 0 );
 
+	// Twiddle with the list of open mailboxes.
+	$openMailboxes = _GETORPOST( 'mboxopen' );
+	$openMailboxes = explode( ",", $openMailboxes );
+
+	$toggleMailbox = _GETORPOST( 'mboxtoggle' );
+	if ( !empty( $toggleMailbox ) ) {
+		// Toggle a mailbox.
+		$index = array_search( $toggleMailbox, $openMailboxes );
+		if ( $index === false ) {
+			// Add this mailbox to the list of open mailboxes.
+			array_push( $openMailboxes, $toggleMailbox );
+		} else {
+			// Remove this mailbox from the list of open mailboxes.
+			array_splice( $openMailboxes, $index, 1 );
+		}
+	}
+
+	$requestParams['mboxopen'] = implode( ",", $openMailboxes );
+
 	// Figure out the title.
 	// It should be in the form "Mailbox - (N unread, N total)"
 	$pageTitle = "";
@@ -220,7 +239,7 @@ if ( !isHtmlSession() ) {
 
 	// Step 2: Mailbox list (always visible)
 	echo "<ul id=\"mailboxes\">\n";
-	echo render_mailboxList( array( "mailboxList" => $mailboxList ), $requestParams );
+	echo render_mailboxList( array( "mailboxList" => $mailboxList, "openMailboxes" => $openMailboxes ), $requestParams );
 	echo "</ul>\n";
 	
 	echo "</td><td style=\"border: none;\">";
@@ -229,7 +248,7 @@ if ( !isHtmlSession() ) {
 	// Function to end the toolbar area and show the content area.
 	function html_startContentArea() {
 		echo "</td></tr>";
-		echo "<tr><td valign=\"top\" style=\"border: none;\">";
+		echo "<tr><td align=\"left\"valign=\"top\" style=\"border: none;\">";
 	}
 
 	// Step 3: Run through the sequence of actions we need to do.

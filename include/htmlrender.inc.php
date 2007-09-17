@@ -376,12 +376,47 @@ function render_mailboxList( $requestData, $requestParams ) {
 		genLinkQuery( $requestParams, array( "sequence" => "settings", "tab" => "mailboxes" ) ) .
 		"\">", _('edit'), "</a>]</li>";
 
+	$hideUntil = array();
+
 	foreach ( $requestData['mailboxList'] as $thisMailbox ) {
+
+		if ( count( $hideUntil ) > 0 ) {
+			$lastMailbox = end( $hideUntil );
+			if ( substr( $thisMailbox['fullboxname'], 0, strlen( $lastMailbox ) ) == $lastMailbox ) {
+				// We're hiding this part of the tree.
+				// TODO: Continue is bad style. Don't do it.
+				continue;
+			} else {
+				// Finished our run of hidden mailboxes.
+				// Undo our hide trick.
+				array_pop( $hideUntil );
+			}
+		}
+
 		echo "<li id=\"mb-" , $thisMailbox['fullboxname'];
 		if ( $mailbox == $thisMailbox['fullboxname'] ) {
 			echo "\" class=\"mb-active";
 		}
 		echo "\">";
+
+		if ( $thisMailbox['haschildren'] ) {
+			// Righto, this mailbox has children. It needs special handling.
+			// Is it open?
+			// TODO: Hack: inline style to float the openner thingy to the right.
+			// Works on Firefox, will need testing on other browsers. Also, probably should not be here.
+			echo " <a href=\"ajax.php?", genLinkQuery( $requestParams, array( "mboxtoggle" => $thisMailbox['fullboxname'] ) ), "\" style=\"float:right;\">";
+			if ( in_array( $thisMailbox['fullboxname'], $requestData['openMailboxes'] ) ) {
+				// Show the current children.
+				echo "<img width=\"8\" height=\"8\" src=\"themes/", $USER_SETTINGS['theme'], "/icons/folder_contract.png\" alt=\"",
+					_('[contract]'), "\" />";
+			} else {
+				// Hide any subchildren.
+				array_push( $hideUntil, $thisMailbox['fullboxname'] );
+				echo "<img width=\"8\" height=\"8\" src=\"themes/", $USER_SETTINGS['theme'], "/icons/folder_expand.png\" alt=\"",
+					_('[expand]'), "\" />";
+			}
+			echo "</a>";
+		}
 
 		if ( $thisMailbox['selectable'] ) {
 			echo "<a href=\"ajax.php?" ,

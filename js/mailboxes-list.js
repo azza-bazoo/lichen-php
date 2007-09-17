@@ -29,6 +29,17 @@ var MailboxLister = new Class({
 		this.lastUIDconst = -1;
 		this.mailboxCount = -1;
 		this.msgCount     = -1;
+		this.openMailboxes = Array();
+		this.listCache    = null;
+	},
+
+	isMailboxOpen: function ( mailbox ) {
+		for ( var i = 0; i < this.openMailboxes.length; i++ ) {
+			if ( this.openMailboxes[i] == mailbox ) {
+				return i;
+			}
+		}
+		return -1;
 	},
 
 	listUpdate: function () {
@@ -37,6 +48,7 @@ var MailboxLister = new Class({
 
 	listUpdateCB: function ( mailboxes ) {
 		var msgCounts = mailboxes;
+		this.listCache = mailboxes;
 
 		if (this.mailboxCount != msgCounts.length) {
 			// A mailbox has been added/removed.
@@ -93,14 +105,48 @@ var MailboxLister = new Class({
 
 		var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">" + _('Mailboxes') + "</span> [<a href=\"#manage-mailboxes\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\">" + _('edit') + "</a>]</li>";
 
+		var hideUntil = Array();
+
 		for ( var i = 0; i < mailboxes.length; i++ ) {
+
+			if ( hideUntil.length > 0 ) {
+				var lastMailbox = hideUntil[hideUntil.length - 1];
+				if ( mailboxes[i].fullboxname.substr( 0, lastMailbox.length ) == lastMailbox ) {
+					// We're hiding this tree.
+					// TODO: Continue is bad style. Don't do it.
+					continue;
+				} else {
+					// Finished our run of hidden mailboxes.
+					// Undo our hide trick.
+					hideUntil.pop();
+				}
+			}
 
 			containerContents += "<li id=\"mb-" + mailboxes[i].fullboxname;
 			if ( Lichen.MessageList.getMailbox() == mailboxes[i].fullboxname ) {
 				containerContents += "\" class=\"mb-active";
 			}
 			containerContents += "\">";
+			
+			// Add links to expand this list of mailboxes.
+			if ( mailboxes[i].haschildren ) {
+				// Righto, this mailbox has children. It needs special handling.
+				// Is it open?
+				// TODO: Hack: inline style to float the openner thingy to the right.
+				// Works on Firefox, will need testing on other browsers. Also, probably should not be here.
+				containerContents += " <a href=\"#\" style=\"float:right;\" onclick=\"return Lichen.MailboxList.viewToggle('" + mailboxes[i].fullboxname + "');\">";
+				if ( this.isMailboxOpen( mailboxes[i].fullboxname ) != -1 ) {
+					// Show the current children.
+					containerContents += "<img width=\"8\" height=\"8\" src=\"themes/" + userSettings.theme + "/icons/folder_contract.png\" alt=\"" + _('[contract]') + "\" />";
+				} else {
+					// Hide any subchildren.
+					hideUntil.push( mailboxes[i].fullboxname );
+					containerContents += "<img width=\"8\" height=\"8\" src=\"themes/" + userSettings.theme + "/icons/folder_expand.png\" alt=\"" + _('[expand]') + "\" />";
+				}
+				containerContents += "</a>";
+			}
 
+			// Is the mailbox openable?
 			if ( mailboxes[i].selectable ) {
 				containerContents += "<a href=\"#\" onclick=\"return Lichen.action('list', 'MailboxList', 'selectMailbox', ['" + mailboxes[i].fullboxname + "'])\" class=\"mb-click\">";
 			}
@@ -120,10 +166,11 @@ var MailboxLister = new Class({
 			}
 			containerContents += "</span>";
 			containerContents += "</span>";
-
+			
 			if ( mailboxes[i].selectable ) {
 				containerContents += "</a>";
 			}
+
 			containerContents += "</li>";
 		}
 
@@ -143,6 +190,23 @@ var MailboxLister = new Class({
 		// Hilight the appropriate row in the message list.
 		$('mb-'+Lichen.MessageList.getMailbox()).addClass('mb-active');
 
+		return false;
+	},
+
+	viewToggle: function ( mailbox ) {
+		// Open or close the mailbox, if it has children.
+		var openIndex = this.isMailboxOpen( mailbox );
+		if ( openIndex == -1 ) {
+			// Not open.
+			this.openMailboxes.push( mailbox );
+			// Crude: re-render.
+			this._render( this.listCache );
+		} else {
+			// Was open, remove that mailbox.
+			this.openMailboxes.splice( openIndex, 1 );
+			this._render( this.listCache );
+		}
+		
 		return false;
 	}
 });
