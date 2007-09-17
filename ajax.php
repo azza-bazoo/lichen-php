@@ -194,12 +194,27 @@ if ( !isHtmlSession() ) {
 	$requestParams['sort']    = _GETORPOST( 'sort' );
 	$requestParams['page']    = _GETORPOST( 'page', 0 );
 
+	// Figure out the title.
+	// It should be in the form "Mailbox - (N unread, N total)"
+	$pageTitle = "";
+	foreach ( $mailboxList as $thisMailbox ) {
+		if ( $mailbox == $thisMailbox['fullboxname'] ) {
+			$pageTitle .= " - ";
+			$pageTitle .= $thisMailbox['mailbox'];
+			$pageTitle .= " (";
+			if ( $thisMailbox['unseen'] > 0 ) {
+				$pageTitle .= $thisMailbox['unseen'] . " " . _('unread') . ", ";
+			}
+			$pageTitle .= "{$thisMailbox['messages']} total)";
+		}
+	}
+
 	// Step 1: basic page layout.
 	// We use tables so that browsers that don't support
 	// all the fancy CSS stuff do look alright.
 	// (And browsers using CSS will ignore the table)
 	ob_start();
-	printPageHeader();
+	printPageHeader( $pageTitle );
 	echo "<table border=\"0\" width=\"100%\">";
 	echo "<tr><td valign=\"top\" rowspan=\"2\" style=\"border: none;\">";
 

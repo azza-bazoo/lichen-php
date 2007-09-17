@@ -171,7 +171,7 @@ function genLinkForm( $baseData, $overData = array(), $killData = array(), $form
 }
 
 // Print HTML for the page header.
-function printPageHeader() {
+function printPageHeader( $title = "" ) {
 	global $USER_SETTINGS;
 
 	if ( isset( $USER_SETTINGS['theme'] ) ) {
@@ -184,7 +184,7 @@ function printPageHeader() {
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<title>Lichen Webmail</title>
+<title>Lichen Webmail{$title}</title>
 <link rel="StyleSheet" type="text/css" href="$themePath/default.css" />
 <link rel="StyleSheet" type="text/css" href="$themePath/layout.css" />
 </head><body>
