@@ -607,25 +607,15 @@ function render_composer( $requestData, $requestParams ) {
 	if ( count( $requestData['identities'] ) == 1 ) {
 		// Simple case: just display use the one identity - hidden form element..
 		echo "<input name=\"comp_identity\" id=\"comp_identity\" type=\"hidden\" value=\"",
-		       htmlentities( $requestData['identities'][0]['address'] ), "\" />";
+		       $requestData['identities'][0]['address_html'], "\" />";
 	} else {
 		echo "<label class=\"comp-label\" for=\"comp_identity\">", _('From:'), "</label> <select name=\"comp_identity\" id=\"comp_identity\">";
 		foreach ( $requestData['identities'] as $identity ) {
-			echo "<option value=\"", $identity['address'], "\"";
-			if ( $requestData['action'] == 'reply' || $requestData['action'] == 'replyall' ) {
-				if ( strpos( $identity['address'], $requestData['comp_to'] ) !== false ) {
-					// Select this identity.
-					echo " selected=\"selected\"";
-				}
-			} else if ( $requestData['action'] == "draft" ) {
-				if ( strpos( $identity['address'], $requestData['comp_from'] ) !== false ) {
-					// Select this identity.
-					echo " selected=\"selected\"";
-				}
-			} else if ( $identity['isdefault'] ) {
+			echo "<option value=\"", $identity['address_html'], "\"";
+			if ( $requestData['identity']['address'] == $identity['address'] ) {
 				echo " selected=\"selected\"";
 			}
-			echo ">", htmlentities( $identity['name'] ), " &lt;", htmlentities( $identity['address'] ), "&gt;</option>";
+			echo ">", $identity['name_html'], " &lt;", $identity['address_html'], "&gt;</option>";
 		}
 		echo "</select>";
 	}

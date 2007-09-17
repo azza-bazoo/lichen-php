@@ -90,30 +90,19 @@ var MessageComposer = new Class({
 		composer += "\" />";
 
 		// Build identity selector.
-		// TODO: Use HTML entities for this data, because it can contain <, >, and &.
 		if ( compData.identities.length == 1 ) {
 			// Simple case: just display use the one identity - hidden form element..
 			composer += "<input name=\"comp_identity\" id=\"comp_identity\" type=\"hidden\" value=\"" +
-			       compData.identities[0].address + "\" />";
+			       compData.identities[0].address_html + "\" />";
 		} else {
 			composer += "<label class=\"comp-label\" for=\"comp_identity\">" + _('From:') + "</label> <select name=\"comp_identity\" id=\"comp_identity\">";
 			for ( var i = 0; i < compData.identities.length; i++ ) {
 				var identity = compData.identities[i];
-				composer += "<option value=\"" + identity.address + "\"";
-				if ( action == 'reply' || action == 'replyall' ) {
-					if ( identity.address.match( compData.comp_to ) != null ) {
-						// Select this identity.
-						composer += " selected=\"selected\"";
-					}
-				} else if ( action == "draft" ) {
-					if ( identity.address.match( compData.comp_from ) != null ) {
-						// Select this identity.
-						composer += " selected=\"selected\"";
-					}
-				} else if ( identity.isdefault ) {
+				composer += "<option value=\"" + identity.address_html + "\"";
+				if ( compData.identity.address == compData.identities[i].address ) {
 					composer += " selected=\"selected\"";
 				}
-				composer += ">" + identity.name + " &lt;" + identity.address + "&gt;</option>";
+				composer += ">" + identity.name_html + " &lt;" + identity.address_html + "&gt;</option>";
 			}
 			composer += "</select>";
 		}

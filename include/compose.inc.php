@@ -92,11 +92,27 @@ function generateComposerData( $mode, $uid, $mailto ) {
 		$compData['comp_draftuid'] = $uid;
 	}
 
-	$compData['identities'] = $USER_SETTINGS['identities'];
-
 	if ( isset( $msgArray['from'] ) ) {
 		$compData['comp_from'] = $msgArray['from'];
 	}
+	
+	// Send back a list of identities.
+	$compData['identities'] = encodeIdentities( $USER_SETTINGS['identities'] );
+
+	// Figure out the current identity.
+	$compData['identity'] = null;
+	if ( $action == "reply" || $action == "replyall" || $action == "forwardasattach" || $action == "forwardinline" ) {
+		$compData['identity'] = getUserIdentity( $msgArray['to'], true );
+	} else if ( $action == "draft" ) {
+		$compData['identity'] = getUserIdentity( $msgArray['from'], true );
+	}
+	if ( $compData['identity'] == null ) {
+		$compData['identity'] = getUserIdentity();
+	}
+
+	$compData['identity'] = encodeIdentities( array( $compData['identity'] ) );
+	$compData['identity'] = $compData['identity'][0];
+
 
 	// TODO: Much of this data is htmlentity encoded before it goes to the client, which is intended
 	// to save the client doing it. That works as we're building innerHTML contents on the client.

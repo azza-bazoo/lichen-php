@@ -413,7 +413,9 @@ if ( !isHtmlSession() ) {
 				if ( $mergeBack ) {
 					// Assemble some data that we'll need.
 					$result = array_merge( $_POST, $result );
-					$result['identities'] = $USER_SETTINGS['identities'];
+					$result['identities'] = encodeIdentities( $USER_SETTINGS['identities'] );
+					$result['identity']   = encodeIdentities( array( getUserIdentity( $_POST['comp_identity'] ) ) );
+					$result['identity']   = $result['identity'][0];
 					$result['action']     = $result['comp_mode'];
 					// Wee! Attachments are fun.
 					// What we're trying to accomplish here:

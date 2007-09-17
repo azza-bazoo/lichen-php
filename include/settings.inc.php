@@ -126,13 +126,20 @@ function saveUserSettings( $settings ) {
 }
 
 
-function getUserIdentity( $byAddress = NULL ) {
+function getUserIdentity( $byAddress = NULL, $substringMode = false ) {
 	global $USER_SETTINGS;
 	// Fetch the users identity from their settings.
 	// If null is given, find the default.
+	//
+	// If substringMode is true, then the input can be something
+	// like "Random Person <foo@bar.com>". A substring check will
+	// be done to find the relevant identity.
 
 	foreach ( $USER_SETTINGS['identities'] as $identity ) {
 		if ( $identity['address'] == $byAddress ) {
+			return $identity;
+		}
+		if ( $substringMode && strpos( $byAddress, $identity['address'] ) !== false ) {
 			return $identity;
 		}
 		if ( $identity['isdefault'] && $byAddress == NULL ) {
@@ -143,6 +150,21 @@ function getUserIdentity( $byAddress = NULL ) {
 	// If control reached here, we didn't find it.
 	// Return NULL to indicate no identities to send as.
 	return NULL;
+}
+
+// HTML encode a set of identities.
+function encodeIdentities( $input ) {
+	$output = array();
+
+	foreach ( $input as $identity ) {
+		$identity['name_html']      = htmlentities( $identity['name'] );
+		$identity['address_html']   = htmlentities( $identity['address'] );
+		$identity['signature_html'] = htmlentities( $identity['signature'] );
+
+		$output[] = $identity;
+	}
+
+	return $output;
 }
 
 
