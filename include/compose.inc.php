@@ -149,7 +149,21 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	// Determine CC address(es), if we need them.
 	$compData['comp_cc'] = "";
 	if ( isset( $msgArray['cc'] ) && !empty( $msgArray['cc'] ) ) {
-		$compData['comp_cc'] .= htmlentities( $msgArray['cc'] );
+		// Don't CC yourself when replying-to-all.
+		if ( $action == "replyall" ) {
+			$ccList = parseRecipientList( $msgArray['cc'] );
+			$output = array();
+			foreach ( $ccList as $index => $ccer ) {
+				if ( $ccer['address'] == $compData['identity']['address'] ) {
+					// Skip this address...
+				} else {
+					$output[] = $ccer;
+				}
+			}
+			$compData['comp_cc'] .= htmlentities( formatRecipientList( $output ) );
+		} else {
+			$compData['comp_cc'] .= htmlentities( $msgArray['cc'] );
+		}
 	}
 	if ( isset( $mailtoDetails['cc'] ) ) {
 		$compData['comp_cc'] .= htmlentities( $msgArray['cc'] );
