@@ -1022,9 +1022,15 @@ function request_settingsPanelSave() {
 function request_identityEditor() {
 	global $USER_SETTINGS;
 
+	$idname    = "";
+	$idemail   = "";
+	$idsig     = "";
+	$workingid = "";
+
 	$action = $_POST['action'];
 	if ( isset( $_POST['idname'] ) )  $idname = $_POST['idname'];
 	if ( isset( $_POST['idemail'] ) ) $idemail = $_POST['idemail'];
+	if ( isset( $_POST['idsig'] ) )   $idsig = $_POST['idsig'];
 	if ( isset( $_POST['oldid'] ) )   $workingid = $_POST['oldid'];
 
 	switch ( $action ) {
@@ -1035,6 +1041,7 @@ function request_identityEditor() {
 			array_push( $USER_SETTINGS['identities'], array(
 				"name" => $idname,
 				"address" => $idemail,
+				"signature" => $idsig,
 				"isdefault" => false
 			) );
 			break;
@@ -1044,22 +1051,23 @@ function request_identityEditor() {
 			// TODO: Don't let it delete the last identity!
 			$delIndex = -1;
 			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
-				if ( $USER_SETTINGS['identities'][$i]['address'] == $workingid ) {
+				if ( $USER_SETTINGS['identities'][(int)$i]['address'] == $workingid ) {
 					$delIndex = $i;
 					break;
 				}
 			}
 			if ( $delIndex != -1 ) {
-				unset( $USER_SETTINGS['identities'][$delIndex] );
+				unset( $USER_SETTINGS['identities'][(int)$delIndex] );
 			}
 			break;
 		case "edit";
 			// Edit an identity.
 			// Find oldid, and then edit.
 			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
-				if ( $USER_SETTINGS['identities'][$i]['address'] == $workingid ) {
-					$USER_SETTINGS['identities'][$i]['address'] = $idemail;
-					$USER_SETTINGS['identities'][$i]['name'] = $idname;
+				if ( $USER_SETTINGS['identities'][(int)$i]['address'] == $workingid ) {
+					$USER_SETTINGS['identities'][(int)$i]['address'] = $idemail;
+					$USER_SETTINGS['identities'][(int)$i]['name'] = $idname;
+					$USER_SETTINGS['identities'][(int)$i]['signature'] = $idsig;
 					break;
 				}
 			}
@@ -1067,10 +1075,10 @@ function request_identityEditor() {
 		case "setdefault";
 			// Find it and then make it default. Everything else becomes not-default.
 			for ( $i = 0; $i < count( $USER_SETTINGS['identities'] ); $i++ ) {
-				if ( $USER_SETTINGS['identities'][$i]['address'] == $workingid ) {
-					$USER_SETTINGS['identities'][$i]['isdefault'] = true;
+				if ( $USER_SETTINGS['identities'][(int)$i]['address'] == $workingid ) {
+					$USER_SETTINGS['identities'][(int)$i]['isdefault'] = true;
 				} else {
-					$USER_SETTINGS['identities'][$i]['isdefault'] = false;
+					$USER_SETTINGS['identities'][(int)$i]['isdefault'] = false;
 				}
 			}
 			break;

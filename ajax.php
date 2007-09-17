@@ -561,12 +561,8 @@ if ( !isHtmlSession() ) {
 
 			$result = array();
 
-			// Temporary hack for identities; split up the incoming opts-identity-list value.
-			$selectedIdentity = "";
-			if ( isset( $_POST['opts-identity-list'] ) ) {
-				$selectedIdentity = explode( ",", $_POST['opts-identity-list'] );
-				$selectedIdentity = $selectedIdentity[0];
-			}
+			// For the identity editor.
+			$selectedIdentity = _GETORPOST( 'opts-identity-list' );
 			
 			switch ( $setaction ) {
 				// Ordinary settings - save them.
@@ -579,28 +575,28 @@ if ( !isHtmlSession() ) {
 				// opts-identity-working
 				// opts-identity-name
 				// opts-identity-address
-				case 'add identity':
+				case _('add identity'):
 					// Just set the workingident flag, and the form will do the rest!
 					$result['workingident'] = "";
 					break;
-				case 'edit identity':
+				case _('edit identity'):
 					// Display an identity...
 					// All we have to do here is say which one to show.
 					$result['workingident'] = $selectedIdentity;
 					break;
-				case 'set as default':
+				case _('set as default'):
 					$_POST['action'] = "setdefault";
 					$_POST['oldid'] = $selectedIdentity;
 
 					$result = request_wrapper( 'identityEditor' );
 					break;
-				case 'remove identity':
+				case _('remove identity'):
 					$_POST['action'] = "delete";
 					$_POST['oldid'] = $selectedIdentity;
 
 					$result = request_wrapper( 'identityEditor' );
 					break;
-				case 'save identity':
+				case _('save identity'):
 					if ( empty( $_POST['opts-identity-working'] ) ) {
 						// New identity!
 						$_POST['action'] = "add";
@@ -611,6 +607,7 @@ if ( !isHtmlSession() ) {
 					}
 					$_POST['idname'] = $_POST['opts-identity-name'];
 					$_POST['idemail'] = $_POST['opts-identity-address'];
+					$_POST['idsig'] = $_POST['opts-identity-sig'];
 
 					$result = request_wrapper( 'identityEditor' );
 					break;
@@ -619,8 +616,8 @@ if ( !isHtmlSession() ) {
 				// mbm-mailbox
 				// newname
 				// newparent
-				case "add mailbox":
-				case "add subfolder":
+				case _('add mailbox'):
+				case _('add subfolder'):
 					if ( $setactionReturn ) {
 						$_POST['action'] = 'create';
 						$_POST['mailbox1'] = $_POST['mbm-mailbox'];
@@ -629,7 +626,7 @@ if ( !isHtmlSession() ) {
 						$result = request_wrapper( 'mailboxAction' );
 					}
 					break;
-				case "move mailbox":
+				case _('move mailbox'):
 					if ( $setactionReturn ) {
 						$_POST['action'] = 'move';
 						$_POST['mailbox1'] = $_POST['mbm-mailbox'];
@@ -638,7 +635,7 @@ if ( !isHtmlSession() ) {
 						$result = request_wrapper( 'mailboxAction' );
 					}
 					break;
-				case "rename mailbox":
+				case _('rename mailbox'):
 					if ( $setactionReturn ) {
 						$_POST['action'] = 'rename';
 						$_POST['mailbox1'] = $_POST['mbm-mailbox'];
@@ -647,7 +644,7 @@ if ( !isHtmlSession() ) {
 						$result = request_wrapper( 'mailboxAction' );
 					}
 					break;
-				case "delete mailbox":
+				case _('delete mailbox'):
 					if ( $setactionReturn ) {
 						$_POST['action'] = 'delete';
 						$_POST['mailbox1'] = $_POST['mbm-mailbox'];

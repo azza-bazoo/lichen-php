@@ -28,6 +28,7 @@ var OptionsEditorClass = new Class({
 	initialize: function ( wrapper ) {
 		this.wrapper = wrapper;
 //		this.currentIdentityMail = '';
+		this.identityCache = null;
 	},
 
 	showEditor: function ( targetTab ) {
@@ -50,6 +51,9 @@ var OptionsEditorClass = new Class({
 		// Cache it in the appropriate spot - this is really a hack.
 		if ( result.mailboxes ) {
 			Lichen.MailboxManager.mailboxCache = result.mailboxes;
+		}
+		if ( result.identities ) {
+			this.identityCache = result.identities;
 		}
 	},
 
@@ -106,9 +110,19 @@ var OptionsEditorClass = new Class({
 		opts_getCB( result );
 	},
 
+	identity_findInCache: function ( email ) {
+		for ( var i = 0; i < this.identityCache.length; i++ ) {
+			if ( email == this.identityCache[i].address ) {
+				return this.identityCache[i];
+			}
+		}
+		return null;
+	},
+
 	identity_add: function () {
 		$('opts-identity-name').value = '';
 		$('opts-identity-address').value = '';
+		$('opts-identity-sig').value = '';
 
 		if ( !$('opts-identity-new') ) {
 			var newMenuOption = new Element( 'option', { 'id': 'opts-identity-new' } );
@@ -124,8 +138,9 @@ var OptionsEditorClass = new Class({
 	},
 
 	identity_add_done: function () {
-		var idname = $('opts-identity-name').value;
+		var idname  = $('opts-identity-name').value;
 		var idemail = $('opts-identity-address').value;
+		var idsig   = $('opts-identity-sig').value;
 
 		// TODO: check for conflicts with existing identity names
 		if ( idname == "" || idemail == "" ) {
@@ -135,7 +150,8 @@ var OptionsEditorClass = new Class({
 
 //		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
-			postBody: 'request=identityEditor&action=add&idname='+encodeURIComponent( idname )+'&idemail='+encodeURIComponent( idemail ),
+			postBody: 'request=identityEditor&action=add&idname='+encodeURIComponent( idname )+'&idemail='+encodeURIComponent( idemail )+
+				'&idsig='+encodeURIComponent(idsig),
 			onComplete: this.identity_actionCB.bind( this ),
 			onFailure: if_remoteRequestFailed
 			} ).request();
@@ -150,23 +166,22 @@ var OptionsEditorClass = new Class({
 
 		if ( identitylist.value == "" ) return false;
 
-		var identity = identitylist.value;
-		var identityParts = identity.split(",");
-		var idAddress = identityParts.shift();
-		var idName = identityParts.join(",");
+		var identity = this.identity_findInCache( identitylist.value ); 
 
-		$('opts-identity-name').value = idName;
-		$('opts-identity-address').value = idAddress;
+		$('opts-identity-name').value    = identity.name;
+		$('opts-identity-address').value = identity.address;
+		$('opts-identity-sig').value     = identity.signature;
 
 		// TODO: something more efficient than a closure
-		$('opts-identity-save').onclick = function(){ return Lichen.OptionsEditor.identity_edit_done(idAddress); };
+		$('opts-identity-save').onclick = function(){ return Lichen.OptionsEditor.identity_edit_done(identity.address); };
 
 		return false;
 	},
 
 	identity_edit_done: function ( oldemail ) {
-		var idname = $('opts-identity-name').value;
+		var idname  = $('opts-identity-name').value;
 		var idemail = $('opts-identity-address').value;
+		var idsig   = $('opts-identity-sig').value;
 
 		if ( idname == "" || idemail == "" ) {
 			Lichen.Flash.flashMessage( _("Can't edit an identity to have a blank name or blank e-mail.") );
@@ -176,7 +191,7 @@ var OptionsEditorClass = new Class({
 //		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
 			postBody: 'request=identityEditor&action=edit&idname='+encodeURIComponent( idname )+'&idemail='+encodeURIComponent( idemail )+
-				'&oldid='+encodeURIComponent(oldemail),
+				'&oldid='+encodeURIComponent(oldemail)+'&idsig='+encodeURIComponent(idsig),
 			onComplete: this.identity_actionCB.bind( this ),
 			onFailure: if_remoteRequestFailed
 			} ).request();
@@ -189,14 +204,9 @@ var OptionsEditorClass = new Class({
 
 		if ( identitylist.value == "" ) return false;
 
-		var identity = identitylist.value;
-		identity = identity.split(",");
-		var idemail = identity.shift();
-		var idname = identity.join(",");
-
 //		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
-			postBody: 'request=identityEditor&action=setdefault&oldid='+encodeURIComponent( idemail ),
+			postBody: 'request=identityEditor&action=setdefault&oldid='+encodeURIComponent( identitylist.value ),
 			onComplete: this.identity_actionCB.bind( this ),
 			onFailure: if_remoteRequestFailed
 			} ).request();
@@ -209,14 +219,9 @@ var OptionsEditorClass = new Class({
 
 		if ( identitylist.value == "" ) return false;
 
-		var identity = identitylist.value;
-		identity = identity.split(",");
-		var idemail = identity[0];
-		var idname = identity[1];
-
 //		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
-			postBody: 'request=identityEditor&action=delete&oldid='+encodeURIComponent( idemail ),
+			postBody: 'request=identityEditor&action=delete&oldid='+encodeURIComponent( identitylist.value ),
 			onComplete: this.identity_actionCB.bind( this ),
 			onFailure: if_remoteRequestFailed
 			} ).request();

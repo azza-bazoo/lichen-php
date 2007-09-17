@@ -71,7 +71,8 @@ function getUserSettings() {
 					array(
 						"name" => $_SESSION['user'],
 						"address" => "{$_SESSION['user']}@{$SMTP_DOMAIN}",
-						"isdefault" => true
+						"isdefault" => true,
+						"signature" => ""
 					),
 				),
 			);
@@ -83,6 +84,21 @@ function getUserSettings() {
 		$settings = array_merge( $newSettings, $DEFAULT_SETTINGS, $settings );
 
 		// Create a config file and write these settings.
+		saveUserSettings( $settings );
+	}
+
+	// Update identities to make sure they have all the correct fields.
+	// TODO: Better handling of this - this is currently done on every request.
+	$updatedIdentities = false;
+
+	foreach ( $settings['identities'] as $index => $identity ) {
+		if ( !isset( $identity['signature'] ) ) {
+			$settings['identities'][(int)$index]['signature'] = "";
+			$updatedIdentities = true;
+		}
+	}
+
+	if ( $updatedIdentities ) {
 		saveUserSettings( $settings );
 	}
 
@@ -282,22 +298,23 @@ function generateOptionsPanel( $htmlMode = false, $htmlData = array(), $htmlPars
 	if ( $tab == 'mailboxes' ) { $panel .= " class=\"opts-activetab\""; }
 	$panel .= ">" . _("Mailbox manager") . "</a></div></div>";
 
+	$resultData = array();
+
 	switch ( $tab ) {
 		case 'settings':
 			$panel .= generateSettingsForm( $htmlMode, $htmlData, $htmlPars );
 			break;
 		case 'identities':
 			$panel .= generateIdentityEditor( $htmlMode, $htmlData, $htmlPars );
+			$resultData['identities'] = $USER_SETTINGS['identities'];
 			break;
 		case 'mailboxes':
 			$panel .= generateMailboxManager( $htmlMode, $htmlData, $htmlPars );
+			$resultData['mailboxes'] = getMailboxList();
 			break;
 	}
-
-	$resultData = array( "htmlFragment" => $panel );
-	if ( $tab == 'mailboxes' ) {
-		$resultData['mailboxes'] = getMailboxList();
-	}
+	
+	$resultData['htmlFragment'] = $panel;
 
 	return $resultData;
 }
@@ -420,7 +437,7 @@ function generateIdentityEditor( $htmlMode = false, $htmlData = array(), $htmlPa
 
 		// TODO: Don't do this comma seperated address/name thing.
 		// Will probably come out when signatures get worked into the mix.
-		$result .= "<option value=\"" . htmlentities( $thisIdentity['address'] ) . "," . htmlentities( $thisIdentity['name'] ) . "\" ";
+		$result .= "<option value=\"" . htmlentities( $thisIdentity['address'] ) . "\" ";
 		$isSelected = false;
 		if ( isset( $htmlData['workingident'] ) && $thisIdentity['address'] == $htmlData['workingident'] ) {
 			$isSelected = true;
@@ -448,10 +465,10 @@ function generateIdentityEditor( $htmlMode = false, $htmlData = array(), $htmlPa
 
 	if ( $htmlMode ) {
 		// TODO: Fix the layout of these buttons.
-		$result .= "<p class=\"opts-buttons\"><input type=\"submit\" name=\"setaction\" value=\"add identity\" />";
-		$result .= "<input type=\"submit\" name=\"setaction\" value=\"edit identity\" /><br />";
-		$result .= "<input type=\"submit\" name=\"setaction\" value=\"set as default\" />";
-		$result .= "<input type=\"submit\" name=\"setaction\" value=\"remove identity\" /></p></div>";
+		$result .= "<p class=\"opts-buttons\"><input type=\"submit\" name=\"setaction\" value=\"" . _('add identity') . "\" />";
+		$result .= "<input type=\"submit\" name=\"setaction\" value=\"" . _('edit identity') . "\" /><br />";
+		$result .= "<input type=\"submit\" name=\"setaction\" value=\"" . _('set as default') . "\" />";
+		$result .= "<input type=\"submit\" name=\"setaction\" value=\"" . _('remove identity') . "\" /></p></div>";
 	} else {
 		$result .= "<p class=\"opts-buttons\"><button onclick=\"return Lichen.OptionsEditor.identity_add()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/edit_add.png\" alt=\"\" />" . _("add identity") . "</button> ";
 		$result .= "<button onclick=\"return Lichen.OptionsEditor.identity_setdefault()\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/filenew.png\" alt=\"\" />" . _("set as default") . "</button> ";
@@ -462,7 +479,7 @@ function generateIdentityEditor( $htmlMode = false, $htmlData = array(), $htmlPa
 
 	$detailsToShow = $defaultIdentity;
 	if ( isset( $htmlData['workingident'] ) ) {
-		$detailsToShow = array( "name" => "", "address" => "" );
+		$detailsToShow = array( "name" => "", "address" => "", "signature" => "" );
 
 		foreach ( $USER_SETTINGS['identities'] as $identity ) {
 			if ( $identity['address'] == $htmlData['workingident'] ) {
@@ -473,12 +490,17 @@ function generateIdentityEditor( $htmlMode = false, $htmlData = array(), $htmlPa
 	}
 
 	$result .= "<p><label for=\"opts-identity-name\">" . _("your name:") . "</label> ";
-	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-name\" name=\"opts-identity-name\" value=\"" . $detailsToShow['name'] . "\" /><br />";
+	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-name\" name=\"opts-identity-name\" value=\"" . htmlentities( $detailsToShow['name'] ) . "\" /><br />";
 	$result .= "<label for=\"opts-identity-address\">" . _("e-mail address:") . "</label> ";
-	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-address\" name=\"opts-identity-address\" value=\"" . $detailsToShow['address'] . "\" /></p>";
+	$result .= "<input type=\"text\" size=\"30\" id=\"opts-identity-address\" name=\"opts-identity-address\" value=\"" . htmlentities( $detailsToShow['address'] ) . "\" /><br />";
+	
+	$result .= "<label for=\"opts-identity-sig\">" . _("signature:") . "</label> ";
+	$result .= "<textarea cols=\"40\" rows=\"6\" id=\"opts-identity-sig\" name=\"opts-identity-sig\">";
+       	$result .= htmlentities( $detailsToShow['signature'] );
+	$result .= "</textarea></p>";
 	
 	if ( $htmlMode ) {
-		$result .= "<p><input type=\"submit\" name=\"setaction\" value=\"save identity\" /></p>";
+		$result .= "<p><input type=\"submit\" name=\"setaction\" value=\"" . _('save identity') . "\" /></p>";
 	} else {
 		$result .= "<p><button id=\"opts-identity-save\" onclick=\"return Lichen.OptionsEditor.identity_edit_done('" . $defaultIdentity['address'] . "')\">" . _("save changes") . "</button></p>";
 	}
@@ -502,14 +524,14 @@ function generateMailboxManager( $htmlMode = false, $htmlData = array(), $htmlPa
 	if ( $htmlMode ) {
 		//$result .= "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" action=\"ajax.php\">";
 		$result .= genLinkForm( $htmlPars, array(), array(), "opts-mailboxes", "ajax.php" );
-		$result .= "<input type=\"submit\" name=\"setaction\" value=\"add mailbox\" />";
+		$result .= "<input type=\"submit\" name=\"setaction\" value=\"" . _('add mailbox') . "\" />";
 		$result .= "</form>";
 	} else {
 		$result .= "<form class=\"opts-tab\" id=\"opts-mailboxes\" method=\"post\" onsubmit=\"return false\" action=\"#\">";
 		$result .= "<button onclick=\"Lichen.MailboxManager.newChild('');return false\">" . _("add mailbox") . "</button>";
 	}
 	$result .= "<div id=\"mbm-changearea-\">";
-	if ( $htmlMode && $htmlPars['setaction'] == "add mailbox" ) {
+	if ( $htmlMode && $htmlPars['setaction'] == _('add mailbox') ) {
 		$result .= genLinkForm( $htmlPars, array( "setactionreturn" => "true", "mbm-mailbox" => "" ), array(), "opts-mailboxes", "ajax.php" );
 		$result .= "<input type=\"text\" size=\"20\" name=\"newname\" />";
 		$result .= "<input type=\"submit\" value=\"add\" />";
@@ -530,7 +552,7 @@ function generateMailboxManager( $htmlMode = false, $htmlData = array(), $htmlPa
 		$result .= "<li>";
 		if ( $htmlMode ) {
 			$result .= genLinkForm( $htmlPars, array( "mbm-mailbox" => $thisMailbox['fullboxname'] ), array(), "opts-mailboxes", "ajax.php" );
-			$result .= "<input type=\"submit\" name=\"setaction\" value=\"move mailbox\" /> ";
+			$result .= "<input type=\"submit\" name=\"setaction\" value=\"" . _('move mailbox') . "\" /> ";
 		} else {
 			$result .= "[<a href=\"#\" onclick=\"Lichen.MailboxManager.changeParentInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">move</a>] ";
 		}
@@ -541,15 +563,15 @@ function generateMailboxManager( $htmlMode = false, $htmlData = array(), $htmlPa
 		$result .= "</span>";
 
 		if ( $htmlMode ) {
-			$result .= " <input type=\"submit\" name=\"setaction\" value=\"rename mailbox\" /> ";
-			$result .= "<input type=\"submit\" name=\"setaction\" value=\"delete mailbox\" />";
+			$result .= " <input type=\"submit\" name=\"setaction\" value=\"" . _('rename mailbox') . "\" /> ";
+			$result .= "<input type=\"submit\" name=\"setaction\" value=\"" . _('delete mailbox') . "\" />";
 		} else {
 			$result .= " [<a href=\"#\" onclick=\"Lichen.MailboxManager.renameInline('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">rename</a>] ";
 			$result .= "[<a href=\"#\" onclick=\"Lichen.MailboxManager.mailboxDelete('{$thisMailbox['fullboxname']}', '{$thisMailbox['mailbox']}'); return false\">delete</a>]";
 		}
 
 		if ( $htmlMode ) {
-			$result .= "<br /><input type=\"submit\" name=\"setaction\" value=\"add subfolder\" />";
+			$result .= "<br /><input type=\"submit\" name=\"setaction\" value=\"" . _('add subfolder') . "\" />";
 			$result .= "</form>";
 		} else {
 			$result .= "<br />[<a href=\"#\" onclick=\"Lichen.MailboxManager.newChild('{$thisMailbox['fullboxname']}'); return false\">add subfolder</a>]";
@@ -558,7 +580,7 @@ function generateMailboxManager( $htmlMode = false, $htmlData = array(), $htmlPa
 		if ( $htmlMode && $htmlPars['mbm-mailbox'] == $thisMailbox['fullboxname'] && $htmlPars['setaction'] != "nothing" ) {
 			$result .= genLinkForm( $htmlPars, array( "setactionreturn" => "true" ), array(), "opts-mailboxes", "ajax.php" );
 			switch ( $htmlPars['setaction'] ) {
-				case "move mailbox":
+				case _('move mailbox'):
 					$result .= "<select name=\"newparent\">";
 					$result .= "<option value=\"\">-- Top Level</option>";
 					foreach ( $mailboxList as $mbox ) {
@@ -568,14 +590,14 @@ function generateMailboxManager( $htmlMode = false, $htmlData = array(), $htmlPa
 					}
 					$result .= "</select>";
 					break;
-				case "rename mailbox":
+				case _('rename mailbox'):
 					$result .= "<input type=\"text\" size=\"20\" name=\"newname\" value=\"" . 
 						htmlentities( $thisMailbox['mailbox'] ) . "\" />";
 					break;
-				case "delete mailbox":
+				case _('delete mailbox'):
 					$result .= "Are you sure you want to do this? This is irreversable!";
 					break;
-				case "add subfolder":
+				case _('add subfolder'):
 					$result .= "<input type=\"text\" size=\"20\" name=\"newname\" />";
 					break;
 			}
