@@ -316,7 +316,7 @@ function drawLoginForm( $message='' ) {
 	echo "<p><label for=\"pass\">", _("password"), "</label><br />";
 	echo "<input type=\"password\" name=\"pass\" id=\"pass\" /></p>\n";
 	echo "<p><label><input type=\"checkbox\" name=\"interface\" id=\"interface\" value=\"html\" checked=\"checked\" />";
-	echo _("HTML Mode"), "</label></p>\n";
+	echo _("Disable JavaScript"), "</label></p>\n";
 	echo "<p class=\"login-submit\"><input type=\"submit\" value=\"", _("Login"), "\" /></p>\n";
 	echo "</div></form>";
 	
