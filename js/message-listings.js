@@ -176,6 +176,9 @@ var MessageLister = new Class({
 	},
 
 	_render: function ( messages, resultObj ) {
+		// Make a note of what was selected first...
+		var lastSelected = this.getSelectedMessages();
+
 		$( this.wrapper ).empty();
 
 		// ****************************************************
@@ -245,7 +248,9 @@ var MessageLister = new Class({
 
 			thisRow += "\">";
 
-			thisRow += "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" + thisMsg.uid + "\" id=\"s-" + thisMsg.uid + "\" value=\"" + thisMsg.uid + "\" onclick=\"Lichen.MessageList.messageCheckboxClicked();\" /></td>";
+			thisRow += "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" + thisMsg.uid +
+				"\" id=\"s-" + thisMsg.uid + "\" value=\"" + thisMsg.uid +
+				"\" onclick=\"Lichen.MessageList.messageCheckboxClicked();\" /></td>";
 
 			var flagImage = thisMsg.flagged ? "/icons/flag.png" : "/icons/flag_off.png";
 			thisRow += "<td><img src=\"themes/" + userSettings.theme + flagImage + "\" id=\"f-" + thisMsg.uid + "\" alt=\"\" onclick=\"Lichen.MessageList.twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
@@ -299,6 +304,14 @@ var MessageLister = new Class({
 		}
 		// mootools' injectAfter doesn't seem to work here
 		$('list-sort-'+this.sort).getParent().adopt( sortImg );
+
+		// Reset any previously-selected messages.
+		for ( var i = 0; i < lastSelected.length; i++ ) {
+			var checkBox = $( 's-' + lastSelected[i] );
+			if ( checkBox ) {
+				checkBox.checked = true;
+			}
+		}
 	},
 
 	// Given a parsed result object for a mailbox message listing, generate a
