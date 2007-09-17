@@ -411,7 +411,7 @@ function render_mailboxList( $requestData, $requestParams ) {
 					_('[contract]'), "\" />";
 			} else {
 				// Hide any subchildren.
-				array_push( $hideUntil, $thisMailbox['fullboxname'] );
+				array_push( $hideUntil, $thisMailbox['fullboxname'] . $thisMailbox['delimiter'] );
 				echo "<img width=\"8\" height=\"8\" src=\"themes/", $USER_SETTINGS['theme'], "/icons/folder_expand.png\" alt=\"",
 					_('[expand]'), "\" />";
 			}

@@ -140,7 +140,7 @@ var MailboxLister = new Class({
 					containerContents += "<img width=\"8\" height=\"8\" src=\"themes/" + userSettings.theme + "/icons/folder_contract.png\" alt=\"" + _('[contract]') + "\" />";
 				} else {
 					// Hide any subchildren.
-					hideUntil.push( mailboxes[i].fullboxname );
+					hideUntil.push( mailboxes[i].fullboxname + mailboxes[i].delimiter );
 					containerContents += "<img width=\"8\" height=\"8\" src=\"themes/" + userSettings.theme + "/icons/folder_expand.png\" alt=\"" + _('[expand]') + "\" />";
 				}
 				containerContents += "</a>";
