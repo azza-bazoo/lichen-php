@@ -178,7 +178,7 @@ function if_checkRemoteResult( remoteText ) {
 			if ( result.imapNotices != "" ) {
 				Lichen.Flash.flashMessage( result.errorMessage, _("IMAP messages: ") + result.imapNotices );
 			} else {
-				Login.Flash.flashMessage( result.errorMessage, "" );
+				Lichen.Flash.flashMessage( result.errorMessage, "" );
 			}
 			//alert( "Server says: " + result.errorMessage + "\nImap errors: " + result.imapNotices );
 			return null;

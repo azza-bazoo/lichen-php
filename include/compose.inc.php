@@ -38,6 +38,7 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	$compData = array();
 
 	$message = null;
+	$msgArray = array();
 	if ( !empty( $uid ) ) {
 		// It's in reply/forward of...
 		// Load that message.
