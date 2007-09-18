@@ -533,26 +533,11 @@ var MessageLister = new Class({
 	},
 
 
-	// TODO: We should be asking our server component to do this work.
 	twiddleFlag: function( uid, flag, state ) {
-		var postbody = "request=setFlag";
-		postbody += "&flag=" + encodeURIComponent( flag );
-		postbody += "&mailbox=" + this.getMailbox();
-		postbody += "&uid=" + encodeURIComponent( uid );
-		if ( state ) {
-			postbody += "&state=" + state;
-		}
-		new Ajax( 'ajax.php', {
-			postBody: postbody,
-			onComplete: this.twiddleFlagCB.bind( this ),
-			onFailure: if_remoteRequestFailed
-			} ).request();
+		Lichen.Messages.twiddleFlag( this.getMailbox(), uid, flag, state, this.twiddleFlagCB.bind( this ) );
 	},
 
-	twiddleFlagCB: function( responseText ) {
-		var result = if_checkRemoteResult( responseText );
-		if (!result) return;
-
+	twiddleFlagCB: function( result ) {
 		var uidsAffected = result.uid.split(',');
 
 		if ( result.flag == 'seen' ) {

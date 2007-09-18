@@ -96,6 +96,30 @@ var HashCacheConnector = new Class({
 		return false;
 	},
 
+	updateFlagStatus: function( mailbox, search, page, sort, uid, flag, state ) {
+		var cacheKey = mailbox + search + page + sort;
+		var compUid = uid.toInt(); // UIDs are ints in the stored list.
+
+		if ( this.messagelists[cacheKey] ) {
+			for ( var i = 0; i < this.messagelists[cacheKey].messages.length; i++ ) {
+				if ( this.messagelists[cacheKey].messages[i].uid == compUid ) {
+					switch ( flag ) {
+						case 'flagged':
+							this.messagelists[cacheKey].messages[i].flagged = state;
+							break;
+						case 'seen':
+							if ( state ) {
+								this.messagelists[cacheKey].messages[i].readStatus = 'R';
+							} else {
+								this.messagelists[cacheKey].messages[i].readStatus = 'U';
+							}
+							break;
+					}
+				}
+			}
+		}
+	},
+
 	storeMessage: function( mailbox, uid, message, validity ) {
 		// Store a message into the cache.
 		// TODO: Use the validitity to determine when it's out of date.

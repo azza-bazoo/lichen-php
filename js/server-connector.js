@@ -125,5 +125,28 @@ var IMAPServerConnector = new Class({
 		} else {
 			this.dataStore.deleteMessageCB( result, true );
 		}
+	},
+
+	twiddleFlag: function( mailbox, uid, flag, state ) {
+		var postbody = "request=setFlag";
+		postbody += "&flag=" + encodeURIComponent( flag );
+		postbody += "&mailbox=" + encodeURIComponent( mailbox );
+		postbody += "&uid=" + encodeURIComponent( uid );
+		if ( state ) {
+			postbody += "&state=" + state;
+		}
+		new Ajax( 'ajax.php', {
+			postBody: postbody,
+			onComplete: this.twiddleFlagCB.bind( this ),
+			onFailure: if_remoteRequestFailed
+			} ).request();
+	},
+	twiddleFlagCB: function( serverResponse ) {
+		var result = if_checkRemoteResult( serverResponse );
+		if ( result ) {
+			this.dataStore.twiddleFlagCB( result, false );
+		} else {
+			this.dataStore.twiddleFlagCB( result, true );
+		}
 	}
 });

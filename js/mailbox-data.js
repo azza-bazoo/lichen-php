@@ -359,6 +359,21 @@ var MessagesDatastore = new Class({
 		this.genericServerCallback( serverResponse, failed );
 	},
 
+	twiddleFlag: function( mailbox, uid, flag, state, callback ) {
+		this.addCallback( callback );
+		this.server.twiddleFlag( mailbox, uid, flag, state );
+	},
+	twiddleFlagCB: function( serverResponse, failed ) {
+		if ( !failed ) {
+			// Update the cache!
+			// Hack: we can't rely on the values we get here.
+			this.cache.updateFlagStatus( Lichen.MessageList.getMailbox(), Lichen.MessageList.getSearch(),
+				Lichen.MessageList.getPage(), Lichen.MessageList.getSortStr(),
+				serverResponse.uid, serverResponse.flag, serverResponse.state );
+		}
+		this.genericServerCallback( serverResponse, failed );
+	},
+
 	genericServerCallback: function( serverResponse, failed ) {
 		var callback = this.getCallback( failed );
 
