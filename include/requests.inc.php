@@ -161,7 +161,7 @@ function request_mailboxContentsList() {
 
 	// See if the mailbox has changed. If not, no need to send back all that data.
 	$mailboxData = imapMailboxStatus( $mailbox );
-	$newValidityKey = "{$mailboxData->messages},{$mailboxData->recent},{$mailboxData->unseen}";
+	$newValidityKey = "{$mailboxData->messages},{$mailboxData->recent},{$mailboxData->unseen},{$mailboxData->uidvalidity},{$mailboxData->uidnext}";
 
 	$listData = null;
 
