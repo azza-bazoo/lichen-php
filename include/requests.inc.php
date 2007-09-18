@@ -288,26 +288,33 @@ function request_deleteMessage() {
 			// TODO: Assumes "," doesn't appear in uids.
 			$messages = explode( ",", $clientMessages );
 		}
-
-		if ( $mailbox == $SPECIAL_FOLDERS['trash'] ) {
-			// TODO: if the source mailbox was the trash folder, then really delete.
-		}
-
+		
 		if ( count( $messages ) == 0 ) {
 			$result['success'] = false;
 			$result['errorCode'] = 'MOVE';
 			$result['errorString'] = _("You haven&#8217;t selected any messages to delete.");
 		} else {
-	
-			$failedCount = moveMessages( $destinationBox, $messages );
+			$msgSuccess = "";
+			$msgFailure = "";
+			if ( $mailbox == $SPECIAL_FOLDERS['trash'] ) {
+				// If the source mailbox was the trash folder, then really delete.
+				$failedCount = deleteMessages( $messages );
+				$destinationBox = "";
+				$msgSuccess = _("Deleted %d message(s)%s");
+				$msgFailure = _("Unable to delete %d messages (but deleted %d messages)");
+			} else {
+				$failedCount = moveMessages( $destinationBox, $messages );
+				$msgSuccess = _("Moved %d message(s) to %s");
+				$msgFailure = _("Unable to move %d message(s) (but moved %d messages)");
+			}
 
 			if ( $failedCount == 0 ) {
-				$msg = sprintf( _("Moved %d message(s) to %s"), count( $messages ), $destinationBox );
+				$msg = sprintf( $msgSuccess, count( $messages ), $destinationBox );
 				$result['success'] = true;
 				$result['message'] = $msg;
 			} else {
-				$msg = sprintf( _("Unable to move %d message(s): "), $failedCount );
-				$result['success']     = false;
+				$msg = sprintf( $msgFailure, $failedCount, count( $messages ) - $failedCount );
+				$result['success']     = true;
 				$result['errorCode']   = 'MOVE';
 				$result['errorString'] = $msg . imap_last_error();
 			}

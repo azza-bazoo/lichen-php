@@ -192,6 +192,12 @@ function imapTwiddleFlag( $uid, $flag, $state, $thisMailbox = "" ) {
 		}
 		// All other cases: toggle.
 		$headerInfo = imap_headerinfo( $mbox, imap_msgno( $mbox, $uid ) );
+
+		if ( $headerInfo === false ) {
+			// TODO: Don't return here.
+			return array( 'success' => false, 'errormessage' => _("Attempting to set flag on non-existant message."), 'flagstate' => false );
+		}
+
 		$headerInfo = get_object_vars( $headerInfo );
 
 		$flagName = ucfirst( str_replace( '\\', '', strtolower( $flag ) ) );
@@ -258,6 +264,27 @@ function moveMessages( $destination, $uidArray ) {
 		if ( $message == "" ) continue;
 
 		$result = imap_mail_move( $mbox, $message, $destination, CP_UID );
+
+		if ( !$result ) $failureCounter++;
+	}
+
+	imap_expunge( $mbox ); // TODO: applies to all mailboxes, not just the one we worked on. ??
+
+	return $failureCounter;
+}
+
+// Delete the message UIDs in $uidArray and return the number of
+// messages for which the operation failed.
+function deleteMessages( $uidArray ) {
+	global $mbox;
+
+	$failureCounter = 0;
+
+	foreach ( $uidArray as $message ) {
+		$message = trim( $message );
+		if ( $message == "" ) continue;
+
+		$result = imap_delete( $mbox, $message, FT_UID );
 
 		if ( !$result ) $failureCounter++;
 	}
