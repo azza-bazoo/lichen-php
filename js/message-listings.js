@@ -570,7 +570,7 @@ var MessageLister = new Class({
 
 		if ( result.flag == 'flagged' ) {
 			for ( var i = 0; i < uidsAffected.length; i++ ) {
-				var flagIcon = $( result.flag + '_' + uidsAffected[i] );
+				var flagIcon = $( 'f-' + uidsAffected[i] );
 				if ( flagIcon ) {
 					if ( result.state ) {
 						flagIcon.src = 'themes/' + userSettings.theme + '/icons/flag.png';
