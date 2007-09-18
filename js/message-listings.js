@@ -468,10 +468,10 @@ var MessageLister = new Class({
 					break;
 				case 3:		// read
 					// TODO: check from message data, not display style
-					inputElements[i].checked = $('mr-'+thisMsgUID).hasClass('new');
+					inputElements[i].checked = !$('mr-'+thisMsgUID).hasClass('new');
 					break;
 				case 4:		// unread
-					inputElements[i].checked = !$('mr-'+thisMsgUID).hasClass('new');
+					inputElements[i].checked = $('mr-'+thisMsgUID).hasClass('new');
 					break;
 				case 5:		// flagged
 					inputElements[i].checked =
