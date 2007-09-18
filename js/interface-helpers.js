@@ -29,6 +29,9 @@ function if_remoteRequestFailed( remoteText ) {
 	// TODO: show, rather than momentarily flash, the error
 	Flash.flashMessage( remoteText );
 	//alert( remoteText );
+
+	// Hack for our callbacks scheme...
+	Lichen.Messages.getCallback( true );
 }
 
 

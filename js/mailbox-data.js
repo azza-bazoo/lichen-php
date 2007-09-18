@@ -22,6 +22,51 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+/* CALLBACK HANDLING
+ *
+ * HISTORY
+ *
+ * Often many of the requests that this class may field require an async round trip
+ * to a server component. To make this work, you need callbacks.
+ *
+ * Once upon a time, there was a convoluted system where a callback function was passed
+ * to these functions. Then this was wrapped in a new closure, and passed to the server
+ * component, where it wrapped that closure in another closure to make it all work.
+ * When the request came back, the whole thing was unwrapped. It worked quite well, but
+ * was kinda complicated.
+ *
+ * So it was stripped. Instead, the callbacks were completely removed and the actions upon
+ * return were simply hard coded.
+ *
+ * Fast forward to ticket #30. How the hell do you move messages in the message display mode?
+ * The hardcoded callback simply calls the message list update, which is not at all what is
+ * required. So, a new scheme is required.
+ *
+ * NEW CALLBACK SCHEME
+ *
+ * The callback parameter to these functions is a function that will be called when the data
+ * from the server is ready, or called immediately if the data is available from cache.
+ *
+ * The callback function should have the prototype:
+ * function callback( serverJSONObject );
+ * where serverJSONObject is the JSON object returned by the server (or from the cache, as relevant).
+ *
+ * IMPLEMENTATION
+ *
+ * Instead of doing some crazy closure scheme again, this time I'm relying on a PHP feature: sessions.
+ * When you use sessions in your PHP script, all requests from a specific host are serialised -
+ * that is, they are processed in the order they are recieved.
+ *
+ * Using this ability, when a request comes in that would require a server trip, we push the callback
+ * function onto an array. When the request from the server comes back, we get the first element 
+ * off the array (FIFO style) and call that function with the result.
+ *
+ * SERVER CLASS IMPLEMENTATION
+ *
+ * When the server class calls the MessagesDatastore callback, that function should have this prototype:
+ *  function ( result, failed )
+ * where result is the JSON object the server returned, and failed is true if the server had an error.
+ */
 
 var MessagesDatastore = new Class({
 
@@ -33,6 +78,27 @@ var MessagesDatastore = new Class({
 		// We pass the username so that it can store different data per user, even if it's
 		// on the same browser profile. (Only basic security)
 		this.cache = new HashCacheConnector( this, serverUser );
+
+		// Global callback function list.
+		// (May need to be split up)
+		this.callbacks = Array();
+	},
+
+	addCallback: function ( callback ) {
+		this.callbacks.push( callback );
+	},
+	getCallback: function( failed ) {
+		// failed is a true/false that indicates if the request succeeded.
+		// if it failed, just pop off the callback (as if it didn't exist)
+		// and then return null.
+
+		var result = this.callbacks.shift();
+
+		if ( failed ) {
+			result = null;
+		}
+
+		return result;
 	},
 
 	fetchMessageList: function( mailbox, search, page, sort ) { // TODO: better function name
@@ -273,5 +339,32 @@ var MessagesDatastore = new Class({
 		} else {
 			return _("Not online - unable to fetch that part of the message.");
 		}
+	},
+
+	moveMessage: function( sourceMailbox, destMailbox, uid, callback ) {
+		// Pass the request to the server.
+		this.addCallback( callback );
+		this.server.moveMessage( sourceMailbox, destMailbox, uid );
+	},
+	moveMessageCB: function( serverResponse, failed ) {
+		this.genericServerCallback( serverResponse, failed );
+	},
+
+	deleteMessage: function( mailbox, uid, callback ) {
+		// Pass the request to the server.
+		this.addCallback( callback );
+		this.server.deleteMessage( mailbox, uid );
+	},
+	deleteMessageCB: function( serverResponse, failed ) {
+		this.genericServerCallback( serverResponse, failed );
+	},
+
+	genericServerCallback: function( serverResponse, failed ) {
+		var callback = this.getCallback( failed );
+
+		if ( callback ) {
+			callback( serverResponse );
+		}
 	}
+
 });

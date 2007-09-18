@@ -90,5 +90,40 @@ var IMAPServerConnector = new Class({
 		remoteRequest.send( url, null );
 
 		return remoteRequest.response.text;
+	},
+
+	moveMessage: function( sourceMailbox, destMailbox, uid, callback ) {
+		new Ajax( 'ajax.php', {
+			postBody: 'request=moveMessage&mailbox=' + encodeURIComponent(sourceMailbox) +
+				'&destbox=' + encodeURIComponent(destMailbox) +
+				'&uid=' + encodeURIComponent(uid),
+				onComplete: this.moveMessageCB.bind( this ),
+				onFailure: if_remoteRequestFailed
+			} ).request();
+	},
+	moveMessageCB: function( serverResponse ) {
+		var result = if_checkRemoteResult( serverResponse );
+		if ( result ) {
+			this.dataStore.moveMessageCB( result, false );
+		} else {
+			this.dataStore.moveMessageCB( result, true );
+		}
+        },
+
+	deleteMessage: function( mailbox, uid ) {
+		new Ajax( 'ajax.php', {
+			postBody: 'request=deleteMessage&mailbox=' + encodeURIComponent(mailbox) +
+				'&uid=' + encodeURIComponent(uid),
+			onComplete: this.deleteMessageCB.bind( this ),
+			onFailure: if_remoteRequestFailed
+			} ).request();
+	},
+	deleteMessageCB: function( serverResponse ) {
+		var result = if_checkRemoteResult( serverResponse );
+		if ( result ) {
+			this.dataStore.deleteMessageCB( result, false );
+		} else {
+			this.dataStore.deleteMessageCB( result, true );
+		}
 	}
 });

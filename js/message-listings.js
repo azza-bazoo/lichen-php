@@ -594,13 +594,7 @@ var MessageLister = new Class({
 		var selectedCount = selectedMessages.length;
 		selectedMessages = selectedMessages.join(",");
 
-		new Ajax( 'ajax.php', {
-			postBody: 'request=moveMessage&mailbox=' + encodeURIComponent(this.getMailbox()) +
-				'&destbox=' + encodeURIComponent(target) +
-				'&uid=' + encodeURIComponent(selectedMessages),
-			onComplete: this.moveMessagesCB.bind( this ),
-			onFailure: if_remoteRequestFailed
-			} ).request();
+		Lichen.Messages.moveMessage( this.getMailbox(), target, selectedMessages, this.moveMessagesCB.bind( this ) );
 	},
 
 	// Send AJAX request to delete the selected messages (which is a special case of moving)
@@ -609,17 +603,10 @@ var MessageLister = new Class({
 		var selectedCount = selectedMessages.length;
 		selectedMessages = selectedMessages.join(",");
 
-		new Ajax( 'ajax.php', {
-			postBody: 'request=deleteMessage&mailbox=' + encodeURIComponent(this.getMailbox()) +
-				'&uid=' + encodeURIComponent(selectedMessages),
-			onComplete: this.moveMessagesCB.bind( this ),
-			onFailure: if_remoteRequestFailed
-			} ).request();
+		Lichen.Messages.deleteMessage( this.getMailbox(), selectedMessages, this.moveMessagesCB.bind( this ) );
 	},
 
-	moveMessagesCB: function( responseText ) {
-		var result = if_checkRemoteResult( responseText );
-		if (!result) return;
+	moveMessagesCB: function( result ) {
 
 		Lichen.Flash.flashMessage( result.message );
 

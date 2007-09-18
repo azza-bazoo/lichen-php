@@ -107,9 +107,8 @@ var MessageDisplay = new Class({
 		}
 
 		messageNavBar += "</div>";
-		/*
 		messageNavBar += "<div class=\"header-left\">";
-		messageNavBar += "<select onchange=\"Lichen.MessageList.withSelected(this)\">";
+		messageNavBar += "<select onchange=\"Lichen.MessageDisplayer.moveMessage(this)\">";
 		messageNavBar += "<option value=\"noop\" selected=\"selected\">" + _('move message to ...') + "</option>";
 
 		// Build a list of mailboxes.
@@ -130,9 +129,8 @@ var MessageDisplay = new Class({
 		}
 
 		messageNavBar += "</select>";
-		messageNavBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageList.deleteMessages();return false\" value=\"" + _('delete message') + "\" />";
+		messageNavBar += " &nbsp; <input type=\"button\" onclick=\"Lichen.MessageDisplayer.deleteMessage();return false\" value=\"" + _('delete message') + "\" />";
 		messageNavBar += "</div>";
-		*/
 		messageNavBar += "</div>";
 		htmlFragment += messageNavBar;
 
@@ -267,6 +265,29 @@ var MessageDisplay = new Class({
 		
 		// Inline replace the contents. This is a hack.
 		$('plainmsg-' + index).setHTML( contents );
+	},
+
+	moveMessage: function ( selector ) {
+		var destBox = selector.value.substr( 5 );
+
+		Lichen.Messages.moveMessage( Lichen.MessageList.getMailbox(), destBox, this.displayModeUID, this.movedMessageCB.bind( this ) );
+	},
+
+	deleteMessage: function () {
+		Lichen.Messages.deleteMessage( Lichen.MessageList.getMailbox(), this.displayModeUID, this.movedMessageCB.bind( this ) );
+	},
+
+	movedMessageCB: function ( result ) {
+		Lichen.Flash.flashMessage( result.message );
+
+		// Move onto the next message.
+		var adjacentMessages = this.dataStore.fetchAdjacentMessages( Lichen.MessageList.getMailbox(), Lichen.MessageList.getSearch(), Lichen.MessageList.getPage(), Lichen.MessageList.getSortStr(), this.displayModeUID );
+
+		if ( adjacentMessages.next ) {
+			this.showMessage( Lichen.MessageList.getMailbox(), adjacentMessages.next.uid );
+		} else {
+			Lichen.action( "list", "MessageList", "listUpdate" );
+		}
 	}
 });
 
