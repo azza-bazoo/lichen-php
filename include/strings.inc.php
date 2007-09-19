@@ -454,7 +454,7 @@ function markupQuotedMessage( $input, $inputType, $mode ) {
 	// If it's HTML...
 	if ( $inputType == "text/html" ) {
 		// Strip the HTML tags.
-		$message = trim( strip_tags( $message ) );
+		$message = trim( wordwrap( strip_tags( $message ), 75 ) );
 
 		// Decode all the HTML entities.
 		if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
@@ -467,7 +467,7 @@ function markupQuotedMessage( $input, $inputType, $mode ) {
 		$message = wordwrap( $message, 80 );
 	} else if ( $inputType == "text/plain" ) {
 		// Just trim excess whitespace.
-		$message = trim( $message );
+		$message = trim( wordwrap( $message, 75 ) );
 	}
 
 	if ( $mode == "reply" ) {

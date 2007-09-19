@@ -186,11 +186,23 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	switch ($action) {
 		case 'reply':
 		case 'replyall':
-			$compData['comp_subj'] = _("Re:") . " " . $msgArray['subject'];
+			if ( stripos( $msgArray['subject'], _("Re:") ) === false ) {
+				// No existing "re:" in the subject, so add one.
+				$compData['comp_subj'] = _("Re:") . " " . $msgArray['subject'];
+			} else {
+				// Already got a "Re" in the subject.
+				$compData['comp_subj'] = $msgArray['subject'];
+			}
 			break;
 		case 'forwardinline':
 		case 'forwardasattach':
-			$compData['comp_subj'] = _("Fwd:") . " ". $msgArray['subject'];
+			if ( stripos( $msgArray['subject'], _("Fwd:") ) === false ) {
+				// No existing "fwd:" in the subject, so add one.
+				$compData['comp_subj'] = _("Fwd:") . " ". $msgArray['subject'];
+			} else {
+				// Already got a "Fwd" in the subject.
+				$compData['comp_subj'] = $msgArray['subject'];
+			}
 			break;
 		case 'draft':
 			$compData['comp_subj'] = $msgArray['subject'];
@@ -204,11 +216,12 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	$compData['comp_subj'] = htmlentities( $compData['comp_subj'] );
 
 	// Determine the initial body of the message.
-	// TODO: Handle HTML properly.
 	$compData['comp_msg'] = "";
 	switch ($action) {
 		case 'reply':
 		case 'replyall':
+			// TODO: The date format below will be different depending on what time the message was replied to.
+			$compData['comp_msg'] .= sprintf( _("At %s, %s wrote:\n"), $msgArray['localdate'], $msgArray['from'] );
 			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['texthtml'], 'text/html', 'reply' );
 			$compData['comp_msg'] .= "\n";
 			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['textplain'], 'text/plain', 'reply' );
