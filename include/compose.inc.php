@@ -186,7 +186,7 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	switch ($action) {
 		case 'reply':
 		case 'replyall':
-			if ( stripos( $msgArray['subject'], _("Re:") ) === false ) {
+			if ( stristr( $msgArray['subject'], _("Re:") ) === false ) {
 				// No existing "re:" in the subject, so add one.
 				$compData['comp_subj'] = _("Re:") . " " . $msgArray['subject'];
 			} else {
@@ -196,7 +196,7 @@ function generateComposerData( $mode, $uid, $mailto ) {
 			break;
 		case 'forwardinline':
 		case 'forwardasattach':
-			if ( stripos( $msgArray['subject'], _("Fwd:") ) === false ) {
+			if ( stristr( $msgArray['subject'], _("Fwd:") ) === false ) {
 				// No existing "fwd:" in the subject, so add one.
 				$compData['comp_subj'] = _("Fwd:") . " ". $msgArray['subject'];
 			} else {
