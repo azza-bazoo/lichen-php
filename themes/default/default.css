@@ -145,7 +145,8 @@ form.opts-tab { margin-top: 8px; width: 720px; font-size: smaller; }
 
 form.login { background: url('login.jpg') no-repeat; font-size: smaller; }
 
-.input-block input { width: 315px; }
+.input-block input[type="text"] { width: 315px; }
+.input-block input[type="password"] { width: 315px; }
 .login-notice { font-weight: bold; background: #ffffcc; padding: 5px; border: solid 1px black; }
 
 .login-submit { text-align: right; }
