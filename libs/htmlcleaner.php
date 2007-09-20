@@ -23,20 +23,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-$ALLOWED_ELEMENTS = array(
+error_reporting( E_ALL );
 
-);
-
-$ALLOWED_ATTRIBUTES = array(
-
-);
-
-$MODIFIED_TAGS = array(
-	"img" => "mailImageTag",
-	"a" => "mailAnchorTag"
-);
-
-function cleanHtml( $htmlInput ) {
+function cleanHtml( $htmlInput, $callback = "", $callbackData = array() ) {
 	global $ALLOWED_ELEMENTS;
 	global $ALLOWED_ATTRIBUTES;
 	global $MODIFIED_TAGS;
@@ -57,7 +46,20 @@ function cleanHtml( $htmlInput ) {
 		}
 
 		// Copy output from the last process position up until the next open tag.
-		$output .= substr( $htmlInput, $processPos, $nextOpenTag - $processPos );
+		$text = substr( $htmlInput, $processPos, $nextOpenTag - $processPos );
+		$callbackResult = true;
+
+		// Call the callback.
+		if ( !empty( $callback ) && !empty( $text ) ) {
+			$atts = array();
+			$callbackResult = $callback( "", $text, false, false, $atts, $callbackData );
+		}
+
+		if ( $callbackResult && !empty( $text ) ) {
+			$output .= $text;
+		}
+
+		// Shift along the processing position.
 		$processPos = $nextOpenTag;
 
 		// If we have a next tag...
@@ -83,6 +85,7 @@ function cleanHtml( $htmlInput ) {
 
 				if ( $tagName == "!DOCTYPE" ) {
 					// Pass this out directly; no modification.
+					// TODO: Used a continue, and also, what if the callbacks want to play with this?
 					$output .= "<{$tagData}>";
 					continue;
 				}
@@ -102,95 +105,94 @@ function cleanHtml( $htmlInput ) {
 					$selfClosedTag = true;
 				}
 
-				// Is the tag allowed?
-				if ( isset( $ALLOWED_ELEMENTS[ $tagName ] ) ) {
-					// Yes, it is.
-				} else {
-					// No, it is not.
-				}
-
 				// Parse attributes into an array.
+				$attributes = array();
 				if ( !$isClosingTag ) {
-					$attributes = array();
-					$attBits = explode( " ", trim( substr( $tagData, strlen( $tagName ) ) ) );
-					$halfAtt = "";
-					$quoteOpen = "";
-					foreach ( $attBits as $attBit ) {
-						// Got any quotes in this bit?
-						$singleQuote = strpos( $attBit, "'" );
-						$doubleQuote = strpos( $attBit, '"' );
+					$tagDataLen = strlen( $tagData );
+					$attrIndex = strlen( $tagName ) + 1;
+					while ( $attrIndex < $tagDataLen ) {
+						// First step: search for an = or a space.
+						$nextEq = strpos( $tagData, "=", $attrIndex );
+						$nextSp = strpos( $tagData, " ", $attrIndex );
 
-						if ( $quoteOpen == "" ) {
-							// The "set to 1M" is a hack.
-							// What we're trying to accomplish here is to determine
-							// which quotes started this attribute.
-							// Ie, this code handles these cases:
-							//   bar='foo'
-							//   bar="foo"
-							//   bar='"foo"'
-							//   bar="'foo'"
-							if ( $singleQuote === false ) $singleQuote = 1000000;
-							if ( $doubleQuote === false ) $doubleQuote = 1000000;
+						if ( $nextEq === false ) $nextEq = $tagDataLen;
+						if ( $nextSp === false ) $nextSp = $tagDataLen;
 
-							if ( $singleQuote != 1000000 && $singleQuote < $doubleQuote ) {
-								$quoteOpen = "'";
+						if ( $nextSp < $nextEq ) {
+							// Next space is before the next equals.
+							// This means that this attribute in not in the form "foo=bar", instead is just "foo"
+							$att = substr( $tagData, $attrIndex, $nextSp - $attrIndex );
+							if ( !empty( $att ) ) {
+								$attributes[strtolower($att)] = strtolower($att);
 							}
-							if ( $doubleQuote != 1000000 && $doubleQuote < $singleQuote ) {
-								$quoteOpen = '"';
-							}
-							$halfAtt = $attBit;
-							if ( $quoteOpen != "" ) {
-								// If the quotes are contained inside this bit,
-								// then this is our attribute.
-								if ( substr_count( $attBit, $quoteOpen ) == 2 ) {
-									$quoteOpen = "";
-								}
-							}
-						} else {
-							if ( $quoteOpen == '"' && $doubleQuote !== false ) {
-								$halfAtt .= $attBit;
-								$quoteOpen = "";
-							} else if ( $quoteOpen == "'" && $singleQuote !== false ) {
-								$halfAtt .= $attBit;
-								$quoteOpen = "";
-							}
-						}
+							$attrIndex = $nextSp + 1;
+						} else if ( $nextSp > $nextEq ) {
+							// We have an attribute in the form foo=bar.
+							// Parse that.
+							$att = substr( $tagData, $attrIndex, $nextEq - $attrIndex );
 
-						if ( $quoteOpen == "" ) {
-							// $halfAtt contains a complete attribute. Parse it.
-							$seperator = strpos( $halfAtt, "=" );
-							$halfAtt = trim( $halfAtt );
-	
-							if ( $seperator === false ) {
-								// It's an attribute with no parameter.
-								$attributes[strtolower($halfAtt)] = $halfAtt;
-							} else {
-								// Split out the name and value.
-								$attName  = strtolower( substr( $halfAtt, 0, $seperator ) );
-								$attValue = substr( $halfAtt, $seperator + 1 );
-								if ( $attValue[0] == '"' || $attValue[0] == "'" ) {
-									$attValue = substr( $attValue, 1, strlen( $attValue ) - 2 );
-								}
-	
-								// Store it.
-								$attributes[$attName] = $attValue;
+							// Now get the value.
+							// If the character after the value is a quote...
+							$startVal = $nextEq + 1;
+							$endVal   = $nextEq + 1;
+							switch ( $tagData[$nextEq + 1] ) {
+								case "'":
+									// Single quoted value.
+									$startVal = $startVal + 1;
+									$endVal = strpos( $tagData, "'", $startVal + 1 );
+									break;
+								case '"':
+									// Double quoted value.
+									$startVal = $startVal + 1;
+									$endVal = strpos( $tagData, '"', $startVal + 1 );
+									break;
+								default:
+									// Unquoted value.
+									$endVal = strpos( $tagData, ' ', $startVal );
+									break;
 							}
+
+							if ( $endVal === false ) {
+								$endVal = $tagDataLen;
+							}
+
+							// Extract the value of the attribute.
+							$attVal = substr( $tagData, $startVal, $endVal - $startVal );
+
+							if ( !empty( $att ) ) {
+								$attributes[strtolower($att)] = $attVal;
+							}
+
+							$attrIndex = $endVal + 1;
+
+						} else if ( $nextSq == $nextEq ) {
+							// Neither were found.
+							$attrIndex = $tagDataLen;
 						}
 					}
+				}
+
+				foreach ( $attributes as $att => $value ) {
+					$attributes[$att] = html_entity_decode( $value );
+				}
+
+				$callbackResult = true;
+
+				if ( !empty( $callback ) ) {
+					// Call callback. Return tells us what to do.
+					$text = "";
+					$callbackResult = $callback( $tagName, $text, $isClosingTag, $selfClosedTag, $attributes, $callbackData );
 				}
 				
-				// Does the tag need to be modified?
-				if ( !$isClosingTag ) {
-					if ( isset( $MODIFIED_TAGS[ $tagName ] ) ) {
-						$tagData = $MODIFIED_TAGS[$tagName]( $tagName, $tagData, $attributes );
-					}
-				}
-
 				//echo "Tag: ".htmlentities($tagName)." Data: ". htmlentities($tagData). " {$isClosingTag}<br />";
-				if ( !$isClosingTag ) {
-					$output .= rebuildTag( $tagName, $selfClosedTag, $attributes );
-				} else {
-					$output .= "<{$tagData}>";
+				if ( $callbackResult ) {
+					if ( !$isClosingTag ) {
+						// Opening tag - build it.
+						$output .= rebuildTag( $tagName, $selfClosedTag, $attributes );
+					} else {
+						// Closing tag - pass verbatim.
+						$output .= "<{$tagData}>";
+					}
 				}
 			}
 		}
@@ -211,6 +213,7 @@ function rebuildTag( $tagName, $isSelfClosed, $attributes ) {
 	//echo $isSelfClosed;
 
 	foreach ( $attributes as $att => $value ) {
+		if ( empty( $att ) ) continue;
 		$outAtts[] = "{$att}=\"" . htmlentities( $value ) . "\"";
 	}
 
@@ -228,29 +231,6 @@ function rebuildTag( $tagName, $isSelfClosed, $attributes ) {
 	//echo "--<br />";
 
 	return $tag;
-}
-
-// Function to modify an image tag.
-function mailImageTag( $tagName, $rawTag, &$attributes ) {
-	if ( isset( $attributes['src'] ) ) {
-		if ( substr( $attributes['src'], 0, 4 ) == "cid:" ) {
-			$attributes['src'] = "message.php?mailbox=INCOMPLETE&uid=INCOMPLETE&filename=" . $attributes['href'];
-		} else {
-			$attributes['src'] = str_replace( "http://", "http://_", $attributes['src'] );
-			$attributes['class'] = "remoteimg";
-		}
-	}
-}
-
-// Function to modify an anchor (a) tag.
-function mailAnchorTag( $tagName, $rawTag, &$attributes ) {
-	if ( isset( $attributes['href'] ) ) {
-		if ( substr( $attributes['href'], 0, 7 ) == "mailto:" ) {
-			$attributes['onclick'] = "comp_showForm('mailto',null,'".$attributes['href']."');return false";
-		} else {
-			$attributes['onclick'] = "return if_newWin('". $attributes['href'] . "');";
-		}
-	}
 }
 
 ?>
