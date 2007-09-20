@@ -74,6 +74,10 @@ function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 		}
 		if ( isset( $headerObj->sender ) ) {
 			$processedResult['sender']  = filterHeader( formatIMAPAddress( $headerObj->sender ), false );
+			$processedResult['sender_wasme'] = false;
+			if ( getUserIdentity( $processedResult['sender'], true ) != null ) {
+				$processedResult['sender_wasme'] = true;
+			}
 		}
 		$processedResult['mailbox'] = $mailbox;
 		$processedResult['uid']     = $msgUid;

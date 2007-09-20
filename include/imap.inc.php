@@ -464,6 +464,45 @@ function fetchMessages( $messageUids ) {
 			$fromaddr = _("(unknown sender)");
 		}
 
+		// If the message's sender is us (ie, it is a sent message)
+		// determine who the message is to and display that instead.
+		if ( getUserIdentity( $fromaddr, true ) != null ) {
+			$fromname = "";
+			$fromaddr = "";
+
+			// $headers->to sometimes seems to be blank. We try it first, and then
+			// if that fails, parse $headers->toaddress.
+
+			if ( count( $headers->to ) != 0 ) {
+				// Ok, extract the to address from $headers->to
+				$to = $headers->to;
+
+				$senderObj = array_shift( $to );
+				if ( isset( $senderObj->personal ) ) {
+					$fromname = _('To: ') . filterHeader( $senderObj->personal );
+				}
+				$fromaddr = filterHeader( $senderObj->mailbox ) . "@" . filterHeader( $senderObj->host );
+			} else {
+				// Parse the address in $headers->toaddress.
+				$addresses = parseRecipientList( $headers->toaddress );
+
+				if ( count( $addresses ) > 0 ) {
+					$address = $addresses[0];
+
+					if ( !empty( $address['name'] ) ) {
+						$fromname = _('To: ') . $address['name'];
+					}
+					$fromaddr = $address['address'];
+				}
+			}
+			
+			// Prepend "To:" to the email address if there
+			// is no name set. Just so the user knows that it was to this person.
+			if ( empty( $fromname ) ) {
+				$fromaddr = _('To: ') . $fromaddr;
+			}
+		}
+
 		$thisMessage = array();
 
 		// Is the message we're displaying unread?
