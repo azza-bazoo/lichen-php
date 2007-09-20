@@ -148,8 +148,13 @@ var MessageDisplay = new Class({
 		htmlFragment += "</select>";
 
 		htmlFragment += "<h1 class=\"msg-head-subject\">" + message.subject_html + "</h1>";
-		htmlFragment += "<p class=\"msg-head-line2\">from <span class=\"msg-head-sender\">" + message.from_html + "</span> ";
-		htmlFragment += "at <span class=\"msg-head-date\">" + message.localdate_html + "</span></p>";
+		htmlFragment += "<p class=\"msg-head-line2\">";
+		if ( message.sender_wasme ) {
+			htmlFragment += _("To: ") + " <span class=\"msg-head-sender\">" + message.to_html + "</span> ";
+		} else {
+			htmlFragment += _("from") + " <span class=\"msg-head-sender\">" + message.from_html + "</span> ";
+		}
+		htmlFragment += "at <span class=\"msg-head-date\">" + message.localdate + "</span></p>";
 
 		if ( message.htmlhasremoteimages ) {
 			htmlFragment += "<div class=\"msg-notification\">";
