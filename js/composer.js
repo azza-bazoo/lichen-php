@@ -28,6 +28,7 @@ var MessageComposer = new Class({
 		this.messageFormat = "text/plain";
 		this.sending = false;
 		this.composerData = null;
+		this.draftSaveTimer = null;
 	},
 
 	// Show the form for a new message. If provided, prefill the
@@ -136,7 +137,7 @@ var MessageComposer = new Class({
 		composer += "<a href=\"#\" onclick=\"Lichen.MessageCompose.makePlainMail();return false\">" + _('Plain Message') + "</a></div>";
 
 		// Build the text area. Text only at the moment.
-		composer += "<textarea name=\"comp_msg\" id=\"comp_msg\">";
+		composer += "<textarea name=\"comp_msg\" id=\"comp_msg\" onchange=\"Lichen.MessageCompose.draftSaveTimeout();\">";
 		composer += compData.comp_msg;
 		composer += "</textarea>";
 
@@ -274,6 +275,8 @@ var MessageComposer = new Class({
 			onComplete: this.sendMessageCB.bind( this ),
 			onFailure: if_remoteRequestFailed
 			} ).request();
+
+		this.draftClearTimeout();
 	},
 
 	// Callback for message sending: return to the mailbox listing
@@ -312,6 +315,28 @@ var MessageComposer = new Class({
 			// Delete the tinyMCE editor: http://tinymce.moxiecode.com/punbb/viewtopic.php?pid=22977
 			tinyMCE.execCommand( 'mceRemoveControl', false, 'comp_msg' );
 		}
+		this.draftClearTimeout();
+	},
+
+	draftSaveTimeout: function () {
+		// Set an autosave up for 60 seconds in the future.
+		// If it is already counting down, reset it to 60 seconds.
+		if ( this.draftSaveTimer ) {
+			clearTimeout( this.draftSaveTimer );
+		}
+		this.draftSaveTimer = setTimeout( this.draftSaveTimedout.bind( this ), 60 * 1000 );
+	},
+
+	draftClearTimeout: function () {
+		if ( this.draftSaveTimer ) {
+			clearTimeout( this.draftSaveTimer );
+			this.draftSaveTimer = null;
+		}
+	},
+
+	draftSaveTimedout: function () {
+		// Draft save timeout exceeded, save the draft!
+		this.sendMessage( true );
 	},
 
 	removeAttachment: function( filename ) {
