@@ -532,7 +532,12 @@ function render_displayMessage( $requestData, $requestParams ) {
 	echo "</form>";
 
 	echo "<h1 class=\"msg-head-subject\">", htmlentities( $message['subject'] ), "</h1>";
-	echo "<p class=\"msg-head-line2\">from <span class=\"msg-head-sender\">", htmlentities( $message['from'] ), "</span> ";
+	echo "<p class=\"msg-head-line2\">";
+	if ( $message['sender_wasme'] ) {
+		echo _("To:"), " <span class=\"msg-head-sender\">", htmlentities( $message['to'] ), "</span> ";
+	} else {
+		echo _("from"), " <span class=\"msg-head-sender\">", htmlentities( $message['from'] ), "</span> ";
+	}
 	echo "at <span class=\"msg-head-date\">", $message['localdate'], "</span></p>";
 
 	if ( isset( $message['htmlhasremoteimages'] ) && $message['htmlhasremoteimages'] ) {
