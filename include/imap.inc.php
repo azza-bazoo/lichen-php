@@ -99,7 +99,8 @@ function getMailboxList() {
 			$mailboxFullName = substr( $mailboxFullName, $connectlength );
 
 			// Query out the status of this mailbox
-			$statusObj = imap_status( $mbox, $IMAP_CONNECT . $mailboxFullName, SA_ALL );
+			//$statusObj = imap_status( $mbox, $IMAP_CONNECT . $mailboxFullName, SA_ALL );
+			$statusObj = imapMailboxStatus( $mailboxFullName );
 
 			// Determine this mailbox's position in the tree
 			$mailboxParent = "";
@@ -145,7 +146,7 @@ function getMailboxList() {
 function imapCheckMailboxExistence( $boxname ) {
 	global $mbox, $IMAP_CONNECT;
 
-	$exists = @imap_status( $mbox, $IMAP_CONNECT . $boxname, SA_ALL );
+	$exists = @imap_status( $mbox, imap_utf7_encode( $IMAP_CONNECT . $boxname ), SA_ALL );
 
 	if ( $exists === false ) {
 		$result = imap_createmailbox( $mbox, $IMAP_CONNECT . $boxname );
@@ -314,7 +315,7 @@ $sortParameters = array(
 function listMailboxContents( $searchq, $sort, $page, $metadataOnly = false ) {
 	global $mbox, $mailbox, $IMAP_CONNECT, $sortParameters, $USER_SETTINGS;
 
-	$thisMailbox = imap_status( $mbox, $IMAP_CONNECT . $mailbox, SA_ALL );
+	$thisMailbox = imap_status( $mbox, imap_utf7_encode( $IMAP_CONNECT . $mailbox ), SA_ALL );
 	$mailboxTotalCount = $thisMailbox->messages;
 	$msgCount = 0;
 
@@ -598,13 +599,13 @@ function fetchMessages( $messageUids ) {
 function imapMoveMailbox( $sourceMailbox, $newParent ) {
 	global $mbox, $IMAP_CONNECT;
 
-	$sourceExists    = imap_status( $mbox, "{$IMAP_CONNECT}{$sourceMailbox}", SA_ALL );
+	$sourceExists    = imap_status( $mbox, imap_utf7_encode( "{$IMAP_CONNECT}{$sourceMailbox}" ), SA_ALL );
 	if ( !$sourceExists ) {
 		return _("Unable to move a mailbox that doesn't exist.");
 	}
 
 	if ( $newParent != "" ) {
-		$newParentExists = imap_status( $mbox, "{$IMAP_CONNECT}{$newParent}", SA_ALL );
+		$newParentExists = imap_status( $mbox, imap_utf7_encode( "{$IMAP_CONNECT}{$newParent}" ), SA_ALL );
 		if ( !$newParentExists ) return _("Unable to move folders to a place that doesn't exist.");
 	}
 
@@ -672,7 +673,7 @@ function imapMoveMailbox( $sourceMailbox, $newParent ) {
 function imapMailboxStatus( $mailboxToCheck ) {
 	global $mbox, $IMAP_CONNECT;
 
-	$mailboxData = imap_status( $mbox, $IMAP_CONNECT . $mailboxToCheck, SA_ALL );
+	$mailboxData = imap_status( $mbox, imap_utf7_encode( $IMAP_CONNECT . $mailboxToCheck ), SA_ALL );
 
 	// TODO: What the hell does imap_status return on an invalid mailbox?
 	// The docs don't say!
