@@ -1,6 +1,7 @@
 <?php
 
 include( "htmlparser.php" );
+include( "htmlcleaner.php" );
 
 $input = <<<ENDINPUT
 <html><head></head><body><img src="bar" baz=foo what='you' raboof='this is multi' />
@@ -34,7 +35,8 @@ echo "</pre>";
 
 echo "<h1>Output</h1>";
 echo "<pre>";
-echo htmlentities( parseHtml( $input, "callback" ) );
+//echo htmlentities( parseHtml( $input, "callback" ) );
+echo htmlentities( cleanHtml( $input, array() ) );
 echo "</pre>";
 
 ?>
