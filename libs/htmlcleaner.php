@@ -6,7 +6,7 @@ version 0.3 by Hourann Bosci and Daniel Foote
 http://lichen-mail.org/
 
 --------------------------------------------------------------------------------
-libs/htmlcleaner.php - basic HTML cleaner for HTML messages.
+libs/htmlparser/htmlparser.php - basic HTML parser.
 --------------------------------------------------------------------------------
 
 This file is part of Lichen. Lichen is free software; you can redistribute it
@@ -25,7 +25,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 error_reporting( E_ALL );
 
-function cleanHtml( $htmlInput, $callback = "", $callbackData = array() ) {
+function parseHtml( $htmlInput, $callback = "", $callbackData = array() ) {
 	global $ALLOWED_ELEMENTS;
 	global $ALLOWED_ATTRIBUTES;
 	global $MODIFIED_TAGS;
