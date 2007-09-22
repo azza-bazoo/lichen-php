@@ -102,6 +102,16 @@ function getMailboxList() {
 			//$statusObj = imap_status( $mbox, $IMAP_CONNECT . $mailboxFullName, SA_ALL );
 			$statusObj = imapMailboxStatus( $mailboxFullName );
 
+			if ( $statusObj == null ) {
+				// Fetching the status on some mailboxes fails.
+				$statusObj = new stdClass();
+				$statusObj->messages = 0;
+				$statusObj->recent = 0;
+				$statusObj->unseen = 0;
+				$statusObj->attributes = LATT_NOSELECT;
+				$statusObj->uidvalidity = 0;
+			}
+
 			// Determine this mailbox's position in the tree
 			$mailboxParent = "";
 			$mailboxName = $mailboxFullName;
