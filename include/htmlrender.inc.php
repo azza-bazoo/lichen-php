@@ -175,35 +175,37 @@ function render_messageList( $requestData, $requestParams ) {
 		$thisRow .= "\">";
 
 		$isChecked = false;
-		switch ( $requestParams['selector'] ) {
-			case 'all':
-			case 'allinmailbox':
-				$isChecked = true;
-				break;
-			case 'read':
-				if ( $thisMsg['readStatus'] != 'U' ) {
+		if ( isset( $requestParams['selector'] ) ) {
+			switch ( $requestParams['selector'] ) {
+				case 'all':
+				case 'allinmailbox':
 					$isChecked = true;
-				}
-				break;
-			case 'unread':
-				if ( $thisMsg['readStatus'] == 'U' ) {
-					$isChecked = true;
-				}
-				break;
-			case 'flagged':
-				if ( $thisMsg['flagged'] ) {
-					$isChecked = true;
-				}
-				break;
-			case 'unflagged':
-				if ( !$thisMsg['flagged'] ) {
-					$isChecked = true;
-				}
-				break;
-			case 'none':
-			default:
-				$isChecked = false;
-				break;
+					break;
+				case 'read':
+					if ( $thisMsg['readStatus'] != 'U' ) {
+						$isChecked = true;
+					}
+					break;
+				case 'unread':
+					if ( $thisMsg['readStatus'] == 'U' ) {
+						$isChecked = true;
+					}
+					break;
+				case 'flagged':
+					if ( $thisMsg['flagged'] ) {
+						$isChecked = true;
+					}
+					break;
+				case 'unflagged':
+					if ( !$thisMsg['flagged'] ) {
+						$isChecked = true;
+					}
+					break;
+				case 'none':
+				default:
+					$isChecked = false;
+					break;
+			}
 		}
 
 		if ( $isChecked ) {

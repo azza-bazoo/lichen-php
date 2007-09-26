@@ -91,7 +91,7 @@ function regenerateAttachmentData( $fileList ) {
 // Grubby, ill-placed hack to handle "select all messages in mailbox".
 // If allmailbox and allsearch are set, replace the post variable uid
 // with all the UIDs matching the given mailbox and search.
-if ( isset( $_POST['allmailbox'] ) && isset( $_POST['allsearch'] ) && isset( $_POST['uid'] ) ) {
+if ( isset( $_POST['allmailbox'] ) && isset( $_POST['allsearch'] ) ) {
 	$_POST['uid'] = implode( ",", rawMessageList( $_POST['allsearch'] ) );
 }
 
@@ -271,23 +271,32 @@ if ( !isHtmlSession() ) {
 			$requestParams['sequence'] = 'list';
 			$requestParams['selector'] = _GETORPOST( 'selector', 'none' );
 
+			if ( $requestParams['selector'] == "allinmailbox" ) {
+				// Grubby hack: set the parameters so that operations on all
+				// messages in an inbox work.
+				$requestParams['allmailbox'] = $requestParams['mailbox'];
+				$requestParams['allsearch']  = $requestParams['search'];
+			}
+
 			// Perform any actions if we need to.
 			$subaction = _GETORPOST( 'listaction' );
 			$saResult = array();
 			if ( !empty( $subaction ) ) {
-				// Build a list of UIDs that we will work on.
-				$uids = array();
-				foreach ( $_POST as $postvar => $uid ) {
-					if ( substr( $postvar, 0, 2 ) == 's-' ) {
-						$uids[] = $uid;
+				if ( $requestParams['selector'] != "allinmailbox" ) {
+					// Build a list of UIDs that we will work on.
+					$uids = array();
+					foreach ( $_POST as $postvar => $uid ) {
+						if ( substr( $postvar, 0, 2 ) == 's-' ) {
+							$uids[] = $uid;
+						}
 					}
-				}
-				foreach ( $_GET as $postvar => $uid ) {
-					if ( substr( $postvar, 0, 2 ) == 's-' ) {
-						$uids[] = $uid;
+					foreach ( $_GET as $postvar => $uid ) {
+						if ( substr( $postvar, 0, 2 ) == 's-' ) {
+							$uids[] = $uid;
+						}
 					}
+					$_POST['uid'] = implode( ",", $uids );
 				}
-				$_POST['uid'] = implode( ",", $uids );
 
 				// Determine what action to take and make it happen!
 				switch ( $subaction ) {
@@ -296,9 +305,13 @@ if ( !isHtmlSession() ) {
 						$_POST['destbox'] = substr( _GETORPOST( 'movemessage' ), 5 );
 
 						$saResult = request_moveMessage();
+
+						unset( $requestParams['selector'] );
 						break;
 					case _('delete'):
 						$saResult = request_deleteMessage();
+						
+						unset( $requestParams['selector'] );
 						break;
 					case _('flag'):
 						$_POST['flag'] = 'flagged';
@@ -325,7 +338,13 @@ if ( !isHtmlSession() ) {
 			drawToolbar( 'list-bar', true, $requestParams );
 
 			// Show any error messages.
-			echo request_displayFlash( $saResult );
+			if ( !empty( $subaction ) ) {
+				if ( request_failed( $saResult ) ) {
+					echo request_displayFlash( $saResult );
+				} else {
+					echo request_displayFlash( array(), $saResult['message'] );
+				}
+			}
 			html_startContentArea();
 
 			// Get the list of messages.

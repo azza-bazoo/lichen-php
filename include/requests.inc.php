@@ -645,6 +645,8 @@ function request_setFlag() {
 		$result['flag']    = $flag;
 		$result['state']   = $flagState['flagstate'];
 		$result['uid']     = $messageUID;
+		$result['count']   = substr_count( $messageUID, "," ) + 1;
+		$result['message'] = sprintf( _("Updated %d message(s) successfully."), $result['count'] );
 	} else {
 		$result['success']     = false;
 		$result['errorCode']   = 'FLAGS';
