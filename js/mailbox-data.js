@@ -295,6 +295,28 @@ var MessagesDatastore = new Class({
 		var result = this.cache.storeMailboxList( mailboxList.data, mailboxList.validity );
 		Lichen.MailboxList.listUpdateCB( result );
 	},
+	
+	fetchMailboxStatus: function( mailbox ) {
+		// Return the status of a specific mailbox.
+		// This only works from the data in the cache.
+		// If not in cache, you're out of luck.
+		var validity = this.cache.getMailboxListValidity();
+		var result = this.cache.getMailboxList( validity );
+
+		var mailboxData = null;
+
+		if ( result ) {
+			for ( var i = 0; i < result.length; i++ ) {
+				if ( result[i].fullboxname == mailbox ) {
+					mailboxData = result[i];
+				}
+			}
+		} else {
+			// We don't have it in the cache.
+		}
+
+		return mailboxData;
+	},
 
 	fetchMessage: function( mailbox, uid, mode ) {
 		// Message caching disabled for now due to conflicts

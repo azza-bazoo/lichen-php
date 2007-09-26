@@ -31,6 +31,9 @@ var MessageLister = new Class({
 		this.wrapper = wrapper;
 		this.dataStore = dataStore;
 		this.numberPages = 1;
+		this.messagesOnThisPage = 0;
+
+		this.allSelectedStatus = 0; // 0 = user defined, 1 = all on page, 2 = all in mailbox.
 	},
 
 	setSort: function ( newSort, noUpdate ) {
@@ -83,6 +86,7 @@ var MessageLister = new Class({
 		 if ( this.search != searchTerm ) {
 			this.search = searchTerm;
 			this.page = 0;
+			this.allSelectedStatus = 0;
 			if ( !noUpdate ) {
 				this.listUpdate();
 			}
@@ -105,6 +109,7 @@ var MessageLister = new Class({
 			this.mailbox = newMailbox;
 			this.page = 0;
 			this.search = "";
+			this.allSelectedStatus = 0;
 		}
 		if ( !noUpdate ) {
 			this.listUpdate();
@@ -118,6 +123,9 @@ var MessageLister = new Class({
 	setPage: function ( newPage, noUpdate ) {
 		if ( this.page != newPage ) {
 			if ( newPage >= 0 && newPage <= (this.numberPages - 1) ) { 
+				if ( this.allSelectedStatus != 2 ) {
+					this.allSelectedStatus = 0;
+				}
 				this.page = newPage;
 				if ( !noUpdate ) {
 					this.listUpdate();
@@ -195,6 +203,14 @@ var MessageLister = new Class({
 				+ "[<a href=\"#clearsearch\" onclick=\"return Lichen.action('list','MessageList','setSearch',[''])\">"
 				+ _('clear search') + "</a>]</div>";
 		}
+		var allNotificationHtml = this.allSelectedDisplay( true );
+		tableContents += "<div class=\"list-notification\" id=\"select-all-notification\" ";
+		if ( allNotificationHtml == "" ) {
+			tableContents += "style=\"display: none\">";
+		} else {
+			tableContents += ">" + allNotificationHtml;
+		}
+		tableContents += "</div>";
 
 		tableContents += "<table id=\"list-data-tbl\">";
 
@@ -228,6 +244,8 @@ var MessageLister = new Class({
 			tableContents += "<tr><td colspan=\"5\" class=\"list-nothing\">" + _('No messages in this mailbox.') + "</td></tr>";
 		}
 
+		this.messagesOnThisPage = messages.length;
+
 		// Hack: use a better loop later, but this avoids scoping problems.
 		for ( var i = 0; i < messages.length; i ++ ) {
 
@@ -250,7 +268,7 @@ var MessageLister = new Class({
 
 			thisRow += "<td><input type=\"checkbox\" class=\"msg-select\" name=\"s-" + thisMsg.uid +
 				"\" id=\"s-" + thisMsg.uid + "\" value=\"" + thisMsg.uid +
-				"\" onclick=\"Lichen.MessageList.messageCheckboxClicked();\" /></td>";
+				"\" onclick=\"Lichen.MessageList.messageCheckboxClicked(this);\" /></td>";
 
 			var flagImage = thisMsg.flagged ? "/icons/flag.png" : "/icons/flag_off.png";
 			thisRow += "<td><img src=\"themes/" + userSettings.theme + flagImage + "\" id=\"f-" + thisMsg.uid + "\" alt=\"\" onclick=\"Lichen.MessageList.twiddleFlag('" + thisMsg.uid + "', 'flagged', 'toggle')\" title=\"Flag this message\" class=\"list-flag\" /></td>";
@@ -306,10 +324,16 @@ var MessageLister = new Class({
 		$('list-sort-'+this.sort).getParent().adopt( sortImg );
 
 		// Reset any previously-selected messages.
-		for ( var i = 0; i < lastSelected.length; i++ ) {
-			var checkBox = $( 's-' + lastSelected[i] );
-			if ( checkBox ) {
-				checkBox.checked = true;
+		if ( this.allSelectedStatus == 2 ) {
+			// All messages in mailbox were selected...
+			this.selectMessages(7);
+		} else {
+			// Only some messages were selected.
+			for ( var i = 0; i < lastSelected.length; i++ ) {
+				var checkBox = $( 's-' + lastSelected[i] );
+				if ( checkBox ) {
+					checkBox.checked = true;
+				}
 			}
 		}
 	},
@@ -448,19 +472,77 @@ var MessageLister = new Class({
 	},
 
 	// onclick handler for the checkbox next to "sender" in a message list
-	// Currently does nothing but will later highlight active rows, etc.
-	messageCheckboxClicked: function () {
+	messageCheckboxClicked: function ( checkbox ) {
+		// Unset the all-messages-checked status.
+		this.allSelectedStatus = 0;
+		this.allSelectedDisplay();
+
+		// Highlight the active row if checked.
+		this.setRowActive( checkbox );
+
 		return false;
+	},
+
+	setRowActive: function( checkbox ) {
+		var tableRow = $( 'mr-' + checkbox.value );
+		if ( checkbox.checked ) {
+			tableRow.addClass( 'active' );
+		} else {
+			tableRow.removeClass( 'active' );
+		}
+	},
+
+	allSelectedDisplay: function ( htmlMode ) {
+		var linkHtml = "";
+		if ( this.allSelectedStatus == 0 ) {
+			// Hide the appropriate area.
+			if ( !htmlMode ) {
+				$( 'select-all-notification' ).setStyle( 'display', 'none' );
+			}
+		} else {
+			// TODO: incorrect data; aftera a mailbox refresh, the mailbox list is 
+			// refreshed after.
+			var mailboxData = Lichen.Messages.fetchMailboxStatus( this.getMailbox() );
+			if ( this.allSelectedStatus == 1 ) {
+				linkHtml += _("Only the ") + "<b>" + this.messagesOnThisPage + "</b>" + _(" messages on this page have been selected. ");
+				linkHtml += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(7);\">";
+				linkHtml += _("Select all messages in this mailbox");
+				linkHtml += "</a>.";
+			} else {
+				linkHtml += _("All ") + "<b>" + mailboxData.messages + "</b>" + _(" messages in this mailbox have been selected. ");
+				linkHtml += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(1);\">";
+				linkHtml += _("Select only the messages on this page");
+				linkHtml += "</a>.";
+			}
+
+			if ( !htmlMode ) {
+				$( 'select-all-notification' ).setHTML( linkHtml );
+				$( 'select-all-notification' ).setStyle( 'display', 'block' );
+			}
+		}
+
+		return linkHtml;
 	},
 
 	selectMessages: function ( mode ) {
 		var inputElements = $A( $('list-data-tbl').getElementsByTagName('input') );
+
+		this.allSelectedStatus = 0;
+
+		if ( mode == 1 ) {
+			// Select all on the current page.
+			this.allSelectedStatus = 1;
+		} else if ( mode == 7 ) {
+			// Select all in mailbox.
+			this.allSelectedStatus = 2;
+		}
 
 		for ( var i = 1; i < inputElements.length; i++ ) {
 			var thisMsgUID = inputElements[i].value;
 
 			switch ( mode ) {
 				case 1:		// all
+				case 7:
 					inputElements[i].checked = true;
 					break;
 				case 2:		// none
@@ -485,7 +567,11 @@ var MessageLister = new Class({
 					inputElements[i].checked = !inputElements[i].checked;
 					break;
 			}
+			
+			this.setRowActive( inputElements[i] );
 		}
+
+		this.allSelectedDisplay();
 	},
 
 	withSelected: function( sourceBox, textAction ) {

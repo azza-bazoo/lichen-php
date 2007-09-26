@@ -39,6 +39,7 @@ td { border-bottom: solid 1px #cccccc; border-top: solid 1px #cccccc; padding-bo
 
 tr.odd td { background: #f4f4ff; }
 tr.even td { background: #ffffff; }
+tr.active td { background: #fff0f0; }
 .new { font-weight: bold; }
 
 td.list-nothing { padding: 20px; text-align: center; }

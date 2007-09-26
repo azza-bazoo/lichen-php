@@ -208,6 +208,6 @@ var MailboxLister = new Class({
 		}
 		
 		return false;
-	}
+	},
 });
 
