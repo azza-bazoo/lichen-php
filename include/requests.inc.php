@@ -358,7 +358,7 @@ function request_mailboxAction() {
 		case 'delete':
 			// Delete the mailbox.
 			// TODO: Delete sub mailboxes?
-			$result['success'] = imap_deletemailbox( $mbox, $IMAP_CONNECT . $mailbox1 );
+			$result['success'] = imap_deletemailbox( $mbox, imap_utf7_encode( $IMAP_CONNECT . $mailbox1 ) );
 			if ( !$result['success'] ) {
 				$result['errorCode']   = 'MAILBOX';
 				$result['errorString'] = _("Unable to delete mailbox: ") . imap_last_error();
@@ -366,7 +366,7 @@ function request_mailboxAction() {
 			break;
 		case 'rename':
 			// Rename the mailbox.
-			$result['success'] = imap_renamemailbox( $mbox, $IMAP_CONNECT . $mailbox1, $IMAP_CONNECT . $mailbox2 );
+			$result['success'] = imap_renamemailbox( $mbox, imap_utf7_encode( $IMAP_CONNECT . $mailbox1 ), imap_utf7_encode( $IMAP_CONNECT . $mailbox2 ) );
 			if ( !$result['success'] ) {
 				$result['errorCode']   = 'MAILBOX';
 				$result['errorString'] = _("Unable to rename mailbox: ") . imap_last_error();
@@ -382,7 +382,7 @@ function request_mailboxAction() {
 			} else {
 				$newname = "{$mailbox1}{$delimiter}{$mailbox2}";
 			}
-			$result['success'] = imap_createmailbox( $mbox, $IMAP_CONNECT . $newname );
+			$result['success'] = imap_createmailbox( $mbox, imap_utf7_encode( $IMAP_CONNECT . $newname ) );
 			if ( !$result['success'] ) {
 				$result['errorCode']   = 'MAILBOX';
 				$result['errorString'] = _("Unable to create mailbox: ") . imap_last_error();

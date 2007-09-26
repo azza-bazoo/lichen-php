@@ -27,7 +27,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 function connectToServer( $user, $pass, $mailbox_to_open = "INBOX" ) {
 	global $mbox, $mailbox, $IMAP_CONNECT;
 
-	$mbox = @imap_open( $IMAP_CONNECT . $mailbox_to_open, $user, $pass );
+	$mbox = @imap_open( imap_utf7_encode( $IMAP_CONNECT . $mailbox_to_open ), $user, $pass );
 	if ( $mbox === false ) {
 		return false;
 	}
@@ -41,7 +41,7 @@ function connectToServer( $user, $pass, $mailbox_to_open = "INBOX" ) {
 function changeMailbox( $mailbox_to_use ) {
 	global $mbox, $mailbox, $IMAP_CONNECT;
 
-	if ( !@imap_reopen( $mbox, $IMAP_CONNECT . $mailbox_to_use ) ) {
+	if ( !@imap_reopen( $mbox, imap_utf7_encode( $IMAP_CONNECT . $mailbox_to_use ) ) ) {
 		return false;
 	}
 	$mailbox = $mailbox_to_use;
@@ -159,7 +159,7 @@ function imapCheckMailboxExistence( $boxname ) {
 	$exists = @imap_status( $mbox, imap_utf7_encode( $IMAP_CONNECT . $boxname ), SA_ALL );
 
 	if ( $exists === false ) {
-		$result = imap_createmailbox( $mbox, $IMAP_CONNECT . $boxname );
+		$result = imap_createmailbox( $mbox, imap_utf7_encode( $IMAP_CONNECT . $boxname ) );
 		if ( $result == false ) {
 			return false;
 		}
@@ -274,7 +274,7 @@ function moveMessages( $destination, $uidArray ) {
 		$message = trim( $message );
 		if ( $message == "" ) continue;
 
-		$result = imap_mail_move( $mbox, $message, $destination, CP_UID );
+		$result = imap_mail_move( $mbox, $message, imap_utf7_encode( $destination ), CP_UID );
 
 		if ( !$result ) $failureCounter++;
 	}
@@ -664,7 +664,7 @@ function imapMoveMailbox( $sourceMailbox, $newParent ) {
 		}
 
 		// Now do the rename.
-		$result = imap_renamemailbox( $mbox, $IMAP_CONNECT . $child['oldname'], $IMAP_CONNECT . $destName );
+		$result = imap_renamemailbox( $mbox, imap_utf7_encode( $IMAP_CONNECT . $child['oldname'] ), imap_utf7_encode( $IMAP_CONNECT . $destName ) );
 
 		if ( $result == false ) {
 			// Stop!
