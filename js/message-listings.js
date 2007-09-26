@@ -32,6 +32,7 @@ var MessageLister = new Class({
 		this.dataStore = dataStore;
 		this.numberPages = 1;
 		this.messagesOnThisPage = 0;
+		this.messagesInMailbox = 0;
 
 		this.allSelectedStatus = 0; // 0 = user defined, 1 = all on page, 2 = all in mailbox.
 	},
@@ -203,7 +204,13 @@ var MessageLister = new Class({
 				+ this.search + "&#8221;</strong> "
 				+ "[<a href=\"#clearsearch\" onclick=\"return Lichen.action('list','MessageList','setSearch',[''])\">"
 				+ _('clear search') + "</a>]</div>";
+			this.messagesInMailbox = resultObj.numbermessages;
+		} else {
+			this.messagesInMailbox = resultObj.mailboxmessages;
 		}
+		
+		this.messagesOnThisPage = messages.length;
+
 		var allNotificationHtml = this.allSelectedDisplay( true );
 		tableContents += "<div class=\"list-notification\" id=\"select-all-notification\" ";
 		if ( allNotificationHtml == "" ) {
@@ -244,8 +251,6 @@ var MessageLister = new Class({
 		if ( messages.length == 0 ) {
 			tableContents += "<tr><td colspan=\"5\" class=\"list-nothing\">" + _('No messages in this mailbox.') + "</td></tr>";
 		}
-
-		this.messagesOnThisPage = messages.length;
 
 		// Hack: use a better loop later, but this avoids scoping problems.
 		for ( var i = 0; i < messages.length; i ++ ) {
@@ -501,16 +506,25 @@ var MessageLister = new Class({
 				$( 'select-all-notification' ).setStyle( 'display', 'none' );
 			}
 		} else {
-			// TODO: incorrect data; aftera a mailbox refresh, the mailbox list is 
-			// refreshed after.
-			var mailboxData = Lichen.Messages.fetchMailboxStatus( this.getMailbox() );
+			// TODO: The strings below will be impossible to translate; because languages
+			// other than english might need to rearrange the numbers.
 			if ( this.allSelectedStatus == 1 ) {
 				linkHtml += _("Only the ") + "<b>" + this.messagesOnThisPage + "</b>" + _(" messages on this page have been selected. ");
 				linkHtml += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(7);\">";
-				linkHtml += _("Select all messages in this mailbox");
+				linkHtml += _("Select all messages ");
+				if ( this.getSearch() == "" ) {
+					linkHtml += _("in this mailbox");
+				} else {
+					linkHtml += _("from this search");
+				}
 				linkHtml += "</a>.";
 			} else {
-				linkHtml += _("All ") + "<b>" + mailboxData.messages + "</b>" + _(" messages in this mailbox have been selected. ");
+				linkHtml += _("All ") + "<b>" + this.messagesInMailbox + "</b>" + _(" messages ");
+				if ( this.getSearch() == "" ) {
+					linkHtml += _("in this mailbox have been selected. ");
+				} else {
+					linkHtml += _("from this search have been selected. ");
+				}
 				linkHtml += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(1);\">";
 				linkHtml += _("Select only the messages on this page");
 				linkHtml += "</a>.";
