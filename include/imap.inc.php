@@ -318,6 +318,17 @@ $sortParameters = array(
 	"size" => SORTSIZE
 );
 
+function makeImapSearchSafe( $input ) {
+	// Strip out anything that might give the imap C library pause for thought.
+	// The imap C library tries to be clever and reescape the input, leading to mangled queries.
+	// So we just pretend that none of these characters exist...
+	// TODO: Make this work. This is a workaround at the moment.
+	$searchq = str_replace( array( "\r", "\n", "\0", "\t", "\"" ),
+				"", //array( "\\r", "\\n", "\\0", "\\t" ),
+				$input );
+	return $searchq;
+}
+
 // This function lists messages from a mailbox, with several criteria.
 // The criteria are a search parameter, a sort parameter, and a page
 // parameter.
@@ -351,13 +362,7 @@ function listMailboxContents( $searchq, $sort, $page, $metadataOnly = false ) {
 		}
 	}
 
-	// Strip out anything that might give the imap C library pause for thought.
-	// The imap C library tries to be clever and reescape the input, leading to mangled queries.
-	// So we just pretend that none of these characters exist...
-	// TODO: Make this work. This is a workaround at the moment.
-	$searchq = str_replace( array( "\r", "\n", "\0", "\t", "\"" ),
-				"", //array( "\\r", "\\n", "\\0", "\\t" ),
-				$searchq );
+	$searchq = makeImapSearchSafe( $searchq );
 
 	$msgNumsToShow = array();
 
@@ -439,6 +444,26 @@ function listMailboxContents( $searchq, $sort, $page, $metadataOnly = false ) {
 			"search" => stripslashes( $searchq ),
 			"sort" => $sort
 		);
+}
+
+// Just do a simple search and return a list of UIDs, not sorted in any particular way.
+function rawMessageList( $searchq = "" ) {
+	global $mbox;
+
+	$messageList = null;
+
+	if ( $searchq == "" ) {
+		$messageList = imap_search( $mbox, "ALL", SE_NOPREFETCH | SE_UID );
+	} else {
+		$searchq = makeImapSearchSafe( $searchq );
+		$messageList = imap_search( $mbox, "TEXT \"$searchq\"", SE_NOPREFETCH | SE_UID );
+	}
+
+	if ( $messageList === false ) {
+		$messageList = array();
+	}
+
+	return $messageList;
 }
 
 // Takes an array of message numbers, and returns an array of

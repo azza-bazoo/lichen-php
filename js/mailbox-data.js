@@ -82,6 +82,9 @@ var MessagesDatastore = new Class({
 		// Global callback function list.
 		// (May need to be split up)
 		this.callbacks = Array();
+
+		this.allMessagesMailbox = null;
+		this.allMessagesSearch  = null;
 	},
 
 	addCallback: function ( callback ) {
@@ -361,6 +364,27 @@ var MessagesDatastore = new Class({
 		} else {
 			return _("Not online - unable to fetch that part of the message.");
 		}
+	},
+
+	nextOperationOnAllMessages: function( mailbox, search ) {
+		// Tag the next operation to work on all messages.
+		// The server component will need the mailbox and any search
+		// parameter to know what messages to target.
+		this.allMessagesMailbox = mailbox;
+		this.allMessagesSearch  = search;
+		if ( this.online ) {
+			this.server.nextOperationOnAllMessages( mailbox, search );
+		} else {
+			// Operate on them locally...
+		}
+	},
+
+	clearOperationOnAllMessages: function () {
+		if ( this.online ) {
+			this.server.clearOperationOnAllMessages();
+		}
+		this.allMessagesMailbox = null;
+		this.allMessagesSearch  = null;
 	},
 
 	moveMessage: function( sourceMailbox, destMailbox, uid, callback ) {

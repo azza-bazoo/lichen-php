@@ -88,6 +88,13 @@ function regenerateAttachmentData( $fileList ) {
 	return $result;
 }
 
+// Grubby, ill-placed hack to handle "select all messages in mailbox".
+// If allmailbox and allsearch are set, replace the post variable uid
+// with all the UIDs matching the given mailbox and search.
+if ( isset( $_POST['allmailbox'] ) && isset( $_POST['allsearch'] ) && isset( $_POST['uid'] ) ) {
+	$_POST['uid'] = implode( ",", rawMessageList( $_POST['allsearch'] ) );
+}
+
 
 if ( !isHtmlSession() ) {
 	// ------------------------------------------------------------------------

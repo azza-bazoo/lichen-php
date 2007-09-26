@@ -28,6 +28,26 @@ var IMAPServerConnector = new Class({
 
 	initialize: function( dataStoreObject ) {
 		this.dataStore = dataStoreObject;
+
+		this.allMessagesMailbox = null;
+		this.allMessagesSearch  = null;
+	},
+
+	nextOperationOnAllMessages: function( mailbox, search ) {
+		this.allMessagesMailbox = mailbox;
+		this.allMessagesSearch  = search;
+	},
+	clearOperationOnAllMessages: function() {
+		this.allMessagesMailbox = null;
+		this.allMessagesSearch  = null;
+	},
+	getOperationOnAllMessages: function () {
+		if ( this.allMessagesMailbox != null && this.allMessagesSearch != null ) {
+			return "&allmailbox=" + encodeURIComponent(this.allMessagesMailbox) +
+				"&allsearch=" + encodeURIComponent(this.allMessagesSearch);
+		} else {
+			return "";
+		}
 	},
 
 	messageList: function( mailbox, search, page, sort, validity, cacheonly ) {
@@ -96,7 +116,8 @@ var IMAPServerConnector = new Class({
 		new Ajax( 'ajax.php', {
 			postBody: 'request=moveMessage&mailbox=' + encodeURIComponent(sourceMailbox) +
 				'&destbox=' + encodeURIComponent(destMailbox) +
-				'&uid=' + encodeURIComponent(uid),
+				'&uid=' + encodeURIComponent(uid) +
+				this.getOperationOnAllMessages(),
 				onComplete: this.moveMessageCB.bind( this ),
 				onFailure: if_remoteRequestFailed
 			} ).request();
@@ -113,7 +134,8 @@ var IMAPServerConnector = new Class({
 	deleteMessage: function( mailbox, uid ) {
 		new Ajax( 'ajax.php', {
 			postBody: 'request=deleteMessage&mailbox=' + encodeURIComponent(mailbox) +
-				'&uid=' + encodeURIComponent(uid),
+				'&uid=' + encodeURIComponent(uid) +
+				this.getOperationOnAllMessages(),
 			onComplete: this.deleteMessageCB.bind( this ),
 			onFailure: if_remoteRequestFailed
 			} ).request();
@@ -132,6 +154,7 @@ var IMAPServerConnector = new Class({
 		postbody += "&flag=" + encodeURIComponent( flag );
 		postbody += "&mailbox=" + encodeURIComponent( mailbox );
 		postbody += "&uid=" + encodeURIComponent( uid );
+		postbody += this.getOperationOnAllMessages();
 		if ( state ) {
 			postbody += "&state=" + state;
 		}

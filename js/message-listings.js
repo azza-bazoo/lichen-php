@@ -543,6 +543,18 @@ var MessageLister = new Class({
 		return linkHtml;
 	},
 
+	allSelectedServerNotify: function ( forceoff ) {
+		if ( this.allSelectedStatus == 2 ) {
+			Lichen.Messages.nextOperationOnAllMessages( this.getMailbox(), this.getSearch() );
+		} else {
+			Lichen.Messages.clearOperationOnAllMessages();
+		}
+		if ( forceoff ) {
+			this.allSelectedStatus = 0;
+			Lichen.Messages.clearOperationOnAllMessages();
+		}
+	},
+
 	selectMessages: function ( mode ) {
 		var inputElements = $A( $('list-data-tbl').getElementsByTagName('input') );
 
@@ -608,6 +620,8 @@ var MessageLister = new Class({
 			mailbox = action.substr( 5 );
 			action = "move";
 		}
+		
+		this.allSelectedServerNotify();
 
 		switch ( action ) {
 			case 'noop':
@@ -683,8 +697,12 @@ var MessageLister = new Class({
 		var selectedMessages = this.getSelectedMessages();
 		var selectedCount = selectedMessages.length;
 		selectedMessages = selectedMessages.join(",");
+		
+		this.allSelectedServerNotify();
 
 		Lichen.Messages.moveMessage( this.getMailbox(), target, selectedMessages, this.moveMessagesCB.bind( this ) );
+		
+		this.allSelectedServerNotify( true );
 	},
 
 	// Send AJAX request to delete the selected messages (which is a special case of moving)
@@ -692,8 +710,12 @@ var MessageLister = new Class({
 		var selectedMessages = this.getSelectedMessages();
 		var selectedCount = selectedMessages.length;
 		selectedMessages = selectedMessages.join(",");
+		
+		this.allSelectedServerNotify();
 
 		Lichen.Messages.deleteMessage( this.getMailbox(), selectedMessages, this.moveMessagesCB.bind( this ) );
+		
+		this.allSelectedServerNotify( true );
 	},
 
 	moveMessagesCB: function( result ) {
