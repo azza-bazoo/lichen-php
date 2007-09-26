@@ -59,11 +59,35 @@ function render_messageList( $requestData, $requestParams ) {
 	echo htmlList_createPageBar( $requestData, $requestParams, true );
 
 	if ( $requestData['search'] != "" ) {
-		echo "<div class=\"list-notification\"><strong>", _("Found "), $requestData['numbermessages'] ,_(' search results for'), " &#8220;",
-			$requestData['search'], "&#8221;</strong> ",
+		echo "<div class=\"list-notification\"><strong>",
+			sprintf( _("Found %d search results for &#8220;%s&#8221;"), (int)$requestData['numbermessages'], $requestData['search'] ),
+			"</strong> ",
 			"[<a href=\"ajax.php?" . genLinkQuery( $requestParams, array(), array( "search", "page" ) ) . "\">",
 			_("clear search"),
 			"</a>]</div>";
+	}
+	if ( isset( $requestParams['selector'] ) && in_array( $requestParams['selector'], array( "all", "allinmailbox" ) ) ) {
+		echo "<div class=\"list-notification\" id=\"select-all-notification\">";
+		if ( $requestParams['selector'] == "all" ) {
+			echo sprintf( _("Only the <b>%d</b> messages on this page have been selected. "), count($requestData['messages']) );
+			echo "<a href=\"ajax.php?", genLinkQuery( $requestParams, array( "selector" => "allinmailbox" ) ), "\">";
+			if ( $requestData['search'] == "" ) {
+				echo _("Select all messages in this mailbox");
+			} else {
+				echo _("Select all messsages from this search");
+			}
+			echo "</a>.";
+		} else {
+			if ( $requestData['search'] == "" ) {
+				echo sprintf( _("All <b>%d</b> messages in this mailbox have been selected. "), $requestData['mailboxmessages'] );
+			} else {
+				echo sprintf( _("All <b>%d</b> messages from this search have been selected. "), $requestData['numbermessages'] ); 
+			}
+			echo "<a href=\"ajax.php?", genLinkQuery( $requestParams, array( "selector" => "all" ) ), "\">";
+			echo _("Select only the messages on this page");
+			echo "</a>.";
+		}
+		echo "</div>";
 	}
 
 	echo "<table id=\"list-data-tbl\">";
@@ -153,6 +177,7 @@ function render_messageList( $requestData, $requestParams ) {
 		$isChecked = false;
 		switch ( $requestParams['selector'] ) {
 			case 'all':
+			case 'allinmailbox':
 				$isChecked = true;
 				break;
 			case 'read':
