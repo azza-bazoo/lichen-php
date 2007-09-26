@@ -199,6 +199,7 @@ var MessageLister = new Class({
 		tableContents += this._createPageBar( resultObj, true );
 
 		if ( this.search != "" ) {
+			// TODO: This string below is not really properly translatable.
 			tableContents += "<div class=\"list-notification\"><strong>" + _("Found ") + resultObj.numbermessages
 				+ _(' search results for') + " &#8220;"
 				+ this.search + "&#8221;</strong> "
@@ -268,6 +269,10 @@ var MessageLister = new Class({
 
 			if ( thisMsg.readStatus == 'U' ) {
 				thisRow += " new";
+			}
+
+			if ( this.allSelectedStatus == 2 ) {
+				thisRow += " active";
 			}
 
 			thisRow += "\">";
@@ -507,15 +512,14 @@ var MessageLister = new Class({
 			}
 		} else {
 			// TODO: The strings below will be impossible to translate; because languages
-			// other than english might need to rearrange the numbers.
+			// other than english might need to rearrange the numbers or the word order.
 			if ( this.allSelectedStatus == 1 ) {
 				linkHtml += _("Only the ") + "<b>" + this.messagesOnThisPage + "</b>" + _(" messages on this page have been selected. ");
 				linkHtml += "<a href=\"#\" onclick=\"Lichen.MessageList.selectMessages(7);\">";
-				linkHtml += _("Select all messages ");
 				if ( this.getSearch() == "" ) {
-					linkHtml += _("in this mailbox");
+					linkHtml += _("Select all messages in this mailbox");
 				} else {
-					linkHtml += _("from this search");
+					linkHtml += _("Select all messages from this search");
 				}
 				linkHtml += "</a>.";
 			} else {
