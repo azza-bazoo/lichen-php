@@ -59,7 +59,7 @@ function render_messageList( $requestData, $requestParams ) {
 	echo htmlList_createPageBar( $requestData, $requestParams, true );
 
 	if ( $requestData['search'] != "" ) {
-		echo "<div class=\"list-notification\"><strong>", _('Search results for'), " &#8220;",
+		echo "<div class=\"list-notification\"><strong>", _("Found "), $requestData['numbermessages'] ,_(' search results for'), " &#8220;",
 			$requestData['search'], "&#8221;</strong> ",
 			"[<a href=\"ajax.php?" . genLinkQuery( $requestParams, array(), array( "search", "page" ) ) . "\">",
 			_("clear search"),

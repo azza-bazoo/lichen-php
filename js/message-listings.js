@@ -198,7 +198,8 @@ var MessageLister = new Class({
 		tableContents += this._createPageBar( resultObj, true );
 
 		if ( this.search != "" ) {
-			tableContents += "<div class=\"list-notification\"><strong>" + _('Search results for') + " &#8220;"
+			tableContents += "<div class=\"list-notification\"><strong>" + _("Found ") + resultObj.numbermessages
+				+ _(' search results for') + " &#8220;"
 				+ this.search + "&#8221;</strong> "
 				+ "[<a href=\"#clearsearch\" onclick=\"return Lichen.action('list','MessageList','setSearch',[''])\">"
 				+ _('clear search') + "</a>]</div>";
