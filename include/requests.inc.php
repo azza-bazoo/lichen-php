@@ -428,6 +428,7 @@ function request_getMessage() {
 	$result = array();
 
 	$msgUid = _GETORPOST( 'msg' );
+	$allowRemote = _GETORPOST( 'remoteimages', false );
 
 	// TODO: Sanitise the UID input.
 	$msgArray = retrieveMessage( $msgUid, false );
@@ -448,6 +449,7 @@ function request_getMessage() {
 	// (Don't want the client trying to do all this processing)
 	foreach ( $msgArray['texthtml'] as $htmlPart ) {
 		$msgExtraFlags = array();
+		$msgExtraFlags['allowimages'] = $allowRemote;
 		$markedupContent['texthtml'][] = processMsgMarkup( $htmlPart, 'text/html', $mailbox, $msgUid, $msgExtraFlags );
 
 		// msgExtraFlags will have a key "htmlhasremoteimages" if the html section in question has

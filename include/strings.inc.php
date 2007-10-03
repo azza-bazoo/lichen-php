@@ -212,6 +212,435 @@ if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
 	}
 }
 
+// One key for each allowed element.
+// If it has specific allowed attributes, then each key
+// should have an associated array of allowed attributes.
+// The allowed attributes array is keyed too.
+$HTML_ALLOWEDELEMENTS = array(
+	"a" => array(
+		"charset" => true,
+		"coords" => true,
+		"href" => true,
+		"hreflang" => true,
+		"name" => true,
+		"rel" => true,
+		"rev" => true,
+		"shape" => true,
+		"tabindex" => true,
+		"type" => true
+	),
+	"abbr" => true,
+	"acronym" => true,
+	"address" => true,
+	"area" => array(
+		"coords" => true,
+		"href" => true,
+		"nohref" => true,
+		"shape" => true,
+		"tabindex" => true,
+	),
+	"b" => true,
+	"blockquote" => array(
+		"cite" => true,	
+	),
+	"br" => true,
+	"button" => array(
+		"disabled" => true,
+		"name" => true,
+		"tabindex" => true,
+		"type" => true,
+		"value" => true,
+	),
+	"caption" => true,
+	"cite" => true,
+	"code" => true,
+	"col" => array(
+		"char" => true,
+		"charoff" => true,
+		"span" => true,
+	),
+	"colgroup" => array(
+		"char" => true,
+		"charoff" => true,
+		"span" => true,
+	),
+	"dd" => true,
+	"del" => array(
+		"cite" => true,
+		"datetime" => true,
+	),
+	"dfn" => true,
+	"div" => true,
+	"dl" => true,
+	"dt" => true,
+	"em" => true,
+	"fieldset" => true,
+	"font" => array(
+		"size" => true,
+		"color" => true,
+		"face" => true,	
+	),
+	"form" => array(
+		"accept-charset" => true,
+		"accept" => true,
+		"action" => true,
+		"enctype" => true,
+		"method" => true,
+		"name" => true,	
+	),
+	"h1" => true,
+	"h2" => true,
+	"h3" => true,
+	"h4" => true,
+	"h5" => true,
+	"h6" => true,
+	"hr" => true,
+	"i" => true,
+	"img" => array(
+		"alt" => true,
+		"align" => true,
+		"border" => true,
+		"height" => true,
+		"src" => true,
+		"ismap" => true,
+		"longdesc" => true,
+		"usemap" => true,
+		"width" => true,
+	),
+	"input" => array(
+		"accept" => true,
+		"checked" => true,
+		"disabled" => true,
+		"name" => true,
+		"ismap" => true,
+		"maxlength" => true,
+		"readonly" => true,
+		"size" => true,
+		"tabindex" => true,
+		"type" => true,
+		"usemap" => true,
+		"value" => true,	
+	),
+	"ins" => array(
+		"cite" => true,
+		"datetime" => true,
+	),
+	"kbd" => true,
+	"label" => array(
+		"for" => true,
+	),
+	"legend" => true,
+	"li" => true,
+	"map" => array(
+		"name" => true,	
+	),
+	"ol" => true,
+	"optgroup" => array(
+		"disabled" => true,
+		"label" => true,	
+	),
+	"option" => array(
+		"disabled" => true,
+		"label" => true,
+		"selected" => true,
+		"value" => true,
+	),
+	"p" => true,
+	"pre" => true,
+	"q" => array(
+		"cite" => true,	
+	),
+	"samp" => true,
+	"select" => array(
+		"disabled" => true,
+		"multiple" => true,
+		"name" => true,
+		"size" => true,
+		"tabindex" => true,
+	),
+	"span" => true,
+	"strong" => true,
+	"table" => array(
+		"align" => true,
+		"border" => true,
+		"bgcolor" => true,
+		"cellpadding" => true,
+		"cellspacing" => true,
+		"summary" => true,
+		"width" => true,
+	),
+	"tbody" => array(
+		"char" => true,
+		"charoff" => true,
+	),
+	"td" => array(
+		"abbr" => true,
+		"align" => true,
+		"axis" => true,
+		"bgcolor" => true,
+		"border" => true,
+		"background" => true, // Can have remote image, unsafe!
+		"cellpadding" => true,
+		"cellspacing" => true,
+		"char" => true,
+		"charoff" => true,
+		"colspan" => true,
+		"height" => true,
+		"nowrap" => true,
+		"rowspan" => true,
+		"scope" => true,
+		"valign" => true,
+		"width" => true,
+	),
+	"textarea" => array(
+		"cols" => true,
+		"disabled" => true,
+		"name" => true,
+		"readonly" => true,
+		"rows" => true,
+		"tabindex" => true,	
+	),
+	"tfoot" => array(
+		"char" => true,
+		"charoff" => true,	
+	),
+	"th" => array(
+		"abbr" => true,
+		"align" => true,
+		"axis" => true,
+		"bgcolor" => true,
+		"cellpadding" => true,
+		"cellspacing" => true,
+		"char" => true,
+		"charoff" => true,
+		"colspan" => true,
+		"height" => true,
+		"rowspan" => true,
+		"scope" => true,
+		"valign" => true,
+		"width" => true,
+	),
+	"thead" => array(
+		"char" => true,
+		"charoff" => true,	
+	),
+	"tr" => array(
+		"align" => true,
+		"bgcolor" => true,
+		"cellpadding" => true,
+		"cellspacing" => true,
+		"char" => true,
+		"charoff" => true,
+		"height" => true,
+		"valign" => true,
+		"width" => true,
+	),
+	"ul" => true,
+	"var" => true,
+);
+
+// Globally allowed attributes: that is, attributes allowed for any element.
+// Specific attributes for elements can be allowed by inserting them into the above
+// array.
+$HTML_ALLOWEDATTRS = array(
+	"dir" => true,
+	"lang" => true,
+	"style" => true, // TODO: Sanitise this value!
+	"title" => true,
+	"id" => true,      // Keep ONLY ids that lichen generates...
+	"onclick" => true, // TODO: distinguish between the ones we add and others from the original mail.
+);
+
+// Tags that get modified in some way.
+$HTML_MODIFYTAGS = array(
+	"a" => true,
+	"img" => true
+);
+$HTML_MODIFYATTRS = array(
+	"background" => true,
+	"style" => true,
+	"id" => true,       // Strip any id provided by the original source message....
+);
+
+// Modify data needs at least:
+//   mailbox - the mailbox the message comes from
+//   uid - the UID of the message.
+//   remoteimg - destination array for remote images.
+//   imgcounter - the count of remote images - set to zero to start with.
+//   allowimages - true to just allow images anyway.
+
+// Clean HTML up - utilize the HTML Lexer that is part of HTMLPurifier,
+// but do our own cleaning.
+function cleanHTML( $inputHtml, &$modifyData ) {
+	global $HTML_ALLOWEDELEMENTS, $HTML_ALLOWEDATTRS,
+		$HTML_MODIFYTAGS, $HTML_MODIFYATTRS;
+
+	// Prep the HTMLPurifier Lexer.
+	$lexerConfig = HTMLPurifier_Config::create( null );
+	$lexer       = HTMLPurifier_Lexer::create( $lexerConfig );
+	$context     = new HTMLPurifier_Context();
+
+	// Parse the HTML...
+	$tokenisedHtml = $lexer->tokenizeHTML( $inputHtml, $lexerConfig, $context );
+
+	// Now iterate over the result and parse it appropriately.
+	ob_start();
+	$stripUntil = false;
+	$passOut = true;
+	foreach ( $tokenisedHtml as $token ) {
+		if ( $stripUntil !== false ) {
+			$passOut = false;
+		} else {
+			$passOut = true;
+		}
+		if ( isset( $token->is_tag ) && $token->is_tag ) {
+			// Are we stripping until this tag occurs again?
+			if ( $stripUntil !== false ) {
+				if ( $token->name == $stripUntil && $token->type == "end" ) {
+					// Continue the output after this tag.
+					$stripUntil = false;
+				}
+			} else {
+				// Is this tag allowed?
+				$allowed = isset( $HTML_ALLOWEDELEMENTS[ $token->name ] );
+
+				if ( !$allowed ) {
+					// This tag is not allowed. Strip everything
+					// between it and the matching close tag.
+					// Unless... it is a single tag, in which case we
+					// just want to stop it.
+					if ( $token->type == "empty" ) {
+						// Self-closed/closing tag.
+						$passOut = false;
+					} else {
+						$stripUntil = $token->name;
+						$passOut = false;
+					}
+				} else {
+					// It is allowed.
+					
+					if ( $token->type != "end" ) {
+						// Do we need to modify the tag?
+						if ( isset( $HTML_MODIFYTAGS[ $token->name ] ) ) {
+							modifyTag( $token, $modifyData );
+						}
+
+						// Do we need to modify any attributes?
+						foreach ( $token->attr as $name ) {
+							if ( isset( $HTML_MODIFYATTRS[ $name ] ) ) {
+								modifyAttribute( $name, $token->attr, $modifyData );
+							}
+						}
+
+						// Check to make sure all the attributes are allowed.
+						foreach ( $token->attr as $name => $value ) {
+							if ( !isset( $HTML_ALLOWEDELEMENTS[ $token->name ][ $name ] ) &&
+								!isset( $HTML_ALLOWEDATTRS[ $name ] ) )
+							{
+								// Attribute is NOT allowed.
+								//echo "Removing attr {$name} with value {$value} from {$token->name}...";
+								unset( $token->attr[$name] );
+							}
+						}
+						$passOut = true;
+					}
+				}
+			}
+		}
+
+		if ( $passOut ) {
+			reconstructTag( $token );
+		}
+	}
+
+	return ob_get_clean();
+}
+
+function reconstructTag( $tagData ) {
+	// Performance: echo it out, should be ob_captured by caller!
+	if ( isset( $tagData->is_tag ) && $tagData->is_tag ) {
+		//echo "Tag: ";
+		// Print out the tag name.
+		echo "<";
+		if ( $tagData->type == "end" ) {
+			// And make it </tagname if it's a closing tag.
+			echo "/";
+		}
+		echo $tagData->name;
+
+		if ( $tagData->type != "end" && count( $tagData->attr ) != 0 ) {
+			// Print out the attributes for this tag.
+			echo " ";
+			foreach ( $tagData->attr as $name => $value ) {
+				echo $name, "=\"", htmlentities( $value ), "\" ";
+			}
+		}
+
+		if ( $tagData->type == "empty" ) {
+			// Self closed tag?
+			echo "/";
+		}
+
+		// Close the tag.
+		echo ">";
+	}
+	if ( $tagData->type == "text" ) {
+		// Text node: pass it out verbatim.
+		//echo "Text node: ";
+		echo $tagData->data;
+		//var_dump( $tagData );
+	}
+}
+
+function modifyTag( &$tagData, &$modifyData ) {
+	// Transmogrify some tags. Transmogrify them good.
+	switch ( $tagData->name ) {
+		case "a":
+			// Wrap external links with an onclick to call if_newWin().
+			if ( substr( $tagData->attr['href'], 0, 4 ) == "http" ) {
+				$tagData->attr['onclick'] = "return if_newWin('" . addslashes( $tagData->attr['href'] ) . "');";
+			}
+			// Convert mailto: links into composer links.
+			if ( substr( $tagData->attr['href'], 0, 7 ) == "mailto" ) {
+				$tagData->attr['onclick'] = "Lichen.action('compose','MessageCompose','showComposer',['mailto',null,'" .
+					addslashes( substr( $tagData->attr['href'], 7 ) ) . "'];return false";
+			}
+			break;
+		case "img":
+			// Step 1: is this a cid: image?
+			$srcBegin = substr( $tagData->attr['src'], 0, 4 );
+			if ( $srcBegin == "cid:" ) {
+				// Image is a cid: image, so replace the source so that the
+				// correct image is loaded.
+				$tagData->attr['src'] = "message.php?mailbox=" . urlencode( $modifyData['mailbox'] ) .
+					"&uid=" . urlencode( $modifyData['uid'] ) . "&filename=" . urlencode( $tagData->attr['src'] );
+			} else if ( !$modifyData['allowimages'] ) {
+				// Remote image - and they are disabled.
+				$remoteData = array();
+				$remoteData['id'] = "ldr" . $modifyData['imgcounter'];
+				$remoteData['attr'] = "src";
+				$tagData->attr['id'] = $remoteData['id'];
+				$remoteData['url'] = $tagData->attr['src'];
+				unset( $tagData->attr['src'] );
+				$modifyData['imgcounter']++;
+				$modifyData['remoteimg'][] = $remoteData;
+			}
+			break;
+	}
+}
+
+function modifyAttribute( $triggerAttr, &$attributes, &$modifyData ) {
+	// Modify some attributes.
+	switch ( $triggerAttr ) {
+		case "background":
+			// Change this to be a remote image.
+			break;
+		case "style":
+			// Clean JS, and change attributes with urls() into remote content.
+			break;
+	}
+}
+
 
 // Add (or strip) HTML markup within a message to allow it to be displayed.
 // If the message is plain text, this includes things like adding <br />
@@ -226,56 +655,23 @@ if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
 function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags ) {
 
 	if ( $contentType == "text/html" ) {
-		// TODO: convert mailto: links to composer links
-
-		// Locate "cid:" images and realign the image links to point to them.
-		// Bascially, 'src="cid:InlineId"' becomes 'src="message.php?mailbox=Mailbox&uid=NNN&filename=cid:InlineId"'
-		$imgUrl = "message.php?mailbox=" . urlencode($mailbox) . "&uid=" . urlencode($uid) . "&filename=";
-		$string = preg_replace( '/<img(.*?)src=\"(cid:.*?)\"/is', "<img$1src=\"{$imgUrl}$2\"", $string );
-
-		// Quick code test. TODO: implement properly
-		$config = HTMLPurifier_Config::createDefault();
-		@$config->set( 'HTML', 'Strict', true );
-		@$config->set( 'HTML', 'Mode', array('correctional') );
-		@$config->set( 'HTML', 'TidyLevel', 'medium' );
-		@$config->set( 'Core', 'DefinitionCache', null );
-
-		// Based loosely on the HTML elements accepted by Mark Pilgrim's feedparser
-		// Disabled on all elements: event handlers,
-		// plus class and id (which might conflict with Lichen's)
-		// Optionally disabled on images: src
-		//$config->set('HTML', 'AllowedElements', 'a,abbr,acronym,address,area,blockquote,br,button,caption,cite,code,col,colgroup,dd,del,dfn,div,dl,dt,em,fieldset,form,h1,h2,h3,h4,h5,h6,hr,img,input,ins,kbd,label,legend,li,map,ol,optgroup,option,p,pre,q,samp,select,span,strong,table,tbody,td,textarea,tfoot,th,thead,tr,ul,var');
-		//$config->set('HTML', 'AllowedAttributes', '*.dir,*.lang,*.style,*.title,a.charset,a.coords,a.href,a.hreflang,a.name,a.rel,a.rev,a.shape,a.tabindex,a.type,area.coords,area.href,area.nohref,area.shape,area.tabindex,blockquote.cite,button.disabled,button.name,button.tabindex,button.type,button.value,col.char,col.charoff,col.span,colgroup.char,colgroup.charoff,colgroup.span,del.cite,del.datetime,form.accept-charset,form.accept,form.action,form.enctype,form.method,form.name,img.alt,img.ismap,img.longdesc,img.usemap,input.accept,input.checked,input.disabled,input.name,input.ismap,input.maxlength,input.readonly,input.size,input.tabindex,input.type,input.usemap,input.value,ins.cite,ins.datetime,label.for,map.name,optgroup.disabled,optgroup.label,option.disabled,option.label,option.selected,option.value,q.cite,select.disabled,select.multiple,select.name,select.size,select.tabindex,table.summary,tbody.char,tbody.charoff,td.abbr,td.axis,td.char,td.charoff,td.colspan,td.rowspan,td.scope,textarea.cols,textarea.disabled,textarea.name,textarea.readonly,textarea.rows,textarea.tabindex,tfoot.char,tfoot.charoff,th.abbr,th.axis,th.char,th.charoff,th.colspan,th.rowspan,th.scope,thead.char,thead.charoff,tr.char,tr.charoff' );
-
-		$purifier = new HTMLPurifier( $config );
-		$string = $purifier->purify( $string );
-
-		// Disable remote images. We do this by inserting a "_" before the url (but after the "http://")
-		// We also tag the images with the "remoteimage" class, allowing the client side JS to be able to find
-		// them and reenable the images. Count the number of matches so we know if there are any remote images.
-		$replacementCount = 0;
-		if ( version_compare( PHP_VERSION, '5.1.0', '<' ) ) {
-			// PHP < 5.1.0's preg_replace doesn't have the ability to count the matches.
-			// So we do this beforehand with a preg_match_all, and then do the replacement.
-			// (This is really a hack)
-			$replacementCount = preg_match_all( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', $string, $matches );
-			$string = preg_replace( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', "<img$1src=\"http://_$2\" class=\"remoteimg\"",
-							$string, -1 );
+		$modifyData = array();
+		$modifyData['mailbox']     = $mailbox;
+		$modifyData['uid']         = $uid;
+		$modifyData['remoteimg']   = array();
+		$modifyData['imgcounter']  = 0;
+		if ( is_array( $outMsgFlags ) && isset( $outMsgFlags['allowimages'] ) ) {
+			$modifyData['allowimages'] = $outMsgFlags['allowimages'];
 		} else {
-			$string = preg_replace( '/<img(.*?)src=\"http:\/\/(.*?)\"/is', "<img$1src=\"http://_$2\" class=\"remoteimg\"",
-							$string, -1, $replacementCount );
+			$modifyData['allowimages'] = false;
 		}
-		if ( is_array( $outMsgFlags ) && $replacementCount > 0 ) {
+
+		$string = cleanHTML( $string, $modifyData );
+		
+		if ( is_array( $outMsgFlags ) && count( $modifyData['remoteimg'] ) > 0 ) {
 			$outMsgFlags['htmlhasremoteimages'] = true;
+			$outMsgFlags['remotecontent'] = $modifyData['remoteimg'];
 		}
-
-		// Wrap external links with an onclick call to if_newWin().
-		// This adds an onclick= part to the links.
-		$string = preg_replace( '/<a(.*?)href=\"http:\/\/(.*?)\"/is', "<a$1href=\"http://$2\" onclick=\"return if_newWin('http://$2');\"", $string );
-
-		// Convert "mailto:" links into composer links.
-		// This leaves the href intact, and inserts an onclick= part to the link.
-		$string = preg_replace( '/<a(.*?)href=\"mailto:(.*?)\"/is', "<a$1href=\"mailto:$2\" onclick=\"Lichen.action('compose','MessageCompose','showComposer',['mailto',null,'$2']);return false\"", $string );
 
 	} else {
 		// Assume we're dealing with plain text.

@@ -30,6 +30,7 @@ var MessageDisplay = new Class({
 		this.displayMode = "";
 		this.displayModeUID = "";
 		this.lastShownUID = "";
+		this.messageData = null;
 	},
 
 	getViewedUID: function () {
@@ -157,8 +158,9 @@ var MessageDisplay = new Class({
 		htmlFragment += "at <span class=\"msg-head-date\">" + message.localdate + "</span></p>";
 
 		if ( message.htmlhasremoteimages ) {
-			htmlFragment += "<div class=\"msg-notification\">";
-			htmlFragment += _("Remote images are not displayed.") + " [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteImages()\">" + _('show images') + "</a>]";
+			htmlFragment += "<div class=\"msg-notification\" id=\"msg-remoteimagesnotify\">";
+			htmlFragment += _("Remote images are not displayed.") + " [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteContent()\">" + _('show images') + "</a> | ";
+			htmlFragment += "<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.alwaysEnableRemoteContent()\">" + _('always show remote images from this sender') + "</a>]";
 			htmlFragment += "</div>";
 		}
 
@@ -218,6 +220,8 @@ var MessageDisplay = new Class({
 
 		htmlFragment += "<div class=\"footer-bar\"><img src=\"themes/" + userSettings.theme + "/bottom-corner.png\" alt=\"\" class=\"bottom-corner\" />" + messageNavBar + "</div>";
 
+		this.messageData = message;
+
 		return htmlFragment;
 	},
 
@@ -244,19 +248,29 @@ var MessageDisplay = new Class({
 		return false;
 	},
 
-	enableRemoteImages: function () {
-		// Remote images have the class "remoteimage", and are disabled by prepending a
-		// "_" to the url, breaking it. Strip this break.
-		// TODO: this is the correct way to do it:
-		// var remoteImages = $A( $ES( 'img.remoteimage' ) );
-		var remoteImages = $('msg-wrapper').getElementsByTagName('img');
+	alwaysEnableRemoteContent: function () {
+		this.enableRemoteContent();
 
-		for ( var i = 0; i < remoteImages.length; i++ ) {
-			if ( remoteImages[i].src.substr( 7, 1 ) == "_" ) {
-				var fixedUrl = "http://" + remoteImages[i].src.substr( 8 );
-				remoteImages[i].src = fixedUrl;
+		// TODO: save this email address so that the images are shown by default in future...
+	},
+
+	enableRemoteContent: function () {
+		// Display all remote content.
+		if ( this.messageData.htmlhasremoteimages ) {
+			for (var i = 0; i < this.messageData.remotecontent.length; i++) {
+				var thisContent = this.messageData.remotecontent[i];
+
+				var thisItem = $( thisContent.id );
+				if ( thisItem ) {
+					// Set the given property to the original value.
+					// This means we can change things other than 
+					// just the src attribute of images.
+					thisItem[ thisContent.attr ] = thisContent.url;
+				}
 			}
 		}
+
+		$('msg-remoteimagesnotify').setStyle( 'display', 'none' );
 
 		return false;
 	},

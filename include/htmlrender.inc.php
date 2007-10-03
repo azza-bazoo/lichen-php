@@ -570,8 +570,10 @@ function render_displayMessage( $requestData, $requestParams ) {
 	if ( isset( $message['htmlhasremoteimages'] ) && $message['htmlhasremoteimages'] ) {
 		echo "<div class=\"msg-notification\">";
 		echo _('Remote images are not displayed.');
-		echo " [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteImages()\">";
-		echo _('show images'), "</a>]";
+		echo " [<a href=\"ajax.php?", genLinkQuery( $requestParams, array( 'remoteimages' => "show" ) ), "\">";
+		echo _('show images'), "</a> | ";
+		echo "<a href=\"ajax.php?", genLinkQuery( $requestParams, array( 'remoteimages' => "showalways" ) ), "\">";
+		echo _('always show remote images from this sender'), "</a>]";
 		echo "</div>";
 	}
 
