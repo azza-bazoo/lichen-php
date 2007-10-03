@@ -445,7 +445,7 @@ $HTML_ALLOWEDELEMENTS = array(
 $HTML_ALLOWEDATTRS = array(
 	"dir" => true,
 	"lang" => true,
-	"style" => true, // TODO: Sanitise this value!
+	"style" => true,
 	"title" => true,
 	"id" => true,      // Keep ONLY ids that lichen generates...
 	"onclick" => true, // TODO: distinguish between the ones we add and others from the original mail.
@@ -526,7 +526,7 @@ function cleanHTML( $inputHtml, &$modifyData ) {
 						}
 
 						// Do we need to modify any attributes?
-						foreach ( $token->attr as $name ) {
+						foreach ( $token->attr as $name => $value ) {
 							if ( isset( $HTML_MODIFYATTRS[ $name ] ) ) {
 								modifyAttribute( $name, $token->attr, $modifyData );
 							}
@@ -634,9 +634,37 @@ function modifyAttribute( $triggerAttr, &$attributes, &$modifyData ) {
 	switch ( $triggerAttr ) {
 		case "background":
 			// Change this to be a remote image.
+			$remoteData = array();
+			$remoteData['id'] = "ldr" . $modifyData['imgcounter'];
+			$remoteData['attr'] = "background";
+			$attributes['id'] = $remoteData['id'];
+			$remoteData['url'] = $attributes['background'];
+			unset( $attributes['background'] );
+			$modifyData['imgcounter']++;
+			$modifyData['remoteimg'][] = $remoteData;
 			break;
 		case "style":
 			// Clean JS, and change attributes with urls() into remote content.
+			$originalContent = $attributes['style'];
+
+			// Remove JS.
+			$originalContent = preg_replace( '/j.*a.*v.*a.*s.*c.*r.*i.*p.*t/s', '', $originalContent );
+			$attributes['style'] = $originalContent;
+
+			// Remove the images from the CSS.
+			$cleanContent = preg_replace( '/(url\(.*\))/', 'none', $originalContent );
+
+			if ( $cleanContent != $originalContent ) {
+				// This is considered a remote element.
+				$remoteData = array();
+				$remoteData['id'] = "ldr" . $modifyData['imgcounter'];
+				$remoteData['attr'] = "style";
+				$attributes['id'] = $remoteData['id'];
+				$remoteData['url'] = $originalContent;
+				unset( $attributes['style'] );
+				$modifyData['imgcounter']++;
+				$modifyData['remoteimg'][] = $remoteData;
+			}
 			break;
 	}
 }
