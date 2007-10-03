@@ -90,7 +90,7 @@ function render_messageList( $requestData, $requestParams ) {
 		echo "</div>";
 	}
 
-	echo "<table id=\"list-data-tbl\">";
+	echo "<table id=\"list-data-tbl\" class=\"messagelist\">";
 
 	// To work around imperfect CSS layout implementations, we manually
 	// calculate the width of the subject column.

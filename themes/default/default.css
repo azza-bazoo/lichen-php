@@ -33,7 +33,7 @@ img { border: 0; }
 
 #list-wrapper table { border-collapse: collapse; }
 
-td { border-bottom: solid 1px #cccccc; border-top: solid 1px #cccccc; padding-bottom: 3px; padding-top: 3px; padding-left: 0; padding-right: 0; font-size: smaller; }
+table.messagelist td { border-bottom: solid 1px #cccccc; border-top: solid 1px #cccccc; padding-bottom: 3px; padding-top: 3px; padding-left: 0; padding-right: 0; font-size: smaller; }
 
 .msg-row { padding-bottom: 3px; padding-top: 3px; padding-left: 0; padding-right: 0; font-size: smaller; }
 

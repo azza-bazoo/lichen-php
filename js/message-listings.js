@@ -221,7 +221,7 @@ var MessageLister = new Class({
 		}
 		tableContents += "</div>";
 
-		tableContents += "<table id=\"list-data-tbl\">";
+		tableContents += "<table id=\"list-data-tbl\" class=\"messagelist\">";
 
 		// To work around imperfect CSS layout implementations, we manually
 		// calculate the width of the subject column.
