@@ -160,7 +160,7 @@ var MessageDisplay = new Class({
 		if ( message.htmlhasremoteimages ) {
 			htmlFragment += "<div class=\"msg-notification\" id=\"msg-remoteimagesnotify\">";
 			htmlFragment += _("Remote images are not displayed.") + " [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteContent()\">" + _('show images') + "</a> | ";
-			htmlFragment += "<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.alwaysEnableRemoteContent()\">" + _('always show remote images from this sender') + "</a>]";
+			htmlFragment += "<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.alwaysEnableRemoteContent()\">" + _('always show remote images from this sender') + "</a> (not yet implemented)]";
 			htmlFragment += "</div>";
 		}
 
