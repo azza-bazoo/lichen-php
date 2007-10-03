@@ -805,7 +805,8 @@ function request_sendMessage() {
 		$htmlVersion .= "</html>\n";
 
 		// Now generate a text version. TODO: This is crude.
-		$textVersion = strip_tags( $source );
+		//$textVersion = strip_tags( $source );
+		$textVersion = HTMLToText( $source, 70 );
 		
 		$mimeMessage->attach( new Swift_Message_Part( $htmlVersion, "text/html" ) );
 		$mimeMessage->attach( new Swift_Message_Part( $textVersion, "text/plain" ) );
