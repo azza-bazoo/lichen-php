@@ -152,7 +152,8 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	if ( isset( $msgArray['cc'] ) && !empty( $msgArray['cc'] ) ) {
 		// Don't CC yourself when replying-to-all.
 		if ( $action == "replyall" ) {
-			$ccList = parseRecipientList( $msgArray['cc'] );
+			$ccList  = parseRecipientList( $msgArray['to'] );
+			$ccList += parseRecipientList( $msgArray['cc'] );
 			$output = array();
 			foreach ( $ccList as $index => $ccer ) {
 				if ( $ccer['address'] == $compData['identity']['address'] ) {
