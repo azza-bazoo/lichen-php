@@ -57,14 +57,20 @@ var MessageComposer = new Class({
 	makeHTMLMail: function () {
 		// Change the editor to HTML.
 		this.messageFormat = "text/html";
+		var msgArea = $('comp_msg');
+		if ( msgArea.value != "" ) {
+			msgArea.value = "<pre>" + msgArea.value + "</pre>";
+		}
 		tinyMCE.execCommand( 'mceAddControl', false, 'comp_msg' );
 	},
 
 	makePlainMail: function () {
 		// Change the editor to Plain.
-		// TODO... strip HTML?
+		// TODO... warn user that the formatting will be lost.
+		var textVersion = HTMLToText( tinyMCE.getContent( 'comp_msg' ) );
 		this.messageFormat = "text/plain";
 		tinyMCE.execCommand( 'mceRemoveControl', false, 'comp_msg' );
+		$('comp_msg').value = textVersion;
 	},
 
 	_render: function ( compData ) {

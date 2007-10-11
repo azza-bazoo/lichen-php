@@ -153,6 +153,8 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 <script type="text/javascript" src="js/composer.js"></script>
 <script type="text/javascript" src="js/settings.js"></script>
 <script type="text/javascript" src="js/interface-controller.js"></script>
+
+<script type="text/javascript" src="js/html-formatting.js"></script>
 ENDJS;
 
 		drawToolbar( 'corner-bar' );
