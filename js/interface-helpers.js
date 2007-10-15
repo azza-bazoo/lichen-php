@@ -27,7 +27,7 @@ function if_remoteRequestFailed( remoteText ) {
 	// For the time being...
 	if_remoteRequestEnd();
 	// TODO: show, rather than momentarily flash, the error
-	Flash.flashMessage( remoteText );
+	Lichen.Flash.flashMessage( remoteText );
 	//alert( remoteText );
 
 	// Hack for our callbacks scheme...
@@ -52,7 +52,7 @@ function if_reloginCB( responseText ) {
 
 	// Check the result.
 	if ( result.error ) {
-		Flash.flashMessage( result.error );
+		Lichen.Flash.flashMessage( result.error );
 	} else {
 		// All ok, logged in. Our session cookie will be restored.
 		$('opts-wrapper').setStyle( 'display', 'none' );
@@ -76,7 +76,7 @@ function if_logoutSilentCB( responseText ) {
 	var result = if_checkRemoteResult( responseText );
 	if (!result) return;
 
-	Flash.flashMessage( _("Silently logged out.") );
+	Lichen.Flash.flashMessage( _("Silently logged out.") );
 }
 
 
