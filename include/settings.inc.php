@@ -423,7 +423,7 @@ function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars
 	} else {
 		$result .= "<button type=\"submit\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_ok.png\" alt=\"\" /> " . _( "save changes" ) . "</button>";
 
-		$result .= "<button onclick=\"return Lichen.action('options','OptionsEditor','closePanel'])\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</button>";
+		$result .= "<button onclick=\"return Lichen.action('options','OptionsEditor',['closePanel'])\"><img src=\"themes/{$USER_SETTINGS['theme']}/icons/button_cancel.png\" alt=\"\" /> " . _( "cancel" ) . "</button>";
 	}
 
 	$result .= "</p></form>";
