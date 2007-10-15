@@ -451,7 +451,7 @@ function render_mailboxList( $requestData, $requestParams ) {
 					"page" => 0, "search" => "", "sequence" => "list" ) ) ,
 				"\" class=\"mb-click\">";
 		} else {
-			echo "<a href=\"ajax.php?", genLinkQuery( $requestParams, array() ), "\" class=\"mb-noclick\">";
+			echo "<div class=\"mb-noclick\">";
 		}
 
 		// Indent the mailbox name. This is crude.
@@ -468,11 +468,10 @@ function render_mailboxList( $requestData, $requestParams ) {
 		echo "</span>";
 		echo "</span>";
 
-		// There is a method to the madness. Really!
 		if ( $thisMailbox['selectable'] ) {
 			echo "</a>";
 		} else {
-			echo "</a>";
+			echo "</div>";
 		}
 		echo "</li>\n";
 	}
