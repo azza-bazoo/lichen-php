@@ -451,7 +451,7 @@ function render_mailboxList( $requestData, $requestParams ) {
 					"page" => 0, "search" => "", "sequence" => "list" ) ) ,
 				"\" class=\"mb-click\">";
 		} else {
-			echo "<a href=\"ajax.php?", genLinkQuery( $requestParams, array() ), "\">";
+			echo "<a href=\"ajax.php?", genLinkQuery( $requestParams, array() ), "\" class=\"mb-noclick\">";
 		}
 
 		// Indent the mailbox name. This is crude.

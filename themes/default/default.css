@@ -27,6 +27,7 @@ img { border: 0; }
 
 .mb-click { display: block; line-height: 19px; height: 19px; width: 110px; text-decoration: none; color: #000040; }
 .mb-click:hover { background: #0000cc; color: #ffffff; }
+.mb-noclick { display: block; line-height: 19px; height: 19px; width: 110px; text-decoration: none; color: #000040; }
 .mb-active { font-weight: bold; }
 
 /* Mailbox message listings */
