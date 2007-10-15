@@ -149,6 +149,8 @@ var MailboxLister = new Class({
 			// Is the mailbox openable?
 			if ( mailboxes[i].selectable ) {
 				containerContents += "<a href=\"#\" onclick=\"return Lichen.action('list', 'MailboxList', 'selectMailbox', ['" + mailboxes[i].fullboxname + "'])\" class=\"mb-click\">";
+			} else {
+				containerContents += "<a href=\"#\" onclick=\"return false;\">";
 			}
 
 			// This is a really bad way to indent.
@@ -167,7 +169,10 @@ var MailboxLister = new Class({
 			containerContents += "</span>";
 			containerContents += "</span>";
 			
+			// There is a method to the madness. Really!
 			if ( mailboxes[i].selectable ) {
+				containerContents += "</a>";
+			} else {
 				containerContents += "</a>";
 			}
 
