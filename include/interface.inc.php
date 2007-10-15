@@ -325,6 +325,9 @@ function drawLoginForm( $message='' ) {
 if ( document.getElementById( 'interface' ) ) {
 	document.getElementById( 'interface' ).checked = false;
 }
+if ( document.getElementById( 'user' ) ) {
+	document.getElementById( 'user' ).focus();
+}
 </script>
 ENDJS;
 }
