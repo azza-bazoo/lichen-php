@@ -265,7 +265,13 @@ var MessageDisplay = new Class({
 					// Set the given property to the original value.
 					// This means we can change things other than 
 					// just the src attribute of images.
-					thisItem[ thisContent.attr ] = thisContent.url;
+					if ( thisContent.attr == "style" ) {
+						for ( var j = 0; j < thisContent.url.length; j++ ) {
+							thisItem.setStyle( thisContent.url[j][0], thisContent.url[j][1] );
+						}
+					} else {
+						thisItem[ thisContent.attr ] = thisContent.url;
+					}
 				}
 			}
 		}

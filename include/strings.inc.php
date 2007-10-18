@@ -647,7 +647,7 @@ function modifyAttribute( $triggerAttr, &$attributes, &$modifyData ) {
 			// Clean JS, and change attributes with urls() into remote content.
 			$originalContent = $attributes['style'];
 
-			// Remove JS.
+			// Remove JS. TODO: Test that this actually does what it claims to do!
 			$originalContent = preg_replace( '/j.*a.*v.*a.*s.*c.*r.*i.*p.*t/s', '', $originalContent );
 			$attributes['style'] = $originalContent;
 
@@ -660,7 +660,30 @@ function modifyAttribute( $triggerAttr, &$attributes, &$modifyData ) {
 				$remoteData['id'] = "ldr" . $modifyData['imgcounter'];
 				$remoteData['attr'] = "style";
 				$attributes['id'] = $remoteData['id'];
-				$remoteData['url'] = $originalContent;
+
+				// It seems in FireFox you can't just set the "style" attribute with raw data.
+				// Instead it will have to be calls to the mootools setStyle().
+				// So prepare the data for that.
+				// Basically; the CSS has to be split on semi-colons, and then further
+				// split on ":" characters to split it into key/value pairs.
+				// TODO: This code is far from foolproof.
+				$cssSections = explode( ";", $originalContent );
+				$resultKeys = array();
+				foreach ( $cssSections as $css ) {
+					$css = trim( $css );
+					$keyval = explode( ":", $css );
+					if ( count( $keyval ) == 1 ) {
+						$resultKeys[] = array( trim( $keyval[0] ), "" );
+					} else if ( count( $keyval ) == 2 ) {
+						$resultKeys[] = array( trim( $keyval[0] ), trim( $keyval[1] ) );
+					} else if ( count( $keyval ) > 2 ) {
+						// Oops. Must have been more than one colon in the result.
+						// Reassemble the remaining part with colons.
+						$resultKeys[] = array( trim( $keyval[0] ), trim( implode( ":", array_slice( $keyval, 1 ) ) ) );
+					}
+				}
+				$remoteData['url'] = $resultKeys;
+
 				unset( $attributes['style'] );
 				$modifyData['imgcounter']++;
 				$modifyData['remoteimg'][] = $remoteData;
