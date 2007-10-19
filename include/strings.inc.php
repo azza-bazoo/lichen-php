@@ -596,14 +596,16 @@ function modifyTag( &$tagData, &$modifyData ) {
 	// Transmogrify some tags. Transmogrify them good.
 	switch ( $tagData->name ) {
 		case "a":
-			// Wrap external links with an onclick to call if_newWin().
-			if ( substr( $tagData->attr['href'], 0, 4 ) == "http" ) {
-				$tagData->attr['onclick'] = "return if_newWin('" . addslashes( $tagData->attr['href'] ) . "');";
-			}
-			// Convert mailto: links into composer links.
-			if ( substr( $tagData->attr['href'], 0, 7 ) == "mailto" ) {
-				$tagData->attr['onclick'] = "Lichen.action('compose','MessageCompose','showComposer',['mailto',null,'" .
-					addslashes( substr( $tagData->attr['href'], 7 ) ) . "'];return false";
+			if ( isset( $tagData->attr['href'] ) ) {
+				// Wrap external links with an onclick to call if_newWin().
+				if ( substr( $tagData->attr['href'], 0, 4 ) == "http" ) {
+					$tagData->attr['onclick'] = "return if_newWin('" . addslashes( $tagData->attr['href'] ) . "');";
+				}
+				// Convert mailto: links into composer links.
+				if ( substr( $tagData->attr['href'], 0, 7 ) == "mailto" ) {
+					$tagData->attr['onclick'] = "Lichen.action('compose','MessageCompose','showComposer',['mailto',null,'" .
+						addslashes( substr( $tagData->attr['href'], 7 ) ) . "'];return false";
+				}
 			}
 			break;
 		case "img":
