@@ -895,6 +895,9 @@ function convertLinks( $string ) {
 
 	// Regexp to deal with http[s] links on a single line
 	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)http([s]{0,1})\:\/\/(.+?)\s/i', 'convertLinksCallback', $string );
+	
+	// Catch ftp:// links.
+	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)ftp([s]{0,1})\:\/\/(.+?)\s/i', 'convertLinksCallback', $string );
 
 	// This version is meant to find links spanning multiple lines, delimited by < and >
 	$string = preg_replace_callback( '/(<|&lt;)http([s]{0,1})\:\/\/(.+?)(>|&gt;)/is', 'convertLinksCallback', $string );
@@ -939,7 +942,7 @@ function convertLinksCallback( $matches ) {
 	}
 
 	// Add http:// if needed.
-	if ( substr( $fullUrl, 0, 4 ) != "http" ) {
+	if ( substr( $fullUrl, 0, 4 ) != "http" && substr( $fullUrl, 0, 3 ) != "ftp") {
 		$fullUrl = "http://" . $fullUrl;
 	}
 
