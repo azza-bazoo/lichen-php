@@ -62,6 +62,16 @@ function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 		}
 		if ( isset( $headerObj->to ) ) {
 			$processedResult['to']      = filterHeader( formatIMAPAddress( $headerObj->to ), false );
+
+			// Figure out if the "to" was actually one of our identities.
+			$toAddresses = parseRecipientList( $processedResult['to'] );
+			$processedResult['to_wasme'] = false;
+
+			foreach ( $toAddresses as $toAddress ) {
+				if ( getUserIdentity( $toAddress['address'], true ) != null ) {
+					$processedResult['to_wasme'] = true;
+				}
+			}
 		}
 		if ( isset( $headerObj->cc ) ) {
 			$processedResult['cc']      = filterHeader( formatIMAPAddress( $headerObj->cc ), false );
@@ -74,9 +84,15 @@ function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 		}
 		if ( isset( $headerObj->sender ) ) {
 			$processedResult['sender']  = filterHeader( formatIMAPAddress( $headerObj->sender ), false );
+			
+			// Figure out if the "sender" was actually one of our identities.
+			$senderAddresses = parseRecipientList( $processedResult['sender'] );
 			$processedResult['sender_wasme'] = false;
-			if ( getUserIdentity( $processedResult['sender'], true ) != null ) {
-				$processedResult['sender_wasme'] = true;
+
+			foreach ( $senderAddresses as $senderAddress ) {
+				if ( getUserIdentity( $senderAddress['address'], true ) != null ) {
+					$processedResult['sender_wasme'] = true;
+				}
 			}
 		}
 		$processedResult['mailbox'] = $mailbox;
