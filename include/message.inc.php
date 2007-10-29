@@ -32,7 +32,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 // TODO: support $preferredType ...?
 function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 	global $mbox, $mailbox, $IMAP_CONNECT;
-	global $DATE_FORMAT_LONG; // TODO: Remove! Formatting should be done elsewhere.
+	global $DATE_FORMAT_MSG;
 
 	$processedResult = array();
 
@@ -91,7 +91,7 @@ function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 
 		// TODO: Date should be formatted elsewhere?
 		if ( isset( $headerObj->date ) ) {
-			$processedResult['localdate'] = processDate( $headerObj->date );
+			$processedResult['localdate'] = processDate( $headerObj->date, $DATE_FORMAT_MSG );
 		}
 
 		// Create HTML encoded versions of all of these keys, in case they have special characters.

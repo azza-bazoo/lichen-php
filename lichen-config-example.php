@@ -58,6 +58,7 @@ $SMTP_AUTH    = true;
 $DATE_FORMAT_NEW = 'g:i A l';
 $DATE_FORMAT_OLD = 'j M g:i A';
 $DATE_FORMAT_LONG = 'D&\nb\sp;j&\nb\sp;F&\nb\sp;Y';
+$DATE_FORMAT_MSG = 'g:i A D&\nb\sp;j&\nb\sp;F&\nb\sp;Y';
 
 // Maximum size of attachment uploads, in bytes. This is only a guide for the
 // client browser; the actual limit is set by the values upload_max_filesize
