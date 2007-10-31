@@ -26,7 +26,7 @@ var InterfaceController = new Class({
 	initialize: function () {
 		// Available modes: "list", "compose", "display", "options"
 		this.mode = "list";
-		
+
 		// Instantiate new objects for display and storage
 		this.Messages         = new MessagesDatastore( true );
 		this.OptionsEditor    = new OptionsEditorClass( 'opts-wrapper' );
@@ -127,6 +127,7 @@ var InterfaceController = new Class({
 		// If a fade was in effect, finish it - action gets called on the callbacks from the
 		// server.
 
+/* -- this code not ready for use yet! --
 		// Record the history of what the hell we just did.
 		// Ignore Callbacks; we don't care about them!
 		// Oh, and don't do anything in compose mode - it currently causes duplicates.
@@ -146,6 +147,7 @@ var InterfaceController = new Class({
 			// Take a note of what this action was.
 			this.historyTrail.push( Array( mode, controller, action, data ) );
 		}
+*/
 
 		// Call the appropriate action.
 		// This looks rather grubby.
@@ -197,7 +199,7 @@ var InterfaceController = new Class({
 		$('msg-wrapper').setStyle( 'display', 'none' );
 		$('opts-wrapper').setStyle( 'display', 'none' );
 		$('comp-wrapper').setStyle( 'display', 'none' );
-		
+
 		$('list-wrapper').empty();
 		$('msg-wrapper').empty();
 		$('opts-wrapper').empty();

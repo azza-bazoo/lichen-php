@@ -138,7 +138,6 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 		echo <<<ENDJS
 <script type="text/javascript" src="js/mootools.v1.11.js"></script>
 <script type="text/javascript" src="js/tinymce/tiny_mce.js"></script>
-<!-- <script type="text/javascript" src="js/lichen.r63.js"></script> -->
 <script type="text/javascript" src="js/initialisation.js"></script>
 <script type="text/javascript" src="js/interface-feedback.js"></script>
 <script type="text/javascript" src="js/interface-helpers.js"></script>
@@ -153,7 +152,6 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 <script type="text/javascript" src="js/composer.js"></script>
 <script type="text/javascript" src="js/settings.js"></script>
 <script type="text/javascript" src="js/interface-controller.js"></script>
-
 <script type="text/javascript" src="js/html-formatting.js"></script>
 ENDJS;
 
