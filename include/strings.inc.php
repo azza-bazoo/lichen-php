@@ -68,11 +68,11 @@ function parseRecipientList( $inputString ) {
 			$thisBit = substr( $thisBit, 1, strlen($thisBit) - 2 );
 		}
 		// If it starts with " and doesn't finish with " strip the ".
-		if ( $thisBit[0] == '"' && $thisBit[strlen($thisBit) - 1] != '"' ) {
+		if ( !empty( $thisBit ) && $thisBit[0] == '"' && $thisBit[strlen($thisBit) - 1] != '"' ) {
 			$thisBit = substr( $thisBit, 1 );
 		}
 		// If it doesn't start with " and finishes with " strip the ".
-		if ( $thisBit[0] != '"' && $thisBit[strlen($thisBit) - 1] == '"' ) {
+		if ( !empty( $thisBit ) && $thisBit[0] != '"' && $thisBit[strlen($thisBit) - 1] == '"' ) {
 			$thisBit = substr( $thisBit, 0, strlen($thisBit) - 1 );
 		}
 
