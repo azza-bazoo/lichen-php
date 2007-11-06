@@ -423,7 +423,7 @@ function request_mailboxAction() {
 function request_getMessage() {
 	global $mbox, $DATE_FORMAT_LONG, $mailbox;
 
-	include( 'libs/HTMLPurifier.auto.php' );
+	include( 'libs/LichenHTMLPurifier.php' );
 
 	$result = array();
 
