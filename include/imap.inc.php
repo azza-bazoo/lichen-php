@@ -2,7 +2,7 @@
 /**
 
 Lichen - AJAX IMAP client
-version 0.3 by Hourann Bosci and Daniel Foote
+version 0.4 by Hourann Bosci and Daniel Foote
 http://lichen-mail.org/
 
 --------------------------------------------------------------------------------

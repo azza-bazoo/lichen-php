@@ -1,11 +1,11 @@
 /**
 
 Lichen - AJAX IMAP client
-version 0.3 by Hourann Bosci and Daniel Foote
+version 0.4 by Hourann Bosci and Daniel Foote
 http://lichen-mail.org/
 
 --------------------------------------------------------------------------------
-js/interface-controller.js - The overclass that looks after all the interface components.
+js/interface-controller.js - interface master control class
 --------------------------------------------------------------------------------
 
 This file is part of Lichen. Lichen is free software; you can redistribute it
@@ -159,6 +159,7 @@ var InterfaceController = new Class({
 		return false;
 	},
 
+/* -- also not ready for use yet! --
 	checkUrl: function () {
 		//console.log( 'Checking: "%s" "%s"', window.location.hash, this.lastHash );
 		//if ( window.location && window.location.hash ) {
@@ -187,6 +188,7 @@ var InterfaceController = new Class({
 
 		this.historyChecker = setTimeout( this.checkUrl.bind( this ), 200 ); // Check every 200ms.
 	},
+*/
 
 	clearScreen: function () {
 		// Clear all the interface elements, ready to enter another mode.

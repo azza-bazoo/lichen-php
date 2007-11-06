@@ -2,11 +2,11 @@
 /**
 
 Lichen - AJAX IMAP client
-version 0.3 by Hourann Bosci and Daniel Foote
+version 0.4 by Hourann Bosci and Daniel Foote
 http://lichen-mail.org/
 
 --------------------------------------------------------------------------------
-functions.inc.php - stub for initialisation and including other files
+functions.inc.php - initialisation stub, included in all PHP requests
 --------------------------------------------------------------------------------
 
 This file is part of Lichen. Lichen is free software; you can redistribute it
@@ -25,20 +25,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 error_reporting( E_ALL );
 
+$LICHEN_VERSION = "0.4";
+
 if ( !file_exists( "lichen-config.php" ) ) {
 	die( _("<p><strong>Lichen isn&#8217;t set up yet.</strong></p><p>You need to edit the file <code>lichen-config-example.php</code> and save it with the name <code>lichen-config.php</code> to get started.</p><p>For more details, <a href=\"http://lichen-mail.org/docs/\">check the documentation</a>.</p>") );
 }
 
-// We include both files here.
-// The reason is that when we modify the example config, we often include new variables
-// that the installed version won't have in their config. This prevents those problems.
-// Obviously, this is not a long term solution - some of the variables could be critical
-// and need to be adjusted for your installation. But for the moment, this will save some
-// headaches.
-include( "lichen-config-example.php" ); // Include the defaults.
-include( "lichen-config.php" );         // The override them.
-
-$LICHEN_VERSION = "0.3";
+include( "lichen-config.php" );
 
 $mailbox = $SPECIAL_FOLDERS['inbox'];
 
