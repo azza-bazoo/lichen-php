@@ -201,7 +201,7 @@ var MessageLister = new Class({
 		if ( this.search != "" ) {
 			// TODO: This string below is not really properly translatable.
 			tableContents += "<div class=\"list-notification\"><strong>" + _("Found ") + resultObj.numbermessages
-				+ _(' search results for') + " &#8220;"
+				+ _(' results for') + " &#8220;"
 				+ this.search + "&#8221;</strong> "
 				+ "[<a href=\"#clearsearch\" onclick=\"return Lichen.action('list','MessageList','setSearch',[''])\">"
 				+ _('clear search') + "</a>]</div>";

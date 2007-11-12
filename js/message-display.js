@@ -150,14 +150,15 @@ var MessageDisplay = new Class({
 
 		htmlFragment += "<h1 class=\"msg-head-subject\">" + message.subject_html + "</h1>";
 		htmlFragment += "<p class=\"msg-head-line2\" id=\"msg-details-short\">";
-		if ( message.sender_wasme || !message.to_wasme ) {
-			htmlFragment += _("to") + " <span class=\"msg-head-sender\">" + message.to_html + "</span> ";
-		}
+//		if ( message.from_wasMe || !message.to_wasMe ) {
+		htmlFragment += _("to") + " <span class=\"msg-head-sender\">" + message.to_html + "</span><br />";
 		htmlFragment += _("from") + " <span class=\"msg-head-sender\">" + message.from_html + "</span> ";
 		htmlFragment += "at <span class=\"msg-head-date\">" + message.localdate + "</span> ";
-		htmlFragment += "[<a href=\"#\" onclick=\"Lichen.MessageDisplayer.showFullDetails(); return false\">Show details</a>]"
+//		}
+//		htmlFragment += "[<a href=\"#\" onclick=\"Lichen.MessageDisplayer.showFullDetails(); return false\">" + _('details') + "</a>]"
 		htmlFragment += "</p>";
 
+/*
 		htmlFragment += "<p class=\"msg-head-line2\" id=\"msg-details-long\" style=\"display: none\">";
 		htmlFragment += _("from") + " <span class=\"msg-head-sender\">" + message.from_html + "</span><br />";
 		htmlFragment += _("to") + " <span class=\"msg-head-sender\">" + message.to_html + "</span><br />";
@@ -170,14 +171,15 @@ var MessageDisplay = new Class({
 		if ( message.replyto ) {
 			htmlFragment += _("reply-to") + " <span class=\"msg-head-sender\">" + message.replyto_html + "</span><br />";
 		}
-		htmlFragment += _("uid") + " <span class=\"msg-head-sender\">" + message.uid + "</span><br />";
+//		htmlFragment += _("uid") + " <span class=\"msg-head-sender\">" + message.uid + "</span><br />";
 		htmlFragment += "at <span class=\"msg-head-date\">" + message.localdate + "</span> ";
 		htmlFragment += "</p>";
+*/
 
 		if ( message.htmlhasremoteimages ) {
 			htmlFragment += "<div class=\"msg-notification\" id=\"msg-remoteimagesnotify\">";
-			htmlFragment += _("Remote images are not displayed.") + " [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteContent()\">" + _('show images') + "</a> | ";
-			htmlFragment += "<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.alwaysEnableRemoteContent()\">" + _('always show remote images from this sender') + "</a> (not yet implemented)]";
+			htmlFragment += _("Remote images are not displayed.") + " [<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.enableRemoteContent()\">" + _('show images') + "</a>]";
+//			htmlFragment += "<a href=\"#\" onclick=\"return Lichen.MessageDisplayer.alwaysEnableRemoteContent()\">" + _('always show from this sender') + "</a> (not yet implemented)]";
 			htmlFragment += "</div>";
 		}
 

@@ -148,7 +148,6 @@ if ( ( isset( $_POST['user'] ) && !empty( $_POST['user'] ) &&
 <script type="text/javascript" src="js/server-connector.js"></script>
 <script type="text/javascript" src="js/message-listings.js"></script>
 <script type="text/javascript" src="js/message-display.js"></script>
-<script type="text/javascript" src="js/message-actions.js"></script>
 <script type="text/javascript" src="js/composer.js"></script>
 <script type="text/javascript" src="js/settings.js"></script>
 <script type="text/javascript" src="js/interface-controller.js"></script>
