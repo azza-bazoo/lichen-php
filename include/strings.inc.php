@@ -817,7 +817,9 @@ function convertLinks( $string ) {
 	$string = preg_replace_callback( '/(<|&lt;)http([s]{0,1})\:\/\/(.+?)(>|&gt;)/is', 'convertLinksCallback', $string );
 
 	// Simpler regexp to find www.foo without an http://
-	$string = preg_replace_callback( '/(?<!http\:\/\/|https\:\/\/)www\.(.+?)(>|\"|\s)/i', 'convertLinksCallback', $string );
+	// The regex find things that don't start with a http, https, or %2F.
+	// The %2F check stops things like urls encoded inside other urls.
+	$string = preg_replace_callback( '/(?<!http\:\/\/|https\:\/\/|\%2F)www\.(.+?)(>|\"|\s)/i', 'convertLinksCallback', $string );
 
 	// Convert e-mail addresses to composer links
 	$string = preg_replace( '/(\<|\>|\;|\s|\"|\,)([\w\d]+[\w\d\.\_\-\+]*\@[\w\d]+[\w\d\.\_\-]+)(\,|\>|\&|\"|\s)/',
