@@ -744,6 +744,8 @@ function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags 
 
 		// Convert newlines to <br />'s for display purposes.
 		$string = nl2br( $string );
+		// And then strip the newlines themselves.
+		$string = str_replace( array( "\n", "\r" ), "", $string );
 	}
 
 	return $string;
@@ -808,10 +810,10 @@ function convertToUTF8( $string, $charset ) {
 function convertLinks( $string ) {
 
 	// Regexp to deal with http[s] links on a single line
-	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)http([s]{0,1})\:\/\/(.+?)(\s)/i', 'convertLinksCallback', $string );
+	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)http([s]{0,1})\:\/\/(.+?)\s/i', 'convertLinksCallback', $string );
 
 	// Catch ftp:// links.
-	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)ftp([s]{0,1})\:\/\/(.+?)(\s)/i', 'convertLinksCallback', $string );
+	$string = preg_replace_callback( '/(?<![<">]|&lt;|&gt;)ftp([s]{0,1})\:\/\/(.+?)\s/i', 'convertLinksCallback', $string );
 
 	// This version is meant to find links spanning multiple lines, delimited by < and >
 	$string = preg_replace_callback( '/(<|&lt;)http([s]{0,1})\:\/\/(.+?)(>|&gt;)/is', 'convertLinksCallback', $string );

@@ -82,7 +82,7 @@ img.bottom-corner { bottom: 0; }
 
 .plain-message, .html-message, .msg-notification { width: 50em; font-size: smaller; }
 .plain-message, .html-message { padding: 14px 0 14px 0; border-top: solid 1px #000000; }
-.plain-message-monospace { font-family: monospace; font-size: 13px; }
+.plain-message-monospace { font-family: monospace; font-size: 13px; white-space: pre; }
 
 .msg-head-subject { font-size: 18px; font-weight: normal; margin: 12px 0 0 0; }
 .msg-head-line2 { font-size: 11px; margin: 0; }
