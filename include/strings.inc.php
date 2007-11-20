@@ -1044,7 +1044,7 @@ if ( version_compare( PHP_VERSION, '5.2.0', '>=' ) ) {
 
 		if ( $ltime['tm_isdst'] ) {
 			// DST is currently active in the target timezone.
-			return $timestamp + $direction * 3600000;
+			return $timestamp + $direction * 3600;
 		} else {
 			return $timestamp;
 		}
