@@ -220,13 +220,13 @@ function parseUserSettings() {
 			case 'opts-list_pagesize':
 				if ( !ctype_digit( $value ) ) {
 					array_push( $settingErrors,
-						"list_pagesize - not a valid number" );
+						_("list_pagesize - not a valid number") );
 				} elseif ( $value < 5 ) {
 					array_push( $settingErrors,
-						"list_pagesize - this value is too low" );
+						_("list_pagesize - this value is too low") );
 				} elseif ( $value > 200 ) {
 					array_push( $settingErrors,
-						"list_pagesize - this value is too high" );
+						_("list_pagesize - this value is too high") );
 				} else {
 					$USER_SETTINGS['list_pagesize'] = $value;
 				}
@@ -237,13 +237,13 @@ function parseUserSettings() {
 					$USER_SETTINGS['list_refreshtime'] = "disabled";
 				} else if ( !ctype_digit( $value ) ) {
 					array_push( $settingErrors,
-						"list_refreshtime - not a valid number" );
+						_("list_refreshtime - not a valid number") );
 				} elseif ( $value < 1 ) {
 					array_push( $settingErrors,
-						"list_refreshtime - this value is too low" );
+						_("list_refreshtime - this value is too low") );
 				} elseif ( $value > 10 ) {
 					array_push( $settingErrors,
-						"list_refreshtime - this value is too high" );
+						_("list_refreshtime - this value is too high") );
 				} else {
 					$USER_SETTINGS['list_refreshtime'] = $value;
 				}
@@ -375,14 +375,14 @@ function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars
 
 	//--------------------
 	// Timezone selector
-	$result .= "<div class=\"opts-block\"><label for=\"opts-timezone\" class=\"opts-name\">Your timezone:</label> " . generateTimezoneSelect( $USER_SETTINGS['timezone'] ) . "</div>";
+	$result .= "<div class=\"opts-block\"><label for=\"opts-timezone\" class=\"opts-name\">" . _('Your timezone:') . "</label> " . generateTimezoneSelect( $USER_SETTINGS['timezone'] ) . "</div>";
 
 	//--------------------
 	// Messages per page
 	// TODO: clean up the CSS here
-	$result .= "<div class=\"opts-block\">In message listings:<div style=\"margin-left:170px;margin-top:-18px\">";
+	$result .= "<div class=\"opts-block\">" . _('In message listings:') . "<div style=\"margin-left:170px;margin-top:-18px\">";
 
-	$result .= "show <select name=\"opts-list_pagesize\" id=\"opts-list_pagesize\">";
+	$result .= _("show") . " <select name=\"opts-list_pagesize\" id=\"opts-list_pagesize\">";
 
 	$sizeOptions = array( 5, 10, 20, 25, 50, 75, 100 );
 	foreach ( $sizeOptions as $i ) {
@@ -391,9 +391,9 @@ function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars
 		$result .= ">$i</option>";
 	}
 
-	$result .= "</select> <label for=\"opts-list_pagesize\" class=\"opts-name\">messages per page</label><br />";
+	$result .= "</select> <label for=\"opts-list_pagesize\" class=\"opts-name\">". _('messages per page') . "</label><br />";
 	
-	$result .= "autorefresh list every <select name=\"opts-list_refreshtime\" id=\"opts-list_refreshtime\">";
+	$result .= _("autorefresh list every"). " <select name=\"opts-list_refreshtime\" id=\"opts-list_refreshtime\">";
 
 	$sizeOptions = array( 1, 2, 5, 10, "disabled" );
 	foreach ( $sizeOptions as $i ) {
@@ -402,7 +402,7 @@ function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars
 		$result .= ">$i</option>";
 	}
 
-	$result .= "</select> <label for=\"opts-list_pagesize\" class=\"opts-name\">minutes</label><br />";
+	$result .= "</select> <label for=\"opts-list_pagesize\" class=\"opts-name\">" . _("minutes") . "</label><br />";
 
 	//--------------------
 	// Show message preview
@@ -410,7 +410,7 @@ function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars
 
 	if ( $USER_SETTINGS['list_showpreviews'] ) { $result .= "checked=\"checked\" "; }
 
-	$result .= " value=\"true\" /> <label for=\"opts-list_showpreviews\" class=\"opts-name\">show message previews</label><br />";
+	$result .= " value=\"true\" /> <label for=\"opts-list_showpreviews\" class=\"opts-name\">" . _('show message previews') . "</label><br />";
 
 	//--------------------
 	// Show 'size' column
@@ -418,7 +418,7 @@ function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars
 
 	if ( $USER_SETTINGS['list_showsize'] ) { $result .= "checked=\"checked\" "; }
 
-	$result .= " value=\"true\" /> <label for=\"opts-list_showsize\" class=\"opts-name\">show size</label></div></div>";
+	$result .= " value=\"true\" /> <label for=\"opts-list_showsize\" class=\"opts-name\">" . _("show size") . "</label></div></div>";
 
 	//--------------------
 	// Show totals in mailbox list
@@ -426,19 +426,19 @@ function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars
 
 	if ( $USER_SETTINGS['boxlist_showtotal'] ) { $result .= "checked=\"checked\" "; }
 
-	$result .= " value=\"true\" /> <label for=\"opts-boxlist_showtotal\" class=\"opts-name\">Show total count for each mailbox</label></div>";
+	$result .= " value=\"true\" /> <label for=\"opts-boxlist_showtotal\" class=\"opts-name\">". _("Show total count for each mailbox") . "</label></div>";
 
 	//--------------------
 	// Default forward mode
-	$result .= "<div class=\"opts-block\">By default, forward messages as: <input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-true\" value=\"true\" ";
+	$result .= "<div class=\"opts-block\">". _("By default, forward messages as: ") . "<input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-true\" value=\"true\" ";
 
 	if ( $USER_SETTINGS['forward_as_attach'] ) { $result .= "checked=\"checked\" "; }
 
-	$result .= " /> <label for=\"opts-forward_as_attach-true\" class=\"opts-name\">attachments</label> <input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-false\" value=\"false\" ";
+	$result .= " /> <label for=\"opts-forward_as_attach-true\" class=\"opts-name\">" . _("attachments") . "</label> <input type=\"radio\" name=\"opts-forward_as_attach\" id=\"opts-forward_as_attach-false\" value=\"false\" ";
 
 	if ( !$USER_SETTINGS['forward_as_attach'] ) { $result .= "checked=\"checked\" "; }
 
-	$result .= " /> <label for=\"opts-forward_as_attach-false\" class=\"opts-name\">inline</label></div>";
+	$result .= " /> <label for=\"opts-forward_as_attach-false\" class=\"opts-name\">" . _("inline") . "</label></div>";
 
 	//--------------------
 	// OK/cancel buttons
