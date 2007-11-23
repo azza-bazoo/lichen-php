@@ -92,8 +92,8 @@ var InterfaceController = new Class({
 	},
 
 	setTimer: function() {
-		if ( !this.refreshTimer ) {
-			this.refreshTimer = setTimeout( this.checkCount.bind( this ), 5 * 60 * 1000 );
+		if ( !this.refreshTimer && userSettings['list_refreshtime'] != 'disabled' ) {
+			this.refreshTimer = setTimeout( this.checkCount.bind( this ), userSettings['list_refreshtime'] * 60 * 1000 );
 		}
 	},
 	clearTimer: function() {
@@ -156,7 +156,7 @@ var InterfaceController = new Class({
 		}
 		
 		// Ask the controller for this action to set the title.
-		if ( this[controller] ) {
+		if ( this[controller] && this[controller]['getWindowTitle'] ) {
 			document.title = this[controller].getWindowTitle();
 		}
 

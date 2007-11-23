@@ -63,6 +63,7 @@ function getUserSettings() {
 			"list_pagesize" => 20,
 			"list_sortmode" => "date_r",
 			"forward_as_attach" => true,
+			"list_refreshtime" => 5,
 			"list_showpreviews" => true,
 			"list_showsize" => false,
 			"boxlist_showtotal" => false,
@@ -230,6 +231,23 @@ function parseUserSettings() {
 					$USER_SETTINGS['list_pagesize'] = $value;
 				}
 				break;
+			
+			case 'opts-list_refreshtime':
+				if ( $value == "disabled" ) {
+					$USER_SETTINGS['list_refreshtime'] = "disabled";
+				} else if ( !ctype_digit( $value ) ) {
+					array_push( $settingErrors,
+						"list_refreshtime - not a valid number" );
+				} elseif ( $value < 1 ) {
+					array_push( $settingErrors,
+						"list_refreshtime - this value is too low" );
+				} elseif ( $value > 10 ) {
+					array_push( $settingErrors,
+						"list_refreshtime - this value is too high" );
+				} else {
+					$USER_SETTINGS['list_refreshtime'] = $value;
+				}
+				break;
 
 			case 'opts-list_showpreviews':
 				if ( $value == 'true' ) {
@@ -374,6 +392,17 @@ function generateSettingsForm( $htmlMode = false, $htmlData = array(), $htmlPars
 	}
 
 	$result .= "</select> <label for=\"opts-list_pagesize\" class=\"opts-name\">messages per page</label><br />";
+	
+	$result .= "autorefresh list every <select name=\"opts-list_refreshtime\" id=\"opts-list_refreshtime\">";
+
+	$sizeOptions = array( 1, 2, 5, 10, "disabled" );
+	foreach ( $sizeOptions as $i ) {
+		$result .= "<option value=\"$i\" ";
+		if ( $USER_SETTINGS['list_refreshtime'] == $i ) { $result .= "selected=\"selected\" "; }
+		$result .= ">$i</option>";
+	}
+
+	$result .= "</select> <label for=\"opts-list_pagesize\" class=\"opts-name\">minutes</label><br />";
 
 	//--------------------
 	// Show message preview

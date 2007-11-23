@@ -69,7 +69,7 @@ $UPLOAD_ATTACHMENT_MAX = 10485760;
 // To force changes to be merged with existing user settings next time they
 // log in, increment defaults_version.
 $DEFAULT_SETTINGS = array(
-	"defaults_version" => 1
+	"defaults_version" => 2
 );
 
 ?>
