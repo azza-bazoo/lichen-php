@@ -69,3 +69,4 @@ form#settings { width: 100%; }
 /* Notification messages */
 
 #notification { position: absolute; top: 7px; right: 210px; width: 300px; z-index: 9; }
+#loading-box  { position: absolute; top: 7px; right: 7px; z-index: 9; }

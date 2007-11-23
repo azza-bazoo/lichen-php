@@ -37,11 +37,19 @@ var OptionsEditorClass = new Class({
 
 	showEditor: function ( targetTab ) {
 		if_remoteRequestStart();
+		Lichen.busy();
 		new Ajax( 'ajax.php', {
 			postBody: 'request=settingsPanel&tab=' + encodeURIComponent( targetTab ),
-			onComplete: this.showEditorCB.bind( this ),
+			onComplete: this.showEditorCBStub.bind( this ),
 			onFailure: if_remoteRequestFailed
 			} ).request();
+	},
+
+	showEditorCBStub: function ( responseText ) {
+		// Stub to call showEditorCB via the interface controller, to allow it to perform the
+		// transitions correctly.
+		Lichen.action( 'options', 'OptionsEditor', 'showEditorCB', [responseText] );
+		Lichen.notbusy();
 	},
 
 	showEditorCB: function ( responseText ) {
@@ -94,6 +102,7 @@ var OptionsEditorClass = new Class({
 
 	saveOptions: function () {
 		if_remoteRequestStart();
+		Lichen.busy();
 		new Ajax( 'ajax.php', {
 			postBody: 'request=settingsPanelSave&' + this.generateQueryString('opts-settings'),
 			onComplete: this.saveOptionsCB.bind( this ),
@@ -102,6 +111,7 @@ var OptionsEditorClass = new Class({
 	},
 
 	saveOptionsCB: function ( responseText ) {
+		Lichen.notbusy();
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
 

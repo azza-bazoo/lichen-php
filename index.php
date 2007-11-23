@@ -170,6 +170,9 @@ ENDJS;
 		echo "<div id=\"comp-wrapper\"></div>";
 		echo "<div id=\"addr-wrapper\"></div>";
 		echo "<div id=\"notification\"></div>";
+		echo "<div id=\"loading-box\" style=\"display: none;\">";
+		echo "<img src=\"themes/{$USER_SETTINGS['theme']}/icons/spinner.gif\" /> ", _("Loading ...");
+		echo "</div>";
 
 		$imapErrors = imap_errors();
 		@imap_close($mbox);

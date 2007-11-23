@@ -165,6 +165,7 @@ var MessageLister = new Class({
 	},
 
 	listUpdate: function () {
+		Lichen.busy();
 		this.dataStore.fetchMessageList( this.mailbox, this.search, this.page, this.getSortStr() );
 	},
 	getPage: function () {
@@ -172,6 +173,9 @@ var MessageLister = new Class({
 	},
 
 	listUpdateCB: function ( result ) {
+
+		Lichen.notbusy();
+
 		// Check to see if the data we just got matches what the client was waiting for.
 		if ( result.mailbox  != this.mailbox ||
 		     result.search   != this.search ||

@@ -41,6 +41,10 @@ var InterfaceController = new Class({
 		this.historyTrail     = Array( Array( 'list', 'MessageList', 'listUpdate' ) );
 		this.historyChecker   = null;
 		this.lastHash         = "";
+		this.modeFeedback     = null;
+
+		this.busyCounter      = 0;
+		this.busyDiv          = "loading-box";
 	},
 
 	onLoadInit: function () {
@@ -108,11 +112,19 @@ var InterfaceController = new Class({
 			// A hack, clean up the composer if we're exiting the composer.
 			this.MessageCompose.cleanupComposer();
 		}
-		if ( mode && mode != this.mode ) {
-			// Changing mode.
+		if ( mode && mode != this.mode && this.modeFeedback == null ) {
+			// Ok, fade out the current interface pane.
+			this.modeFeedback = new PaneTransition( this.getWrapperName( this.mode ) );
+			this.busy();
+		} else if ( mode && mode != this.mode && this.modeFeedback != null ) {
+			// Stop the current transition and enter a mode.
+			this.modeFeedback.end();
+			this.modeFeedback = null;
+
 			// TODO: Fade effect thingy.
 			this.clearScreen();
 			this.enterMode( mode );
+			this.notbusy();
 		}
 		if ( mode && mode != "list" ) {
 			// Disable the list time checker.
@@ -122,7 +134,7 @@ var InterfaceController = new Class({
 			this.setTimer();
 		}
 
-		//console.log( "%s / %s / %s", mode, controller, action );
+		console.log( "%s / %s / %s", mode, controller, action );
 
 		// If a fade was in effect, finish it - action gets called on the callbacks from the
 		// server.
@@ -212,6 +224,26 @@ var InterfaceController = new Class({
 		$('opts-wrapper').empty();
 		$('comp-wrapper').empty();
 	},
+	
+	getWrapperName: function ( mode ) {
+		var wrapper = 'list-wrapper';
+		switch ( mode ) {
+			case 'list':
+				wrapper = 'list-wrapper';
+				break;
+			case 'compose':
+				wrapper = 'comp-wrapper';
+				break;
+			case 'display':
+				wrapper = 'msg-wrapper';
+				break;
+			case 'options':
+				wrapper = 'opts-wrapper';
+				break;
+		}
+
+		return wrapper;
+	},
 
 	enterMode: function ( mode ) {
 		if ( mode != this.mode ) {
@@ -238,6 +270,24 @@ var InterfaceController = new Class({
 					this.enterMode("list");
 					break;
 			}
+		}
+	},
+
+	busy: function () {
+		this.busyCounter += 1;
+
+		if ( this.busyCounter > 0 ) {
+			$(this.busyDiv).setStyle('display', 'block');
+		}
+	},
+
+	notbusy: function () {
+		if ( this.busyCounter > 0 ) {
+			this.busyCounter -= 1;
+		}
+
+		if ( this.busyCounter < 1 ) {
+			$(this.busyDiv).setStyle('display', 'none');
 		}
 	}
 });

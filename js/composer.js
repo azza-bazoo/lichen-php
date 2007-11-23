@@ -283,6 +283,7 @@ var MessageComposer = new Class({
 	// issue an XHR to send the message.
 	sendMessage: function( saveDraft ) {
 	//	if_remoteRequestStart();
+		Lichen.busy();
 
 		if ( this.sending ) {
 			Lichen.Flash.flashMessage( _("The message is sending. Please wait.") );
@@ -323,6 +324,7 @@ var MessageComposer = new Class({
 	// and give the user a feedback message.
 	sendMessageCB: function( responseText ) {
 		this.sending = false;
+		Lichen.notbusy();
 		var result = if_checkRemoteResult( responseText );
 		if (!result) return;
 
