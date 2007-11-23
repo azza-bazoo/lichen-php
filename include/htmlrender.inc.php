@@ -92,17 +92,7 @@ function render_messageList( $requestData, $requestParams ) {
 
 	echo "<table id=\"list-data-tbl\" class=\"messagelist\">";
 
-	// To work around imperfect CSS layout implementations, we manually
-	// calculate the width of the subject column.
-	// TODO: respond to the window being resized
-	// TODO: This works in JS, but not in raw HTML!
-	//var subjColWidth = window.getWidth() - 515;
-	//if ( userSettings.list_showsize ) {
-	//	subjColWidth = window.getWidth() - 590;
-	//}
-	$subjColWidth = 400; // TODO: This is a hack!
-
-	echo "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" style=\"width:", $subjColWidth, "px\" />";
+	echo "<colgroup><col class=\"mcol-checkbox\" /><col class=\"mcol-flag\" /><col class=\"mcol-sender\" /><col class=\"mcol-subject\" />";
 	if ( $USER_SETTINGS['list_showsize'] ) {
 		echo "<col class=\"mcol-size\" />";
 	}
@@ -125,6 +115,8 @@ function render_messageList( $requestData, $requestParams ) {
 		}
 		return $result;
 	}
+
+	echo "<th></th><th></th>"; // Two empty cells for checkbox/flagged.
 
 	echo "<th class=\"list-sortlabel\"><a href=\"ajax.php?",
 		genLinkQuery( $requestParams, array( 'sort' => getNextSort( $requestData['sort'], $requestData['sortAsc'], "from" ) ) ),
