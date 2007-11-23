@@ -229,8 +229,8 @@ function generateComposerData( $mode, $uid, $mailto ) {
 			break;
 		case 'forwardinline':
 			$compData['comp_msg'] .= "--- ". _("Forwarded message"). " ---\n";
-			$compData['comp_msg'] .= _("From"). ": " . formatIMAPAddress( $msgArray['from'] ) . "\n";
-			$compData['comp_msg'] .= _("To"). ": " . formatIMAPAddress( $msgArray['to'] ) . "\n";
+			$compData['comp_msg'] .= _("From"). ": " . $msgArray['from'] . "\n";
+			$compData['comp_msg'] .= _("To"). ": " . $msgArray['to'] . "\n";
 			$compData['comp_msg'] .= _("Subject"). ": " . $msgArray['subject'] . "\n";
 			$compData['comp_msg'] .= "\n";
 			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['texthtml'], 'text/html', 'forward' );
