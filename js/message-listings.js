@@ -47,7 +47,7 @@ var MessageLister = new Class({
 			title += this.unreadMessages + _(" unread, ");
 		}
 
-		title += this.messagesInMailbox + _(" total.");
+		title += this.messagesInMailbox + _(" total");
 		title += ")";
 
 		return title;
