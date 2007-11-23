@@ -37,6 +37,14 @@ var MessageDisplay = new Class({
 		return this.lastShownUID;
 	},
 
+	getWindowTitle: function () {
+		if ( this.messageData ) {
+			return this.messageData.subject + _(" - Message Display");
+		} else {
+			return _("Message Display");
+		}
+	},
+
 	showMessage: function( mailbox, uid, mode ) {
 		// Rather than having fetchMessage send us the mode back,
 		// cache it in our instance data. We have to mark which UID we were

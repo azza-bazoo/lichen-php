@@ -72,7 +72,7 @@ var MailboxLister = new Class({
 
 				// Update the highlight in the mailbox list, and the page title
 				$('mb-'+Lichen.MessageList.getMailbox()).addClass('mb-active');
-				document.title = msgCounts[i].mailbox +' ('+msgCounts[i].unseen+' '+_('unread')+', '+msgCounts[i].messages+' '+_('total')+')';
+				//document.title = msgCounts[i].mailbox +' ('+msgCounts[i].unseen+' '+_('unread')+', '+msgCounts[i].messages+' '+_('total')+')';
 			}
 
 			var countresult = "";

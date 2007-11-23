@@ -154,6 +154,11 @@ var InterfaceController = new Class({
 		if ( this[controller] && this[controller][action] ) {
 			this[controller][action].apply(this[controller], data);
 		}
+		
+		// Ask the controller for this action to set the title.
+		if ( this[controller] ) {
+			document.title = this[controller].getWindowTitle();
+		}
 
 		// TODO: Make this "true" to force the href to visit the #href link.
 		return false;

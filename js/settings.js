@@ -31,6 +31,10 @@ var OptionsEditorClass = new Class({
 		this.identityCache = null;
 	},
 
+	getWindowTitle: function () {
+		return _("Lichen - Settings");
+	},
+
 	showEditor: function ( targetTab ) {
 		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {

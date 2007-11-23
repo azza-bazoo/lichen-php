@@ -177,6 +177,10 @@ function request_mailboxContentsList() {
 		$listData = listMailboxContents( $searchQuery, $sortMessages, $displayPage, true );
 	}
 
+	if ( $listData ) {
+		$listData['unreadmessages'] = $mailboxData->unseen;
+	}
+
 	$result = array();
 	$result['success']     = true;
 	$result['validityKey'] = $validityKey;

@@ -31,6 +31,35 @@ var MessageComposer = new Class({
 		this.draftSaveTimer = null;
 	},
 
+	getWindowTitle: function () {
+		var title = _("Composer - ");
+
+		if ( this.composerData ) {
+			switch ( this.composerData.comp_mode ) {
+				case 'reply':
+				case 'replyall':
+					title += _("Replying to ") + this.composerData.comp_subj;
+					break;
+				case 'forwardinline':
+				case 'forwardasattach':
+					title += _("Forwarding ") + this.composerData.comp_subj;
+					break;
+
+				case 'draft':
+					title += _("Editing draft ") + this.composerData.comp_subj;
+					break;
+
+				default:
+					title += _("New message");
+					break;
+			}
+		} else {
+			title += _("New message");
+		}
+
+		return title;
+	},
+
 	// Show the form for a new message. If provided, prefill the
 	// recipient(s) and subject fields, and/or quote a message.
 	showComposer: function ( mode, quoteUID, mailto ) {
@@ -41,9 +70,14 @@ var MessageComposer = new Class({
 		if_remoteRequestStart();
 		new Ajax( 'ajax.php', {
 			postBody: postbody,
-			onComplete: this.showComposerCB.bind( this ),
+			onComplete: this.showComposerCBStub.bind( this ),
 			onFailure: if_remoteRequestFailed
 			} ).request();
+	},
+
+	showComposerCBStub: function ( responseText ) {
+		// Re-route this callback through the action handler so it can handle the transitions properly.
+		Lichen.action( 'compose', 'MessageCompose', 'showComposerCB', [responseText] );
 	},
 
 	showComposerCB: function ( responseText ) {

@@ -33,8 +33,24 @@ var MessageLister = new Class({
 		this.numberPages = 1;
 		this.messagesOnThisPage = 0;
 		this.messagesInMailbox = 0;
+		this.unreadMessages = 0;
 
 		this.allSelectedStatus = 0; // 0 = user defined, 1 = all on page, 2 = all in mailbox.
+	},
+
+	getWindowTitle: function () {
+		var title = this.mailbox + " (";
+
+		if ( this.unreadMessages == null || this.unreadMessages == 0 ) {
+			title += _("No unread messages,");
+		} else {
+			title += this.unreadMessages + _(" unread, ");
+		}
+
+		title += this.messagesInMailbox + _(" total.");
+		title += ")";
+
+		return title;
 	},
 
 	setSort: function ( newSort, noUpdate ) {
@@ -211,6 +227,7 @@ var MessageLister = new Class({
 		}
 		
 		this.messagesOnThisPage = messages.length;
+		this.unreadMessages = messages.unreadmessages;
 
 		var allNotificationHtml = this.allSelectedDisplay( true );
 		tableContents += "<div class=\"list-notification\" id=\"select-all-notification\" ";
