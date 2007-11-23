@@ -134,7 +134,7 @@ var InterfaceController = new Class({
 			this.setTimer();
 		}
 
-		console.log( "%s / %s / %s", mode, controller, action );
+		//console.log( "%s / %s / %s", mode, controller, action );
 
 		// If a fade was in effect, finish it - action gets called on the callbacks from the
 		// server.
