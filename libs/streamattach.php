@@ -47,6 +47,7 @@ function imapGetUID() {
 // Basic quote parameter for IMAP...
 // TODO: Make this better.
 function quoteIMAP( $string ) {
+	$string = imap_utf7_encode( $string );
 	$string = str_replace( "\"", "\\\"", $string );
 	$string = str_replace( "\\", "\\\\", $string );
 	return $string;
@@ -370,7 +371,12 @@ function imapAppendBegin( $imap_stream, &$uid, $mailbox, $contentSize, $extraFla
 	$appendUID = imapGetUID();
 	$uid = $appendUID;
 
-	$result = fwrite( $imap_stream, sprintf( "%s APPEND \"%s\" (\Seen %s) {%s}\r\n", $appendUID, quoteIMAP( $mailbox ), $extraFlags, $contentSize ) );
+	if ( $extraFlags != "" ) {
+		$extraFlags = " " . $extraFlags;
+	}
+
+	$cmd = sprintf( "%s APPEND \"%s\" (\Seen%s) {%s}\r\n", $appendUID, quoteIMAP( $mailbox ), $extraFlags, $contentSize );
+	$result = fwrite( $imap_stream, $cmd );
 
 	if ( $result === FALSE ) {
 		return _("Error writing to IMAP server.");

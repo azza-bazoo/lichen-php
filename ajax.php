@@ -37,7 +37,11 @@ if ( !isset( $_SESSION['pass'] ) || !isset( $_SESSION['user'] ) ) {
 	}
 }
 
+$start_time = microtime(TRUE);
+
 $result = connectToServer( $_SESSION['user'], $_SESSION['pass'], _GETORPOST( 'mailbox', $SPECIAL_FOLDERS['inbox'] ) );
+
+$connect_time = microtime(TRUE);
 
 if ( !$result ) {
 	if ( isHtmlSession() ) {
@@ -115,6 +119,10 @@ if ( !isHtmlSession() ) {
 		} else {
 			// If the function doesn't exist, fail silently. (ish)
 		}
+
+		$result['begin'] = $start_time;
+		$result['connect'] = $connect_time;
+		$result['proctime'] = microtime(TRUE);
 
 		if ( $result['success'] ) {
 			// The call succeeded.
