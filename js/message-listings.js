@@ -42,7 +42,7 @@ var MessageLister = new Class({
 		var title = this.mailbox + " (";
 
 		if ( this.unreadMessages == null || this.unreadMessages == 0 ) {
-			title += _("No unread messages,");
+			title += _("No unread messages, ");
 		} else {
 			title += this.unreadMessages + _(" unread, ");
 		}
@@ -231,7 +231,9 @@ var MessageLister = new Class({
 		}
 		
 		this.messagesOnThisPage = messages.length;
-		this.unreadMessages = messages.unreadmessages;
+		if ( resultObj.unreadmessages ) {
+			this.unreadMessages = resultObj.unreadmessages;
+		}
 
 		var allNotificationHtml = this.allSelectedDisplay( true );
 		tableContents += "<div class=\"list-notification\" id=\"select-all-notification\" ";
