@@ -509,7 +509,7 @@ function fetchMessages( $messageUids ) {
 			// $headers->to sometimes seems to be blank. We try it first, and then
 			// if that fails, parse $headers->toaddress.
 
-			if ( count( $headers->to ) != 0 ) {
+			if ( isset ( $headers->to ) && count( $headers->to ) != 0 ) {
 				// Ok, extract the to address from $headers->to
 				$to = $headers->to;
 
@@ -520,15 +520,21 @@ function fetchMessages( $messageUids ) {
 				$fromaddr = filterHeader( $senderObj->mailbox ) . "@" . filterHeader( $senderObj->host );
 			} else {
 				// Parse the address in $headers->toaddress.
-				$addresses = parseRecipientList( $headers->toaddress );
+				if ( isset( $headers->toaddress) ) {
+					$addresses = parseRecipientList( $headers->toaddress );
 
-				if ( count( $addresses ) > 0 ) {
-					$address = $addresses[0];
-
-					if ( !empty( $address['name'] ) ) {
-						$fromname = _('To: ') . $address['name'];
+					if ( count( $addresses ) > 0 ) {
+						$address = $addresses[0];
+	
+						if ( !empty( $address['name'] ) ) {
+							$fromname = _('To: ') . $address['name'];
+						}
+						$fromaddr = $address['address'];
 					}
-					$fromaddr = $address['address'];
+				} else {
+					// Doesn't have a to address.
+					$fromaddr = "unknown";
+					$fromname = "unknown";
 				}
 			}
 			
