@@ -1128,4 +1128,86 @@ function request_identityEditor() {
 	return $result;
 }
 
+// ------------------------------------------------------------------------
+//
+// Address book - get a raw list of addresses.
+//
+function request_addressBookList() {
+	global $ADDRESSBOOK;
+
+	addressBook_initialize();
+
+	$searchin   = _GETORPOST( 'searchin', '' );
+	$searchterm = _GETORPOST( 'searchterm', '' );
+
+	$result = array();
+	$result['success']    = true;
+	$result['errorCode']  = 'ABOOK';
+
+	if ( !empty( $searchin ) && !empty( $searchterm ) ) {
+		$result['addresses'] = $ADDRESSBOOK->search( $searchin, $searchterm );
+	} else {
+		$result['addresses'] = $ADDRESSBOOK->list_addresses();
+	}
+
+	addressBook_uninitialize();
+
+	return $result;
+}
+
+// ------------------------------------------------------------------------
+//
+// Address book - add or edit an address.
+//
+function request_addressBookEdit() {
+	global $ADDRESSBOOK;
+
+	addressBook_initialize();
+
+	$original   = _GETORPOST( 'original', '' );
+	$name       = _GETORPOST( 'name', '' );
+	$email      = _GETORPOST( 'email', '' );
+	$notes      = _GETORPOST( 'notes', '' );
+
+	$result = array();
+	$result['success']    = true;
+	$result['errorCode']  = 'ABOOK';
+
+	if ( !$ADDRESSBOOK->edit( $original, array( "name" => $name, "email" => $email, "notes" => $notes ) ) ) {
+		// It failed.
+		$result['success'] = false;
+		$result['errorString'] = implode( ",", $ADDRESSBOOK->get_errors() );
+	}
+
+	addressBook_uninitialize();
+
+	return $result;
+}
+
+// ------------------------------------------------------------------------
+//
+// Address book - delete an entry.
+//
+function request_addressBookDelete() {
+	global $ADDRESSBOOK;
+
+	addressBook_initialize();
+
+	$email = _GETORPOST( 'email', '' );
+
+	$result = array();
+	$result['success']    = true;
+	$result['errorCode']  = 'ABOOK';
+
+	if ( !$ADDRESSBOOK->remove( $email ) ) {
+		// It failed.
+		$result['success'] = false;
+		$result['errorString'] = implode( ",", $ADDRESSBOOK->get_errors() );
+	}
+
+	addressBook_uninitialize();
+
+	return $result;
+}
+
 ?>

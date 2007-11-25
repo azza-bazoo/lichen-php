@@ -104,5 +104,6 @@ include( 'include/message.inc.php' );
 include( 'include/settings.inc.php' );
 include( 'include/strings.inc.php' );
 include( 'include/compose.inc.php' );
+include( 'include/addressbook.inc.php' );
 
 ?>

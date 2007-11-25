@@ -171,5 +171,67 @@ var IMAPServerConnector = new Class({
 		} else {
 			this.dataStore.twiddleFlagCB( result, true );
 		}
+	},
+	
+	addressBookList: function( searchin, searchterm ) {
+		var postbody = "request=addressBookList";
+		if ( searchin ) {
+			postbody += "&searchin=" + encodeURIComponent( searchin );
+		}
+		if ( searchterm ) {
+			postbody += "&searchterm=" + encodeURIComponent( searchterm );
+		}
+		new Ajax( 'ajax.php', {
+			postBody: postbody,
+			onComplete: this.addressBookListCB.bind( this ),
+			onFailure: if_remoteRequestFailed
+			} ).request();
+	},
+	addressBookListCB: function ( serverResponse ) {
+		var result = if_checkRemoteResult( serverResponse );
+		if ( result ) {
+			this.dataStore.addressBookListCB( result, false );
+		} else {
+			this.dataStore.addressBookListCB( result, true );
+		}
+	},
+	
+	addressBookEdit: function( original, name, email, notes ) {
+		var postbody = "request=addressBookEdit";
+		postbody += "&original=" + encodeURIComponent(original);
+		postbody += "&name=" + encodeURIComponent(name);
+		postbody += "&email=" + encodeURIComponent(email);
+		postbody += "&notes=" + encodeURIComponent(notes);
+		new Ajax( 'ajax.php', {
+			postBody: postbody,
+			onComplete: this.addressBookEditCB.bind( this ),
+			onFailure: if_remoteRequestFailed
+			} ).request();
+	},
+	addressBookEditCB: function ( serverResponse ) {
+		var result = if_checkRemoteResult( serverResponse );
+		if ( result ) {
+			this.dataStore.addressBookEditCB( result, false );
+		} else {
+			this.dataStore.addressBookEditCB( result, true );
+		}
+	},
+
+	addressBookDelete: function( email ) {
+		var postbody = "request=addressBookDelete";
+		postbody += "&email=" + encodeURIComponent(email);
+		new Ajax( 'ajax.php', {
+			postBody: postbody,
+			onComplete: this.addressBookDeleteCB.bind( this ),
+			onFailure: if_remoteRequestFailed
+			} ).request();
+	},
+	addressBookDeleteCB: function ( serverResponse ) {
+		var result = if_checkRemoteResult( serverResponse );
+		if ( result ) {
+			this.dataStore.addressBookDeleteCB( result, false );
+		} else {
+			this.dataStore.addressBookDeleteCB( result, true );
+		}
 	}
 });

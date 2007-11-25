@@ -24,7 +24,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var InterfaceController = new Class({
 	initialize: function () {
-		// Available modes: "list", "compose", "display", "options"
+		// Available modes: "list", "compose", "display", "options", "abook"
 		this.mode = "list";
 
 		// Instantiate new objects for display and storage
@@ -36,6 +36,7 @@ var InterfaceController = new Class({
 		this.MessageList      = new MessageLister( this.Messages, 'list-wrapper' );
 		this.MailboxList      = new MailboxLister( 'mailboxes' );
 		this.MessageCompose   = new MessageComposer( 'comp-wrapper' );
+		this.AddressBook      = new AddressBookManager( this.Messages, 'addr-wrapper' );
 
 		this.ActionCounter    = 1;
 		this.historyTrail     = Array( Array( 'list', 'MessageList', 'listUpdate' ) );
@@ -218,11 +219,13 @@ var InterfaceController = new Class({
 		$('msg-wrapper').setStyle( 'display', 'none' );
 		$('opts-wrapper').setStyle( 'display', 'none' );
 		$('comp-wrapper').setStyle( 'display', 'none' );
+		$('addr-wrapper').setStyle( 'display', 'none' );
 
 		$('list-wrapper').empty();
 		$('msg-wrapper').empty();
 		$('opts-wrapper').empty();
 		$('comp-wrapper').empty();
+		$('addr-wrapper').setStyle( 'display', 'none' );
 	},
 	
 	getWrapperName: function ( mode ) {
@@ -239,6 +242,9 @@ var InterfaceController = new Class({
 				break;
 			case 'options':
 				wrapper = 'opts-wrapper';
+				break;
+			case 'abook':
+				wrapper = 'addr-wrapper';
 				break;
 		}
 
@@ -264,6 +270,10 @@ var InterfaceController = new Class({
 				case "options":
 					$('opts-bar').setStyle( 'display', 'block' );
 					$('opts-wrapper').setStyle( 'display', 'block' );
+					break;
+				case "abook":
+					// TODO: No toolbar at the moment?
+					$('addr-wrapper').setStyle( 'display', 'block' );
 					break;
 				default:
 					// Righto...

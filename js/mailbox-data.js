@@ -420,6 +420,34 @@ var MessagesDatastore = new Class({
 		this.genericServerCallback( serverResponse, failed );
 	},
 
+	addressBookList: function( searchin, searchterm, callback ) {
+		this.addCallback( callback );
+		this.server.addressBookList( searchin, searchterm );
+	},
+	addressBookListCB: function ( serverResponse, failed ) {
+		if ( !failed ) {
+			// TODO: Cache the results for offline use ...?
+			// Or not...
+		}
+		this.genericServerCallback( serverResponse, failed );
+	},
+
+	addressBookEdit: function( original, name, email, notes, callback ) {
+		this.addCallback( callback );
+		this.server.addressBookEdit( original, name, email, notes );
+	},
+	addressBookEditCB: function( serverResponse, failed ) {
+		this.genericServerCallback( serverResponse, failed );
+	},
+
+	addressBookDelete: function( email, callback ) {
+		this.addCallback( callback );
+		this.server.addressBookDelete( email );
+	},
+	addressBookDeleteCB: function( serverResponse, failed ) {
+		this.genericServerCallback( serverResponse, failed );
+	},
+
 	genericServerCallback: function( serverResponse, failed ) {
 		var callback = this.getCallback( failed );
 

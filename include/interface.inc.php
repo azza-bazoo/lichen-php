@@ -205,8 +205,10 @@ function drawToolbar( $toolbarName, $htmlMode = false, $toolbarData = array() ) 
 	switch ( $toolbarName ) {
 		case 'corner-bar':
 			if ( $htmlMode ) {
+				drawToolbarButton( "address book", "kaddressbook", "ajax.php?" . genLinkQuery( $toolbarData, array( 'sequence' => 'abook' ) ), "address_book", "" );
 				drawToolbarButton( "settings", "configure", "ajax.php?" . genLinkQuery( $toolbarData, array( 'sequence' => 'settings' ) ), "settings", "" );
 			} else {
+				drawToolbarButton( "address book", "kaddressbook", "#abook", "address_book", "Lichen.action('abook','AddressBook','showAddressBook')" );
 				drawToolbarButton( "settings", "configure", "#settings", "settings", "Lichen.action('options','OptionsEditor','showEditor',['settings'])" );
 			}
 			drawToolbarButton( "log out", "exit", $LICHEN_URL."?logout", "logout", "" );

@@ -12,7 +12,7 @@ Distributed under the GNU General Public License
 
 #msg-wrapper, #comp-wrapper, #opts-wrapper, #addr-wrapper, #notification, #msg-bar, #comp-bar, #opts-bar { display: none; }
 
-#list-wrapper, #msg-wrapper, #comp-wrapper, #opts-wrapper { position: absolute; top: 47px; left: 118px; }
+#list-wrapper, #msg-wrapper, #comp-wrapper, #opts-wrapper, #addr-wrapper { position: absolute; top: 47px; left: 118px; }
 
 /* List of mailboxes */
 
