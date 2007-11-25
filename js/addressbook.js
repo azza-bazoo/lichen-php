@@ -29,6 +29,10 @@ var AddressBookManager = new Class({
 		this.cache   = null;
 	},
 
+	getWindowTitle: function () {
+		return _("Address Book");
+	},
+
 	showAddressBook: function ( searchin, searchterm ) {
 		this.server.addressBookList( searchin, searchterm, this.showAddressBookCBStub.bind( this ) );
 	},
