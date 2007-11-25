@@ -41,12 +41,7 @@ var MessageLister = new Class({
 	getWindowTitle: function () {
 		var title = this.mailbox + " (";
 
-		if ( this.unreadMessages == null || this.unreadMessages == 0 ) {
-			title += _("No unread messages, ");
-		} else {
-			title += this.unreadMessages + _(" unread, ");
-		}
-
+		title += this.unreadMessages + _(" unread, ");
 		title += this.messagesInMailbox + _(" total");
 		title += ")";
 
@@ -196,6 +191,10 @@ var MessageLister = new Class({
 		// if between updates enough messages show up to suggest that there
 		// is an additional page. Wow, that was a bad description.
 		this.numberPages = result.numberpages;
+		
+		if ( result.unreadmessages ) {
+			this.unreadMessages = result.unreadmessages;
+		}
 
 		// Go ahead and render the messages.
 		this._render( result.messages, result );
@@ -231,9 +230,6 @@ var MessageLister = new Class({
 		}
 		
 		this.messagesOnThisPage = messages.length;
-		if ( resultObj.unreadmessages ) {
-			this.unreadMessages = resultObj.unreadmessages;
-		}
 
 		var allNotificationHtml = this.allSelectedDisplay( true );
 		tableContents += "<div class=\"list-notification\" id=\"select-all-notification\" ";
