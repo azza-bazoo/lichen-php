@@ -450,6 +450,10 @@ function streamLargeAttachment($server, $port, $usessl, $usetls, $user, $pass, $
 		// Using PHP's IMAP libraries, find the section in question.
 		$messageParts = retrieveMessage( $uid, true );
 
+		if ( $messageParts == null ) {
+			return _("Unable to retrieve source message.");
+		}
+
 		foreach ( $messageParts['attachments'] as $attachment ) {
 			if ( $attachment['filename'] == $filename || ( $searchCID != "" && $searchCID == $attachment['id'] ) ) {
 				$partToExtract = $attachment['part'];
