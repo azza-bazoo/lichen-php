@@ -46,6 +46,9 @@ var InterfaceController = new Class({
 
 		this.busyCounter      = 0;
 		this.busyDiv          = "loading-box";
+		this.busyIFrame       = new Element('iframe');
+		this.busyIFrame.setStyle( 'display', 'none' );
+		this.loadInit         = false;
 	},
 
 	onLoadInit: function () {
@@ -284,10 +287,16 @@ var InterfaceController = new Class({
 	},
 
 	busy: function () {
+		if ( !this.loadInit ) {
+			$( this.busyDiv ).adopt( this.busyIFrame );
+			this.loadInit = true;
+		}
+
 		this.busyCounter += 1;
 
 		if ( this.busyCounter > 0 ) {
-			$(this.busyDiv).setStyle('display', 'block');
+			//$(this.busyDiv).setStyle('display', 'block');
+			this.busyIFrame.src = 'wait.php';
 		}
 	},
 
@@ -297,7 +306,8 @@ var InterfaceController = new Class({
 		}
 
 		if ( this.busyCounter < 1 ) {
-			$(this.busyDiv).setStyle('display', 'none');
+			//$(this.busyDiv).setStyle('display', 'none');
+			this.busyIFrame.src = 'about:blank';
 		}
 	}
 });
