@@ -187,7 +187,12 @@ var MailboxLister = new Class({
 		this.msgCount = 0;
 
 		// Remove the current mailbox's selection highlight in the listing
-		$('mb-'+Lichen.MessageList.getMailbox()).removeClass('mb-active');
+		// Assuming it exists; if you collapse part of the tree it dissapears!
+		var currentMailbox = $('mb-'+Lichen.MessageList.getMailbox());
+
+		if ( currentMailbox ) {
+			currentMailbox.removeClass('mb-active');
+		}
 
 		Lichen.action( 'list', 'MessageList', 'setMailbox', [mailbox] );
 				
