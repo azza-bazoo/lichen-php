@@ -192,7 +192,7 @@ var MessageLister = new Class({
 		// is an additional page. Wow, that was a bad description.
 		this.numberPages = result.numberpages;
 		
-		if ( result.unreadmessages ) {
+		if ( result.unreadmessages != null ) {
 			this.unreadMessages = result.unreadmessages;
 		}
 
