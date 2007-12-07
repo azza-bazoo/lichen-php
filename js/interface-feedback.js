@@ -160,19 +160,26 @@ function if_checkRemoteResult( remoteText ) {
 		if ( result.resultCode == 'AUTH' ) {
 			// Ask the user to enter their password.
 			// TODO: Make everything else unusable on the page .. ?
-			// TODO: Server side: make a note of what we were trying to do so that
-			// we can do it again!
-			var reloginBox = $('opts-wrapper');
-			var reloginHTML = "";
-			reloginHTML += "<h3>" + _('You were logged out.') + "</h3>";
-			reloginHTML += "<p>" + _('The server said:') + " " + result.errorMessage + "</p>";
-			reloginHTML += "<p>" + _('Enter your password to login again:') + "</p>";
-			reloginHTML += "<input type=\"password\" name=\"relogin_pass\" id=\"relogin_pass\" />";
-			reloginHTML += "<button onclick=\"if_relogin(); return false\">" + _('Login') + "</button>";
+			// TODO: Server side: make a note of what action we were just trying to
+			// perform, so we can repeat it - at the moment you have to redo the
+			// action you were trying to accomplish.
+			// 
+			// Only recreate the form if it wasn't already displayed; subsequent
+			// auth failures will not reset the box - and reset your half-typed
+			// password.
+			if ( $('relogin_pass') == null ) {
+				var reloginBox = $('opts-wrapper');
+				var reloginHTML = "";
+				reloginHTML += "<h3>" + _('You were logged out.') + "</h3>";
+				reloginHTML += "<p>" + _('The server said:') + " " + result.errorMessage + "</p>";
+				reloginHTML += "<p>" + _('Enter your password to login again:') + "</p>";
+				reloginHTML += "<input type=\"password\" name=\"relogin_pass\" id=\"relogin_pass\" />";
+				reloginHTML += "<button onclick=\"if_relogin(); return false\">" + _('Login') + "</button>";
 
-			reloginBox.setHTML( reloginHTML );
-			reloginBox.setStyle( 'display', 'block' );
-			$('relogin_pass').focus();
+				reloginBox.setHTML( reloginHTML );
+				reloginBox.setStyle( 'display', 'block' );
+				$('relogin_pass').focus();
+			}
 		} else {
 			// Just alert the message we're given.
 			if ( result.imapNotices != "" ) {
