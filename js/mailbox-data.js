@@ -136,26 +136,39 @@ var MessagesDatastore = new Class({
 			// Just do nothing.
 			return;
 		}
+		
+		// Determine if the data was cached AND up to date.
+		// If it is cached and up to date, don't call the Lichen.action() which will re-render the data.
+		var validityKey = this.cache.getMessageListValidity( mailbox, search, page, sort );
+		var result = this.cache.getMessageList( mailbox, search, page, sort, validityKey );
 
-		// The cache will check the validity and return us either a cached copy or the new data.
-		var result = this.cache.storeMessageList( mailbox, search, page, sort, metadata.data, metadata.validityKey );
+		if ( result == null ) {
 
-		// Pass the data off to the callback.
-		if ( cacheonly != "true" ) {
-			Lichen.action( "list", "MessageList", "listUpdateCB", [result] );
-		}
+			// Data was NOT already cached and up to date, so now ask
+			// the display code to display it.
 
-		// Semi-agressive cache: ask for the next and previous pages, and cache them.
-		// If we already have something, don't request it, because it gets checked when
-		// its actually required.
-		if ( this.online && cacheonly != "true" ) {
-			if ( page != 0 && !this.cache.haveCachedMessageList( mailbox, search, page - 1, sort ) ) {
-				this.server.messageList( mailbox, search, page - 1, sort,
-					this.cache.getMessageListValidity( mailbox, search, page - 1, sort ), true );
+			// The cache will check the validity and return us either a cached copy or the new data.
+			var result = this.cache.storeMessageList( mailbox, search, page, sort, metadata.data, metadata.validityKey );
+
+			// Pass the data off to the callback.
+			// And also add in a grubby hack: if the mode is not list, also don't 
+			// even attempt to render the data.
+			if ( cacheonly != "true" && Lichen.getMode() == 'list' ) {
+				Lichen.action( "list", "MessageList", "listUpdateCB", [result] );
 			}
-			if ( result.numberpages > (page + 1) && !this.cache.haveCachedMessageList( mailbox, search, page + 1, sort ) ) {
-				this.server.messageList( mailbox, search, page + 1, sort,
-					this.cache.getMessageListValidity( mailbox, search, page + 1, sort ), true );
+
+			// Semi-agressive cache: ask for the next and previous pages, and cache them.
+			// If we already have something, don't request it, because it gets checked when
+			// its actually required.
+			if ( this.online && cacheonly != "true" ) {
+				if ( page != 0 && !this.cache.haveCachedMessageList( mailbox, search, page - 1, sort ) ) {
+					this.server.messageList( mailbox, search, page - 1, sort,
+						this.cache.getMessageListValidity( mailbox, search, page - 1, sort ), true );
+				}
+				if ( result.numberpages > (page + 1) && !this.cache.haveCachedMessageList( mailbox, search, page + 1, sort ) ) {
+					this.server.messageList( mailbox, search, page + 1, sort,
+						this.cache.getMessageListValidity( mailbox, search, page + 1, sort ), true );
+				}
 			}
 		}
 	},

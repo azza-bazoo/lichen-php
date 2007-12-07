@@ -51,6 +51,9 @@ var IMAPServerConnector = new Class({
 	},
 
 	messageList: function( mailbox, search, page, sort, validity, cacheonly ) {
+		if ( cacheonly == null ) {
+			cacheonly = false;
+		}
 		new Ajax( 'ajax.php', {
 			postBody: 'request=mailboxContentsList&mailbox='+encodeURIComponent(mailbox)+
 				'&page='+page+'&search='+encodeURIComponent(search)+'&sort='+encodeURIComponent(sort)+

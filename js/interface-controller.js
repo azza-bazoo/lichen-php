@@ -286,6 +286,10 @@ var InterfaceController = new Class({
 		}
 	},
 
+	getMode: function () {
+		return this.mode;
+	},
+
 	busy: function () {
 		if ( !this.loadInit ) {
 			$( this.busyDiv ).adopt( this.busyIFrame );
