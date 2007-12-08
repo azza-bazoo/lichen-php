@@ -139,8 +139,7 @@ var MessagesDatastore = new Class({
 		
 		// Determine if the data was cached AND up to date.
 		// If it is cached and up to date, don't call the Lichen.action() which will re-render the data.
-		var validityKey = this.cache.getMessageListValidity( mailbox, search, page, sort );
-		var result = this.cache.getMessageList( mailbox, search, page, sort, validityKey );
+		var result = this.cache.getMessageList( mailbox, search, page, sort, validity );
 
 		if ( result == null ) {
 
