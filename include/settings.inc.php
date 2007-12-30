@@ -23,12 +23,15 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+
 // Get the users data directory, built from the logged in user.
 // Creates them if they don't exist.
 function getUserDirectory() {
 	global $LICHEN_DATA;
 
 	// TODO: this unsafe, username will need to be escaped (for ../ etc.)
+	// However, they need to be authenticated to be able to get here, so
+	// maybe this will be ok.
 	$userDataDir = $LICHEN_DATA . $_SESSION['user'];
 
 	if ( !is_dir( $userDataDir ) ) {
@@ -298,6 +301,87 @@ function parseUserSettings() {
 	}
 
 	return $settingErrors;
+}
+
+// All the settings keys must be here and have a default value.
+$DEFAULT_USER_SETTINGS = array(
+	"timezone" => "UTC",
+
+	"list_sortmode" => "date_r",
+	"list_pagesize" => "20",
+	"list_refreshtime" => 5,
+	"list_showsize" => FALSE,
+	"list_showpreviews" => TRUE,
+
+	"theme" => "default",
+
+	"boxlist_showtotal" => FALSE,
+
+	"forward_as_attach" => TRUE,
+);
+
+class FlatFile_SettingsBackend {
+	// Most basic storage settings backend: stores the settings JSON encoded in a file
+	// on disk.
+	// Also serves as an example for other settings backends.
+	private $settings = array();
+
+	function FlatFile_SettingsBackend( $defaultSettings ) {
+		$this->settings = $defaultSettings;
+	}
+	
+	// Load the settings from wherever they need to be loaded from.
+	// This can also mean connecting to a DB.
+	function load() {
+		$userDataDir = getUserDirectory();
+
+		$dataFile = "{$userDataDir}/lichenrc";
+
+		$settings = null;
+		if ( file_exists( $dataFile ) ) {
+			// Load previously saved settings
+			$settings = json_decode_assoc( file_get_contents( $dataFile ) );
+		}
+
+		// Merge the loaded settings with the default settings.
+		// TODO: Merge with administrator defaults.
+		$settings = array_merge( $this->settings, $settings );
+
+		$this->settings = $settings;
+	}
+
+	function save() {
+		$userDataDir = getUserDirectory();
+
+		$file = fopen( "{$userDataDir}/lichenrc", "w" );
+		$result = false;
+		if ( $file !== false ) {
+			$result = fwrite( $file, json_encode_assoc( $this->settings ) );
+			fclose( $file );
+		}
+
+		if ($result === false) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	function getkey( $key ) {
+
+	}
+
+	function setkey( $key, $value, $unique = TRUE ) {
+
+	}
+
+	function get_identities( $id = NULL, $byemail = NULL ) {
+
+	}
+
+	function save_identity( $id, $identity ) {
+
+	}
 }
 
 
