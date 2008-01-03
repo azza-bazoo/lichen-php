@@ -28,7 +28,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 // TODO: Stop using all these global variables and $_POST vars.
 function generateComposerData( $mode, $uid, $mailto ) {
 	global $mbox, $IMAP_CONNECT, $mailbox;
-	global $IMAP_PORT, $IMAP_SERVER, $IS_SSL;
+	global $IMAP_PORT, $IMAP_SERVER, $IS_SSL, $IMAP_USE_TLS;
 	global $SMTP_SERVER, $SMTP_PORT, $USER_SETTINGS;
 	global $LICHEN_URL, $LICHEN_VERSION;
 	global $SPECIAL_FOLDERS, $UPLOAD_ATTACHMENT_MAX;
@@ -266,8 +266,11 @@ function generateComposerData( $mode, $uid, $mailto ) {
 		$attachmentFilename = str_replace( array( "/", "\\" ), array( "-", "-" ), $attachmentFilename );
 		$serverFilename = hashifyFilename( $attachmentFilename );
 		$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
-		streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
+		$result = streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $IMAP_USE_TLS, $_SESSION['user'], $_SESSION['pass'],
 			$mailbox, $uid, "LICHENSOURCE", $attachmentHandle );
+		if ( $result != NULL ) {
+			// TODO: Do something! An error occurred!
+		}
 		fclose( $attachmentHandle );
 
 		$compData['comp_attach'][] = array(
@@ -287,8 +290,11 @@ function generateComposerData( $mode, $uid, $mailto ) {
 
 			$serverFilename = hashifyFilename( $attachment['filename'] );
 			$attachmentHandle = fopen( "{$userDir}/{$serverFilename}", "w" );
-			streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $_SESSION['user'], $_SESSION['pass'],
+			$result = streamLargeAttachment( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $IMAP_USE_TLS, $_SESSION['user'], $_SESSION['pass'],
 				$mailbox, $uid, $attachment['filename'], $attachmentHandle );
+			if ( $result != NULL ) {
+				// TODO: Do something! An error occurred!
+			}
 			fclose( $attachmentHandle );
 			$compData['comp_attach'][] = array(
 				"filename" => $attachment['filename'],
