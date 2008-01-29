@@ -324,7 +324,7 @@ class FlatFile_SettingsBackend {
 	// Most basic storage settings backend: stores the settings JSON encoded in a file
 	// on disk.
 	// Also serves as an example for other settings backends.
-	private $settings = array();
+	var $settings = array();
 
 	function FlatFile_SettingsBackend( $defaultSettings ) {
 		$this->settings = $defaultSettings;
