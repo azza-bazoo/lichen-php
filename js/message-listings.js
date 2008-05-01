@@ -400,7 +400,11 @@ var MessageLister = new Class({
 		// TODO: Figure out how to make it synchonously request and return this data
 		// if needed. For the moment, we're relying on the fact that it's already
 		// been requested.
-		mailboxes = this.dataStore.fetchMailboxList( true );
+		if ( !window.ie ) {
+			// woohoo hack! this check fails in IE, so for now just skip it
+			// and let the list be fetched elsewhere in the loading processes
+			mailboxes = this.dataStore.fetchMailboxList( true );
+		}
 		if ( mailboxes ) {
 			for ( var i = 0; i < mailboxes.length; i++ ) {
 				newPageBar += "<option value=\"move-" + mailboxes[i].fullboxname + "\">";
