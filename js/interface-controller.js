@@ -168,7 +168,11 @@ var InterfaceController = new Class({
 		// Call the appropriate action.
 		// This looks rather grubby.
 		if ( this[controller] && this[controller][action] ) {
-			this[controller][action].apply(this[controller], data);
+			if ( data ) {
+				this[controller][action].apply(this[controller], data);
+			} else {
+				this[controller][action].apply(this[controller], []);
+			}
 		}
 		
 		// Ask the controller for this action to set the title.
