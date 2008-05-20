@@ -101,10 +101,15 @@ var MessageDisplay = new Class({
 		var htmlFragment = "<div class=\"list-header-bar\"><img src=\"themes/" + userSettings.theme + "/top-corner.png\" alt=\"\" class=\"top-corner\" />";
 
 		var messageNavBar = "<div class=\"header-left\"><a class=\"list-return\" href=\"#inbox\" onclick=\"Lichen.action('list','MessageList','listUpdate');return false\">" + _('back to ') + Lichen.MessageList.getMailbox() + "</a></div>";
-			
+
 		messageNavBar += "<div class=\"header-right\">";
 		if ( adjacentMessages.previous ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.previous.uid + "'])\">" + "&laquo; " + adjacentMessages.previous.subject;
+			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.previous.uid + "'])\">" + "&laquo; ";
+			if ( adjacentMessages.previous.subject.length > 24 ) {
+				messageNavBar += adjacentMessages.previous.subject.substr(0,24) + "...";
+			} else {
+				messageNavBar += adjacentMessages.previous.subject;
+			}
 			if ( adjacentMessages.next ) {
 				messageNavBar += "</a> | ";
 			} else {
@@ -112,10 +117,16 @@ var MessageDisplay = new Class({
 			}
 		}
 		if ( adjacentMessages.next ) {
-			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.next.uid + "'])\">" + adjacentMessages.next.subject + " &raquo;" + "</a>";
+			messageNavBar += "<a href=\"#\" onclick=\"return Lichen.action('display','MessageDisplayer','showMessage',['" + message.mailbox + "','" + adjacentMessages.next.uid + "'])\">";
+			if ( adjacentMessages.next.subject.length > 24 ) {
+				messageNavBar += adjacentMessages.next.subject.substr(0,24) + "...";
+			} else {
+				messageNavBar += adjacentMessages.next.subject;
+			}
+			messageNavBar += " &raquo;" + "</a>";
 		}
-
 		messageNavBar += "</div>";
+
 		messageNavBar += "<div class=\"header-left\">";
 		messageNavBar += "<select onchange=\"Lichen.MessageDisplayer.moveMessage(this)\">";
 		messageNavBar += "<option value=\"noop\" selected=\"selected\">" + _('move message to ...') + "</option>";
