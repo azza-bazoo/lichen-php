@@ -110,12 +110,13 @@ HTMLPurifier_ConfigSchema::define(
 ');
 
 HTMLPurifier_ConfigSchema::define(
-    'HTML', 'Allowed', null, 'string/null', '
+    'HTML', 'Allowed', null, 'itext/null', '
 <p>
     This is a convenience directive that rolls the functionality of
     %HTML.AllowedElements and %HTML.AllowedAttributes into one directive.
     Specify elements and attributes that are allowed using:
-    <code>element1[attr1|attr2],element2...</code>.
+    <code>element1[attr1|attr2],element2...</code>. You can also use
+    newlines instead of commas to separate elements.
 </p>
 <p>
     <strong>Warning</strong>:
@@ -221,6 +222,8 @@ class HTMLPurifier_HTMLDefinition extends HTMLPurifier_Definition
     
     /**
      * Adds a custom attribute to a pre-existing element
+     * @note This is strictly convenience, and does not have a corresponding
+     *       method in HTMLPurifier_HTMLModule
      * @param $element_name String element name to add attribute to
      * @param $attr_name String name of attribute
      * @param $def Attribute definition, can be string or object, see
@@ -228,20 +231,37 @@ class HTMLPurifier_HTMLDefinition extends HTMLPurifier_Definition
      */
     function addAttribute($element_name, $attr_name, $def) {
         $module =& $this->getAnonymousModule();
-        $element =& $module->addBlankElement($element_name);
+        if (!isset($module->info[$element_name])) {
+            $element =& $module->addBlankElement($element_name);
+        } else {
+            $element =& $module->info[$element_name];
+        }
         $element->attr[$attr_name] = $def;
     }
     
     /**
      * Adds a custom element to your HTML definition
      * @note See HTMLPurifier_HTMLModule::addElement for detailed 
-     *       parameter descriptions.
+     *       parameter and return value descriptions.
      */
-    function addElement($element_name, $type, $contents, $attr_collections, $attributes) {
+    function &addElement($element_name, $type, $contents, $attr_collections, $attributes) {
         $module =& $this->getAnonymousModule();
         // assume that if the user is calling this, the element
         // is safe. This may not be a good idea
-        $module->addElement($element_name, true, $type, $contents, $attr_collections, $attributes);
+        $element =& $module->addElement($element_name, true, $type, $contents, $attr_collections, $attributes);
+        return $element;
+    }
+    
+    /**
+     * Adds a blank element to your HTML definition, for overriding
+     * existing behavior
+     * @note See HTMLPurifier_HTMLModule::addBlankElement for detailed
+     *       parameter and return value descriptions.
+     */
+    function &addBlankElement($element_name) {
+        $module  =& $this->getAnonymousModule();
+        $element =& $module->addBlankElement($element_name);
+        return $element;
     }
     
     /**
@@ -329,7 +349,7 @@ class HTMLPurifier_HTMLDefinition extends HTMLPurifier_Definition
         if (isset($this->info_content_sets['Block'][$block_wrapper])) {
             $this->info_block_wrapper = $block_wrapper;
         } else {
-            trigger_error('Cannot use non-block element as block wrapper.',
+            trigger_error('Cannot use non-block element as block wrapper',
                 E_USER_ERROR);
         }
         
@@ -339,7 +359,7 @@ class HTMLPurifier_HTMLDefinition extends HTMLPurifier_Definition
             $this->info_parent = $parent;
             $this->info_parent_def = $def;
         } else {
-            trigger_error('Cannot use unrecognized element as parent.',
+            trigger_error('Cannot use unrecognized element as parent',
                 E_USER_ERROR);
             $this->info_parent_def = $this->manager->getElement($this->info_parent, true);
         }
@@ -426,8 +446,9 @@ class HTMLPurifier_HTMLDefinition extends HTMLPurifier_Definition
         $elements = array();
         $attributes = array();
         
-        $chunks = explode(',', $list);
+        $chunks = preg_split('/(,|[\n\r]+)/', $list);
         foreach ($chunks as $chunk) {
+            if (empty($chunk)) continue;
             // remove TinyMCE element control characters
             if (!strpos($chunk, '[')) {
                 $element = $chunk;

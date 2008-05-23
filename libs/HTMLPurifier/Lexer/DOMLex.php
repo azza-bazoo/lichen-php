@@ -42,15 +42,18 @@ class HTMLPurifier_Lexer_DOMLex extends HTMLPurifier_Lexer
         
         $html = $this->normalize($html, $config, $context);
         
+        // attempt to armor stray angled brackets that cannot possibly
+        // form tags and thus are probably being used as emoticons
+        if ($config->get('Core', 'AggressivelyFixLt')) {
+            $char = '[^a-z!\/]';
+            $comment = "/<!--(.*?)(-->|\z)/is";
+            $html = preg_replace_callback($comment, array('HTMLPurifier_Lexer_DOMLex', 'callbackArmorCommentEntities'), $html);
+            $html = preg_replace("/<($char)/i", '&lt;\\1', $html);
+            $html = preg_replace_callback($comment, array('HTMLPurifier_Lexer_DOMLex', 'callbackUndoCommentSubst'), $html); // fix comments
+        }
+        
         // preprocess html, essential for UTF-8
-        $html =
-            '<!DOCTYPE html '.
-                'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"'.
-                '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'.
-            '<html><head>'.
-            '<meta http-equiv="Content-Type" content="text/html;'.
-                ' charset=utf-8" />'.
-            '</head><body><div>'.$html.'</div></body></html>';
+        $html = $this->wrapHTML($html, $config, $context);
         
         $doc = new DOMDocument();
         $doc->encoding = 'UTF-8'; // theoretically, the above has this covered
@@ -87,10 +90,27 @@ class HTMLPurifier_Lexer_DOMLex extends HTMLPurifier_Lexer
             $tokens[] = $this->factory->createText($node->data);
             return;
         } elseif ($node->nodeType === XML_CDATA_SECTION_NODE) {
-            // undo DOM's special treatment of <script> tags
-            $tokens[] = $this->factory->createText($this->parseData($node->data));
+            // undo libxml's special treatment of <script> and <style> tags
+            $last = end($tokens);
+            $data = $node->data;
+            // (note $node->tagname is already normalized)
+            if ($last instanceof HTMLPurifier_Token_Start && $last->name == 'script') {
+                $new_data = trim($data);
+                if (substr($new_data, 0, 4) === '<!--') {
+                    $data = substr($new_data, 4);
+                    if (substr($data, -3) === '-->') {
+                        $data = substr($data, 0, -3);
+                    } else {
+                        // Highly suspicious! Not sure what to do...
+                    }
+                }
+            }
+            $tokens[] = $this->factory->createText($this->parseData($data));
             return;
         } elseif ($node->nodeType === XML_COMMENT_NODE) {
+            // this is code is only invoked for comments in script/style in versions
+            // of libxml pre-2.6.28 (regular comments, of course, are still
+            // handled regularly)
             $tokens[] = $this->factory->createComment($node->data);
             return;
         } elseif (
@@ -150,6 +170,42 @@ class HTMLPurifier_Lexer_DOMLex extends HTMLPurifier_Lexer
      * An error handler that mutes all errors
      */
     public function muteErrorHandler($errno, $errstr) {}
+    
+    /**
+     * Callback function for undoing escaping of stray angled brackets
+     * in comments
+     */
+    function callbackUndoCommentSubst($matches) {
+        return '<!--' . strtr($matches[1], array('&amp;'=>'&','&lt;'=>'<')) . $matches[2];
+    }
+    
+    /**
+     * Callback function that entity-izes ampersands in comments so that
+     * callbackUndoCommentSubst doesn't clobber them
+     */
+    function callbackArmorCommentEntities($matches) {
+        return '<!--' . str_replace('&', '&amp;', $matches[1]) . $matches[2];
+    }
+    
+    /**
+     * Wraps an HTML fragment in the necessary HTML
+     */
+    function wrapHTML($html, $config, &$context) {
+        $def = $config->getDefinition('HTML');
+        $ret = '';
+        
+        if (!empty($def->doctype->dtdPublic) || !empty($def->doctype->dtdSystem)) {
+            $ret .= '<!DOCTYPE html ';
+            if (!empty($def->doctype->dtdPublic)) $ret .= 'PUBLIC "' . $def->doctype->dtdPublic . '" ';
+            if (!empty($def->doctype->dtdSystem)) $ret .= '"' . $def->doctype->dtdSystem . '" ';
+            $ret .= '>';
+        }
+        
+        $ret .= '<html><head>';
+        $ret .= '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
+        $ret .= '</head><body><div>'.$html.'</div></body></html>';
+        return $ret;
+    }
     
 }
 

@@ -150,11 +150,25 @@ class HTMLPurifier_Lexer_DirectLex extends HTMLPurifier_Lexer
                 // We are in tag and it is well formed
                 // Grab the internals of the tag
                 $strlen_segment = $position_next_gt - $cursor;
+                
+                if ($strlen_segment < 1) {
+                    // there's nothing to process!
+                    $token = new HTMLPurifier_Token_Text('<');
+                    $cursor++;
+                    continue;
+                }
+                
                 $segment = substr($html, $cursor, $strlen_segment);
+                
+                if ($segment === false) {
+                    // somehow, we attempted to access beyond the end of
+                    // the string, defense-in-depth, reported by Nate Abele
+                    break;
+                }
                 
                 // Check if it's a comment
                 if (
-                    substr($segment, 0, 3) == '!--'
+                    strncmp('!--', $segment, 3) === 0
                 ) {
                     // re-determine segment length, looking for -->
                     $position_comment_end = strpos($html, '-->', $cursor);
@@ -170,12 +184,7 @@ class HTMLPurifier_Lexer_DirectLex extends HTMLPurifier_Lexer
                     }
                     $strlen_segment = $position_comment_end - $cursor;
                     $segment = substr($html, $cursor, $strlen_segment);
-                    $token = new
-                        HTMLPurifier_Token_Comment(
-                            substr(
-                                $segment, 3, $strlen_segment - 3
-                            )
-                        );
+                    $token = new HTMLPurifier_Token_Comment(substr($segment, 3));
                     if ($maintain_line_numbers) {
                         $token->line = $current_line;
                         $current_line += $this->substrCount($html, $nl, $cursor, $strlen_segment);
@@ -204,7 +213,8 @@ class HTMLPurifier_Lexer_DirectLex extends HTMLPurifier_Lexer
                 // Check leading character is alnum, if not, we may
                 // have accidently grabbed an emoticon. Translate into
                 // text and go our merry way
-                if (!ctype_alnum($segment[0])) {
+                if (!ctype_alpha($segment[0])) {
+                    // XML:  $segment[0] !== '_' && $segment[0] !== ':'
                     if ($e) $e->send(E_NOTICE, 'Lexer: Unescaped lt');
                     $token = new
                         HTMLPurifier_Token_Text(
@@ -228,7 +238,7 @@ class HTMLPurifier_Lexer_DirectLex extends HTMLPurifier_Lexer
                 // trailing slash. Remember, we could have a tag like <br>, so
                 // any later token processing scripts must convert improperly
                 // classified EmptyTags from StartTags.
-                $is_self_closing= (strpos($segment,'/') === $strlen_segment-1);
+                $is_self_closing = (strrpos($segment,'/') === $strlen_segment-1);
                 if ($is_self_closing) {
                     $strlen_segment--;
                     $segment = substr($segment, 0, $strlen_segment);
@@ -371,6 +381,7 @@ class HTMLPurifier_Lexer_DirectLex extends HTMLPurifier_Lexer
                     $value = $quoted_value;
                 }
             }
+            if ($value === false) $value = '';
             return array($key => $value);
         }
         
@@ -385,7 +396,6 @@ class HTMLPurifier_Lexer_DirectLex extends HTMLPurifier_Lexer
         
         // infinite loop protection
         $loops = 0;
-        
         while(true) {
             
             // infinite loop protection
@@ -399,7 +409,6 @@ class HTMLPurifier_Lexer_DirectLex extends HTMLPurifier_Lexer
             }
             
             $cursor += ($value = strspn($string, $this->_whitespace, $cursor));
-            
             // grab the key
             
             $key_begin = $cursor; //we're currently at the start of the key
@@ -435,6 +444,11 @@ class HTMLPurifier_Lexer_DirectLex extends HTMLPurifier_Lexer
                 $cursor++;
                 $cursor += strspn($string, $this->_whitespace, $cursor);
                 
+                if ($cursor === false) {
+                    $array[$key] = '';
+                    break;
+                }
+                
                 // we might be in front of a quote right now
                 
                 $char = @$string[$cursor];
@@ -452,7 +466,14 @@ class HTMLPurifier_Lexer_DirectLex extends HTMLPurifier_Lexer
                     $value_end = $cursor;
                 }
                 
+                // we reached a premature end
+                if ($cursor === false) {
+                    $cursor = $size;
+                    $value_end = $cursor;
+                }
+                
                 $value = substr($string, $value_begin, $value_end - $value_begin);
+                if ($value === false) $value = '';
                 $array[$key] = $this->parseData($value);
                 $cursor++;
                 

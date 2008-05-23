@@ -14,3 +14,5 @@ class HTMLPurifier_AttrDef_URI_Email extends HTMLPurifier_AttrDef
     
 }
 
+// sub-implementations
+require_once 'HTMLPurifier/AttrDef/URI/Email/SimpleCheck.php';

@@ -13,11 +13,14 @@ if (version_compare(PHP_VERSION, "5", ">=")) {
 }
 
 HTMLPurifier_ConfigSchema::define(
-    'Core', 'AcceptFullDocuments', true, 'bool',
-    'This parameter determines whether or not the filter should accept full '.
-    'HTML documents, not just HTML fragments.  When on, it will '.
-    'drop all sections except the content between body.'
-);
+    'Core', 'ConvertDocumentToFragment', true, 'bool', '
+This parameter determines whether or not the filter should convert
+input that is a full document with html and body tags to a fragment
+of just the contents of a body tag. This parameter is simply something
+HTML Purifier can do during an edge-case: for most inputs, this
+processing is not necessary.
+');
+HTMLPurifier_ConfigSchema::defineAlias('Core', 'AcceptFullDocuments', 'Core', 'ConvertDocumentToFragment');
 
 HTMLPurifier_ConfigSchema::define(
     'Core', 'LexerImpl', null, 'mixed/null', '
@@ -64,6 +67,16 @@ HTMLPurifier_ConfigSchema::define(
   If the value is null, an appropriate value will be selected based
   on other configuration. This directive has been available since 2.0.0.
 </p>
+');
+
+HTMLPurifier_ConfigSchema::define(
+    'Core', 'AggressivelyFixLt', false, 'bool', '
+This directive enables aggressive pre-filter fixes HTML Purifier can
+perform in order to ensure that open angled-brackets do not get killed
+during parsing stage. Enabling this will result in two preg_replace_callback
+calls and one preg_replace call for every bit of HTML passed through here.
+It is not necessary and will have no effect for PHP 4.
+This directive has been available since 2.1.0.
 ');
 
 /**
@@ -179,6 +192,9 @@ class HTMLPurifier_Lexer
                 return new HTMLPurifier_Lexer_DOMLex();
             case 'DirectLex':
                 return new HTMLPurifier_Lexer_DirectLex();
+            case 'PH5P':
+                // experimental Lexer that must be manually included
+                return new HTMLPurifier_Lexer_PH5P();
             default:
                 trigger_error("Cannot instantiate unrecognized Lexer type " . htmlspecialchars($lexer), E_USER_ERROR);
         }
@@ -303,7 +319,7 @@ class HTMLPurifier_Lexer
     function normalize($html, $config, &$context) {
         
         // extract body from document if applicable
-        if ($config->get('Core', 'AcceptFullDocuments')) {
+        if ($config->get('Core', 'ConvertDocumentToFragment')) {
             $html = $this->extractBody($html);
         }
         

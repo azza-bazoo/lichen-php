@@ -24,15 +24,52 @@ class HTMLPurifier_Printer_ConfigForm extends HTMLPurifier_Printer
     var $name;
     
     /**
+     * Whether or not to compress directive names, clipping them off
+     * after a certain amount of letters. False to disable or integer letters
+     * before clipping.
+     * @protected
+     */
+    var $compress = false;
+    
+    /**
      * @param $name Form element name for directives to be stuffed into
      * @param $doc_url String documentation URL, will have fragment tagged on
+     * @param $compress Integer max length before compressing a directive name, set to false to turn off
      */
-    function HTMLPurifier_Printer_ConfigForm($name, $doc_url = null) {
+    function HTMLPurifier_Printer_ConfigForm(
+        $name, $doc_url = null, $compress = false
+    ) {
         parent::HTMLPurifier_Printer();
         $this->docURL = $doc_url;
         $this->name   = $name;
+        $this->compress = $compress;
+        // initialize sub-printers
         $this->fields['default']    = new HTMLPurifier_Printer_ConfigForm_default();
         $this->fields['bool']       = new HTMLPurifier_Printer_ConfigForm_bool();
+    }
+    
+    /**
+     * Sets default column and row size for textareas in sub-printers
+     * @param $cols Integer columns of textarea, null to use default
+     * @param $rows Integer rows of textarea, null to use default
+     */
+    function setTextareaDimensions($cols = null, $rows = null) {
+        if ($cols) $this->fields['default']->cols = $cols;
+        if ($rows) $this->fields['default']->rows = $rows;
+    }
+    
+    /**
+     * Retrieves styling, in case it is not accessible by webserver
+     */
+    function getCSS() {
+        return file_get_contents(HTMLPURIFIER_PREFIX . '/HTMLPurifier/Printer/ConfigForm.css');
+    }
+    
+    /**
+     * Retrieves JavaScript, in case it is not accessible by webserver
+     */
+    function getJavaScript() {
+        return file_get_contents(HTMLPURIFIER_PREFIX . '/HTMLPurifier/Printer/ConfigForm.js');
     }
     
     /**
@@ -63,14 +100,14 @@ class HTMLPurifier_Printer_ConfigForm extends HTMLPurifier_Printer
             $ret .= $this->renderNamespace($ns, $directives);
         }
         if ($render_controls) {
-             $ret .= $this->start('tfoot');
+             $ret .= $this->start('tbody');
              $ret .= $this->start('tr');
                  $ret .= $this->start('td', array('colspan' => 2, 'class' => 'controls'));
-                     $ret .= $this->elementEmpty('input', array('type' => 'Submit', 'value' => 'Submit'));
+                     $ret .= $this->elementEmpty('input', array('type' => 'submit', 'value' => 'Submit'));
                      $ret .= '[<a href="?">Reset</a>]';
                  $ret .= $this->end('td');
              $ret .= $this->end('tr');
-             $ret .= $this->end('tfoot');
+             $ret .= $this->end('tbody');
         }
         $ret .= $this->end('table');
         return $ret;
@@ -98,11 +135,12 @@ class HTMLPurifier_Printer_ConfigForm extends HTMLPurifier_Printer
                 $ret .= $this->start('a', array('href' => $url));
             }
                 $attr = array('for' => "{$this->name}:$ns.$directive");
+                
                 // crop directive name if it's too long
-                if (strlen($directive) < 14) {
+                if (!$this->compress || (strlen($directive) < $this->compress)) {
                     $directive_disp = $directive;
                 } else {
-                    $directive_disp = substr($directive, 0, 12) . '...';
+                    $directive_disp = substr($directive, 0, $this->compress - 2) . '...';
                     $attr['title'] = $directive;
                 }
                 
@@ -176,6 +214,8 @@ class HTMLPurifier_Printer_ConfigForm_NullDecorator extends HTMLPurifier_Printer
  * Swiss-army knife configuration form field printer
  */
 class HTMLPurifier_Printer_ConfigForm_default extends HTMLPurifier_Printer {
+    var $cols = 18;
+    var $rows = 5;
     function render($ns, $directive, $value, $name, $config) {
         $this->prepareGenerator($config);
         // this should probably be split up a little
@@ -190,12 +230,12 @@ class HTMLPurifier_Printer_ConfigForm_default extends HTMLPurifier_Printer {
                         $value[] = $val;
                     }
                 case 'list':
-                    $value = implode(',', $value);
+                    $value = implode(PHP_EOL, $value);
                     break;
                 case 'hash':
                     $nvalue = '';
                     foreach ($value as $i => $v) {
-                        $nvalue .= "$i:$v,";
+                        $nvalue .= "$i:$v" . PHP_EOL;
                     }
                     $value = $nvalue;
                     break;
@@ -220,6 +260,15 @@ class HTMLPurifier_Printer_ConfigForm_default extends HTMLPurifier_Printer {
                 $ret .= $this->element('option', $val, $attr);
             }
             $ret .= $this->end('select');
+        } elseif (
+            $def->type == 'text' || $def->type == 'itext' ||
+            $def->type == 'list' || $def->type == 'hash' || $def->type == 'lookup'
+        ) {
+            $attr['cols'] = $this->cols;
+            $attr['rows'] = $this->rows;
+            $ret .= $this->start('textarea', $attr);
+            $ret .= $this->text($value);
+            $ret .= $this->end('textarea');
         } else {
             $attr['value'] = $value;
             $attr['type'] = 'text';

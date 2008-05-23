@@ -7,6 +7,7 @@ require_once 'HTMLPurifier/AttrDef/CSS/BackgroundPosition.php';
 require_once 'HTMLPurifier/AttrDef/CSS/Border.php';
 require_once 'HTMLPurifier/AttrDef/CSS/Color.php';
 require_once 'HTMLPurifier/AttrDef/CSS/Composite.php';
+require_once 'HTMLPurifier/AttrDef/CSS/DenyElementDecorator.php';
 require_once 'HTMLPurifier/AttrDef/CSS/Font.php';
 require_once 'HTMLPurifier/AttrDef/CSS/FontFamily.php';
 require_once 'HTMLPurifier/AttrDef/CSS/Length.php';
@@ -176,12 +177,13 @@ class HTMLPurifier_CSSDefinition extends HTMLPurifier_Definition
         ));
         
         $this->info['width'] =
-        $this->info['height'] = 
+        $this->info['height'] =
+        new HTMLPurifier_AttrDef_CSS_DenyElementDecorator(
         new HTMLPurifier_AttrDef_CSS_Composite(array(
             new HTMLPurifier_AttrDef_CSS_Length(true),
             new HTMLPurifier_AttrDef_CSS_Percentage(true),
             new HTMLPurifier_AttrDef_Enum(array('auto'))
-        ));
+        )), 'img');
         
         $this->info['text-decoration'] = new HTMLPurifier_AttrDef_CSS_TextDecoration();
         
@@ -204,7 +206,7 @@ class HTMLPurifier_CSSDefinition extends HTMLPurifier_Definition
         $this->info['border-right'] = new HTMLPurifier_AttrDef_CSS_Border($config);
         
         $this->info['border-collapse'] = new HTMLPurifier_AttrDef_Enum(array(
-            'collapse', 'seperate'));
+            'collapse', 'separate'));
         
         $this->info['caption-side'] = new HTMLPurifier_AttrDef_Enum(array(
             'top', 'bottom'));
@@ -218,6 +220,8 @@ class HTMLPurifier_CSSDefinition extends HTMLPurifier_Definition
             new HTMLPurifier_AttrDef_CSS_Length(),
             new HTMLPurifier_AttrDef_CSS_Percentage()
         ));
+        
+        $this->info['border-spacing'] = new HTMLPurifier_AttrDef_CSS_Multiple(new HTMLPurifier_AttrDef_CSS_Length(), 2);
         
         // partial support
         $this->info['white-space'] = new HTMLPurifier_AttrDef_Enum(array('nowrap'));
