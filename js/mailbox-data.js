@@ -81,7 +81,7 @@ var MessagesDatastore = new Class({
 
 		// Global callback function list.
 		// (May need to be split up)
-		this.callbacks = Array();
+		this.callbacks = new Array();
 
 		this.allMessagesMailbox = null;
 		this.allMessagesSearch  = null;
@@ -184,7 +184,7 @@ var MessagesDatastore = new Class({
 		var previousMessage = null;
 		var nextMessage = null;
 
-		var messagePages = Array();
+		var messagePages = new Array();
 		messagePages.push( this.cache.getMessageList( mailbox, search, page, sort,
 					this.cache.getMessageListValidity( mailbox, search, page, sort ) ) );
 		messagePages.push( this.cache.getMessageList( mailbox, search, page + 1, sort,

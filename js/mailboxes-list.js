@@ -29,7 +29,7 @@ var MailboxLister = new Class({
 		this.lastUIDconst = -1;
 		this.mailboxCount = -1;
 		this.msgCount     = -1;
-		this.openMailboxes = Array();
+		this.openMailboxes = new Array();
 		this.listCache    = null;
 	},
 
@@ -105,7 +105,7 @@ var MailboxLister = new Class({
 
 		var containerContents = "<li id=\"mb-header\"><span class=\"s-head\">" + _('Mailboxes') + "</span> [<a href=\"#manage-mailboxes\" onclick=\"return Lichen.action('options','OptionsEditor','showEditor',['mailboxes'])\">" + _('edit') + "</a>]</li>";
 
-		var hideUntil = Array();
+		var hideUntil = new Array();
 
 		for ( var i = 0; i < mailboxes.length; i++ ) {
 

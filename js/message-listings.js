@@ -491,7 +491,7 @@ var MessageLister = new Class({
 	},
 
 	getSelectedMessages: function () {
-		var selectedMessages = Array();
+		var selectedMessages = new Array();
 
 		var inputElements = $A( $( this.wrapper ).getElementsByTagName('input') );
 

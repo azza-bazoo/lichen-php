@@ -39,7 +39,7 @@ var InterfaceController = new Class({
 		this.AddressBook      = new AddressBookManager( this.Messages, 'addr-wrapper' );
 
 		this.ActionCounter    = 1;
-		this.historyTrail     = Array( Array( 'list', 'MessageList', 'listUpdate' ) );
+		this.historyTrail     = new Array( Array( 'list', 'MessageList', 'listUpdate' ) );
 		this.historyChecker   = null;
 		this.lastHash         = "";
 		this.modeFeedback     = null;

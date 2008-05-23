@@ -26,8 +26,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 var FlashArea = new Class({
 	initialize: function ( wrapper ) {
 		this.wrapper = wrapper;
-		this.messages = Array();
-		this.timeouts = Array();
+		this.messages = new Array();
+		this.timeouts = new Array();
 		this.onscreen = false;
 		//this.slider = new Fx.Slide( wrapper );
 	},
@@ -68,11 +68,11 @@ var FlashArea = new Class({
 	hideFlash: function () {
 		// Hide the flash instantly.
 		// Cancel all the timeouts.
-		this.messages = Array();
+		this.messages = new Array();
 		for ( var i = 0; i < this.timeouts.length; i++ ) {
 			window.clearTimeout( this.timeouts[i] );
 		}
-		this.timeouts = Array();
+		this.timeouts = new Array();
 		this.renderFlash();
 		this.onscreen = false;
 		$(this.wrapper).setStyle( 'display', 'none' );
