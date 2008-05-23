@@ -477,6 +477,7 @@ function cleanHTML( $inputHtml, &$modifyData ) {
 
 	// Prep the HTMLPurifier Lexer.
 	$lexerConfig = HTMLPurifier_Config::create( null );
+	$lexerConfig->set( 'Core', 'DefinitionCache', null );
 	$lexer       = HTMLPurifier_Lexer::create( $lexerConfig );
 	$context     = new HTMLPurifier_Context();
 
