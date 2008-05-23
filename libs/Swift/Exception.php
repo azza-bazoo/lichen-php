@@ -8,6 +8,8 @@
  * @license GNU Lesser General Public License
  */
 
+require_once dirname(__FILE__) . "/ClassLoader.php";
+Swift_ClassLoader::load("Swift_LogContainer");
 
 /**
  * Swift Exception for PHP4.
@@ -33,6 +35,11 @@ class Swift_Exception
    */
   function Swift_Exception($message)
   {
+    if (($log =& Swift_LogContainer::getLog()) && $log->isEnabled())
+    {
+      $message .= "<h3>Log Information</h3>";
+      $message .= "<pre>" . htmlentities($log->dump(true)) . "</pre>";
+    }
     $this->message = $message;
     $this->trace = debug_backtrace();
   }

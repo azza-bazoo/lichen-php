@@ -114,12 +114,12 @@ class Swift_Authenticator_PopB4Smtp_Pop3Connection
   function assertOk($line)
   {
     if (substr($line, 0, 3) != "+OK")
-      Swift_Errors::trigger(new Swift_Connection_Exception("The POP3 server did not suitably respond with a +OK response. " .
+      Swift_Errors::trigger(new Swift_ConnectionException("The POP3 server did not suitably respond with a +OK response. " .
       "[" . $line . "]"));
   }
   /**
    * Try to open the connection
-   * @throws Swift_Connection_Exception If the connection will not start
+   * @throws Swift_ConnectionException If the connection will not start
    */
   function start()
   {
@@ -128,7 +128,7 @@ class Swift_Authenticator_PopB4Smtp_Pop3Connection
     
     if ((false === $this->handle = fsockopen($url, $this->getPort(), $errno, $errstr, $timeout)))
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "The POP3 connection failed to start.  The error string returned from fsockopen() is [" . $errstr . "] #" . $errno));
       return;
     }
@@ -147,13 +147,13 @@ class Swift_Authenticator_PopB4Smtp_Pop3Connection
   /**
    * Return the unread buffer contents
    * @return string
-   * @throws Swift_Connection_Exception If the connection will not allow data to be read
+   * @throws Swift_ConnectionException If the connection will not allow data to be read
    */
   function read()
   {
     if (false === $response = fgets($this->handle))
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception("Data could not be read from the POP3 connection."));
+      Swift_Errors::trigger(new Swift_ConnectionException("Data could not be read from the POP3 connection."));
       return;
     }
     return trim($response);
@@ -161,13 +161,13 @@ class Swift_Authenticator_PopB4Smtp_Pop3Connection
   /**
    * Write a command to the remote socket
    * @param string the command to send (without CRLF)
-   * @throws Swift_Connection_Exception If the command cannot be written
+   * @throws Swift_ConnectionException If the command cannot be written
    */
   function write($command)
   {
     if (false !== fwrite($this->handle, $command . "\r\n"))
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "Data could not be written to the POP3 connection."));
       return;
     }

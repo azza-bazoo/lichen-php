@@ -56,14 +56,25 @@ class Swift_Connection_Rotator extends Swift_ConnectionBase
       trigger_error("Swift_Connection_Rotator::addConnection expects parameter 1 to be instance of Swift_Connection.");
       return;
     }
+    $log =& Swift_LogContainer::getLog();
+    if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+    {
+      $log->add("Adding new connection of type '" . get_class($connection) . "' to rotator.");
+    }
     $this->connections[] =& $connection;
   }
   /**
    * Rotate to the next working connection
-   * @throws Swift_Connection_Exception If no connections are available
+   * @throws Swift_ConnectionException If no connections are available
    */
   function nextConnection()
   {
+    $log =& Swift_LogContainer::getLog();
+    if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+    {
+      $log->add(" <==> Rotating connection.");
+    }
+    
     $total = count($this->connections);
     $start = $this->active === null ? 0 : ($this->active + 1);
     if ($start >= $total) $start = 0;
@@ -73,18 +84,18 @@ class Swift_Connection_Rotator extends Swift_ConnectionBase
     {
       if (in_array($id, $this->dead)) continue; //The connection was previously found to be useless
       
-      Swift_Errors::expect($e, "Swift_Connection_Exception");
+      Swift_Errors::expect($e, "Swift_ConnectionException");
         if (!$this->connections[$id]->isAlive()) $this->connections[$id]->start();
       if (!$e) {
         if ($this->connections[$id]->isAlive())
         {
-          Swift_Errors::clear("Swift_Connection_Exception");
+          Swift_Errors::clear("Swift_ConnectionException");
           $this->active = $id;
           return true;
         }
         $this->dead[] = $id;
         $this->connections[$id]->stop();
-        Swift_Errors::trigger(new Swift_Connection_Exception(
+        Swift_Errors::trigger(new Swift_ConnectionException(
           "The connection started but reported that it was not active"));
       }
       $this->dead[] = $id;
@@ -93,19 +104,19 @@ class Swift_Connection_Rotator extends Swift_ConnectionBase
       $e = null;
     }
     $failure = implode("<br />", $fail_messages);
-    Swift_Errors::trigger(new Swift_Connection_Exception(
+    Swift_Errors::trigger(new Swift_ConnectionException(
       "No connections were started.<br />" . $failure));
   }
   /**
    * Read a full response from the buffer
    * @return string
-   * @throws Swift_Connection_Exception Upon failure to read
+   * @throws Swift_ConnectionException Upon failure to read
    */
   function read()
   {
     if ($this->active === null)
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception("None of the connections set have been started"));
+      Swift_Errors::trigger(new Swift_ConnectionException("None of the connections set have been started"));
       return;
     }
     return $this->connections[$this->active]->read();
@@ -113,20 +124,20 @@ class Swift_Connection_Rotator extends Swift_ConnectionBase
   /**
    * Write a command to the server (leave off trailing CRLF)
    * @param string The command to send
-   * @throws swift_Connection_Exception Upon failure to write
+   * @throws Swift_ConnectionException Upon failure to write
    */
   function write($command, $end="\r\n")
   {
     if ($this->active === null)
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception("None of the connections set have been started"));
+      Swift_Errors::trigger(new Swift_ConnectionException("None of the connections set have been started"));
       return;
     }
     return $this->connections[$this->active]->write($command, $end);
   }
   /**
    * Try to start the connection
-   * @throws Swift_Connection_Exception Upon failure to start
+   * @throws Swift_ConnectionException Upon failure to start
    */
   function start()
   {
@@ -134,7 +145,7 @@ class Swift_Connection_Rotator extends Swift_ConnectionBase
   }
   /**
    * Try to close the connection
-   * @throws Swift_Connection_Exception Upon failure to close
+   * @throws Swift_ConnectionException Upon failure to close
    */
   function stop()
   {

@@ -46,30 +46,21 @@ class Swift_Message extends Swift_Message_Mime
    */
   var $mimeWarning = null;
   /**
-   * References which point to the parent MIME documents of the various parts
-   * @var array
-   */
-  var $parentRefs = array("alternative" => null, "mixed" => null, "related" => null);
-  /**
-   * Lists of references for all alternative parts
-   * @var array
-   */
-  var $alternativeRefs = array();
-  /**
-   * List of references for all mixed parts
-   * @var array
-   */
-  var $mixedRefs = array();
-  /**
-   * List of references for all related parts
-   * @var array
-   */
-  var $relatedRefs = array();
-  /**
    * The (Swift) Library version, if known.
    * @var string
    */
   var $libVersion = "";
+  /**
+   * References to other MIME objects.
+   * This are very important for very complex reasons when moving MIME parts around.
+   * @var array
+   */
+  var $references = array(
+    "parent" => array("alternative" => null, "mixed" => null, "related" => null),
+    "alternative" => array(),
+    "mixed" => array(),
+    "related" => array()
+  );
   
   function Swift_Message($subject="", $body=null, $type="text/plain", $encoding=null, $charset=null)
   {
@@ -93,9 +84,9 @@ class Swift_Message extends Swift_Message_Mime
     $this->setFlowed(true);
     $this->setEncoding($encoding);
     
-    foreach (array_keys($this->parentRefs) as $key)
+    foreach (array_keys($this->references["parent"]) as $key)
     {
-      $this->parentRefs[$key] =& $this;
+      $this->setReference("parent", $key, $this);
     }
     
     $this->setMimeWarning(
@@ -112,6 +103,29 @@ class Swift_Message extends Swift_Message_Mime
         else $this->setCharset("iso-8859-1");
       }
     }
+  }
+  /**
+   * Sets a reference so when nodes are nested, operations can be redirected.
+   * This really should be refactored to use just one array rather than dynamic variables.
+   * @param string Key 1
+   * @param string Key 2
+   * @param Object Reference
+   */
+  function setReference($where, $key, &$ref)
+  {
+    if ($ref === $this) $this->references[$where][$key] = false;
+    else $this->references[$where][$key] =& $ref;
+  }
+  /**
+   * Get a reference to an object (for complex reasons).
+   * @param string Key 1
+   * @param string Key 2
+   * @return Object
+   */
+  function &getReference($where, $key)
+  {
+    if (!$this->references[$where][$key]) return $this;
+    else return $this->references[$where][$key];
   }
   /**
    * Get the level in the MIME hierarchy at which this section should appear.
@@ -508,17 +522,20 @@ class Swift_Message extends Swift_Message_Mime
       {
         case SWIFT_MIME_LEVEL_ALTERNATIVE:
           $sign = (strtolower($child->getContentType()) == "text/plain") ? -1 : 1;
-          $id = $this->parentRefs["alternative"]->addChild($child, $id, $sign);
-          $this->alternativeRefs[$id] =& $child;
+          $parentRef =& $this->getReference("parent", "alternative");
+          $id = $parentRef->addChild($child, $id, $sign);
+          $this->setReference("alternative", $id, $child);
           break;
         case SWIFT_MIME_LEVEL_RELATED:
           $id = "cid:" . $child->getContentId();
-          $id = $this->parentRefs["related"]->addChild($child, $id, 1);
-          $this->relatedRefs[$id] =& $child;
+          $parentRef =& $this->getReference("parent", "related");
+          $id = $parentRef->addChild($child, $id, 1);
+          $this->setReference("related", $id, $child);
           break;
         case SWIFT_MIME_LEVEL_MIXED: default:
-          $id = $this->parentRefs["mixed"]->addChild($child, $id, 1);
-          $this->mixedRefs[$id] =& $child;
+          $parentRef =& $this->getReference("parent", "mixed");
+          $id = $parentRef->addChild($child, $id, 1);
+          $this->setReference("mixed", $id, $child);
           break;
       }
       $this->postAttachFixStructure();
@@ -546,17 +563,20 @@ class Swift_Message extends Swift_Message_Mime
  		//try
       switch (true)
       {
-        case array_key_exists($id, $this->alternativeRefs):
-          $this->parentRefs["alternative"]->removeChild($id);
-          unset($this->alternativeRefs[$id]);
+        case array_key_exists($id, $this->references["alternative"]):
+          $parentRef =& $this->getReference("parent", "alternative");
+          $parentRef->removeChild($id);
+          unset($this->references["alternative"][$id]);
           break;
-        case array_key_exists($id, $this->relatedRefs):
-          $this->parentRefs["related"]->removeChild($id);
-          unset($this->relatedRefs[$id]);
+        case array_key_exists($id, $this->references["related"]):
+          $parentRef =& $this->getReference("parent", "related");
+          $parentRef->removeChild($id);
+          unset($this->references["related"][$id]);
           break;
-        case array_key_exists($id, $this->mixedRefs):
-          $this->parentRefs["mixed"]->removeChild($id);
-          unset($this->mixedRefs[$id]);
+        case array_key_exists($id, $this->references["mixed"]):
+          $parentRef =& $this->getReference("parent", "mixed");
+          $parentRef->removeChild($id);
+          unset($this->references["mixed"][$id]);
           break;
         default:
           trigger_error("Unable to detach part identified by ID '" . $id . "' since it's not registered.");
@@ -578,9 +598,9 @@ class Swift_Message extends Swift_Message_Mime
    */
   function fixContentType()
   {
-    if (!empty($this->mixedRefs)) $this->setContentType("multipart/mixed");
-    elseif (!empty($this->relatedRefs)) $this->setContentType("multipart/related");
-    elseif (!empty($this->alternativeRefs)) $this->setContentType("multipart/alternative");
+    if (!empty($this->references["mixed"])) $this->setContentType("multipart/mixed");
+    elseif (!empty($this->references["related"])) $this->setContentType("multipart/related");
+    elseif (!empty($this->references["alternative"])) $this->setContentType("multipart/alternative");
   }
   /**
    * Move a branch of the tree, containing all it's MIME parts onto another branch
@@ -595,35 +615,42 @@ class Swift_Message extends Swift_Message_Mime
   {
     $new =& new Swift_Message_Part();
     $new->setContentType($type);
-    $this->parentRefs[$new_branch]->addChild($new, $tag, -1);
-    
+    $parentRef =& $this->getReference("parent", $new_branch);
+    $parentRef->addChild($new, $tag, -1);
+    unset($parentRef);//?
     switch ($new_branch)
     {
       case "related":
-        unset($this->relatedRefs[$tag]);
-        $this->relatedRefs[$tag] =& $new;
+        unset($this->references["related"][$tag]);
+        $this->setReference("related", $tag, $new);
         break;
       case "mixed":
-        unset($this->mixedRefs[$tag]);
-        $this->mixedRefs[$tag] =& $new;
+        unset($this->references["mixed"][$tag]);
+        $this->setReference("mixed", $tag, $new);
         break;
     }
     
     foreach ($from as $id => $ref)
     {
+      if (!$ref) $ref =& $this;
       $sign = (strtolower($ref->getContentType()) == "text/plain"
         || strtolower($ref->getContentType()) == $nested_type) ? -1 : 1;
       switch ($new_branch)
       {
-        case "related": $this->relatedRefs[$tag]->addChild($from[$id], $id, $sign);
+        case "related":
+          $relRef =& $this->getReference("related", $tag);
+          $relRef->addChild($from[$id], $id, $sign);
           break;
-        case "mixed": $this->mixedRefs[$tag]->addChild($from[$id], $id, $sign);
+        case "mixed":
+          $mixRef =& $this->getReference("mixed", $tag);
+          $mixRef->addChild($from[$id], $id, $sign);
           break;
       }
-      $this->parentRefs[$old_branch]->removeChild($id);
+      $parentRef =& $this->getReference("parent", $old_branch);
+      $parentRef->removeChild($id);
     }
-    unset($this->parentRefs[$old_branch]);
-    $this->parentRefs[$old_branch] =& $new;
+    unset($this->references["parent"][$old_branch]);
+    $this->setReference("parent", $old_branch, $new);
   }
   /**
    * Analyzes the mixing of MIME types in a mulitpart message an re-arranges if needed
@@ -634,37 +661,37 @@ class Swift_Message extends Swift_Message_Mime
   {
     switch (true)
     {
-      case (!empty($this->mixedRefs) && !empty($this->relatedRefs) && !empty($this->alternativeRefs)):
-        if (!isset($this->relatedRefs["_alternative"]))
+      case (!empty($this->references["mixed"]) && !empty($this->references["related"]) && !empty($this->references["alternative"])):
+        if (!isset($this->references["related"]["_alternative"]))
         {
           $this->moveBranchIn(
-            "multipart/alternative", "multipart/alternative", $this->alternativeRefs, "alternative", "related", "_alternative");
+            "multipart/alternative", "multipart/alternative", $this->references["alternative"], "alternative", "related", "_alternative");
         }
-        if (!isset($this->mixedRefs["_related"]))
+        if (!isset($this->references["mixed"]["_related"]))
         {
           $this->moveBranchIn(
-            "multipart/related", "multipart/alternative", $this->relatedRefs, "related", "mixed", "_related");
-        }
-        break;
-      case (!empty($this->mixedRefs) && !empty($this->relatedRefs)):
-        if (!isset($this->mixedRefs["_related"]))
-        {
-          $this->moveBranchIn(
-            "multipart/related", "multipart/related", $this->relatedRefs, "related", "mixed", "_related");
+            "multipart/related", "multipart/alternative", $this->references["related"], "related", "mixed", "_related");
         }
         break;
-      case (!empty($this->mixedRefs) && !empty($this->alternativeRefs)):
-        if (!isset($this->mixedRefs["_alternative"]))
+      case (!empty($this->references["mixed"]) && !empty($this->references["related"])):
+        if (!isset($this->references["mixed"]["_related"]))
         {
           $this->moveBranchIn(
-            "multipart/alternative", null, $this->alternativeRefs, "alternative", "mixed", "_alternative");
+            "multipart/related", "multipart/related", $this->references["related"], "related", "mixed", "_related");
         }
         break;
-      case (!empty($this->relatedRefs) && !empty($this->alternativeRefs)):
-        if (!isset($this->relatedRefs["_alternative"]))
+      case (!empty($this->references["mixed"]) && !empty($this->references["alternative"])):
+        if (!isset($this->references["mixed"]["_alternative"]))
         {
           $this->moveBranchIn(
-            "multipart/alternative", "multipart/alternative", $this->alternativeRefs, "alternative", "related", "_alternative");
+            "multipart/alternative", null, $this->references["alternative"], "alternative", "mixed", "_alternative");
+        }
+        break;
+      case (!empty($this->references["related"]) && !empty($this->references["alternative"])):
+        if (!isset($this->references["related"]["_alternative"]))
+        {
+          $this->moveBranchIn(
+            "multipart/alternative", "multipart/alternative", $this->references["alternative"], "alternative", "related", "_alternative");
         }
         break;
     }
@@ -680,25 +707,34 @@ class Swift_Message extends Swift_Message_Mime
   {
     foreach ($from as $id => $ref)
     {
+      if (!$ref) $ref =& $this;
       $sign = (strtolower($ref->getContentType()) == "text/html"
         || strtolower($ref->getContentType()) == "multipart/alternative") ? -1 : 1;
-      $this->parentRefs[$new_branch]->addChild($from[$id], $id, $sign);
+      $parentRef =& $this->getReference("parent", $new_branch);
+      $parentRef->addChild($from[$id], $id, $sign);
+      unset($parentRef); //?
       switch ($new_branch)
       {
-        case "related": $this->relatedRefs[$tag]->removeChild($id);
+        case "related":
+          $relRef =& $this->getReference("related", $tag);
+          $relRef->removeChild($id);
           break;
-        case "mixed": $this->parentRefs[$old_branch]->removeChild($id);
+        case "mixed":
+          $parentRef =& $this->getReference("parent", $old_branch);
+          $parentRef->removeChild($id);
+          unset($parentRef); //?
           break;
       }
     }
-    $this->parentRefs[$new_branch]->removeChild($tag);
-    $mixed =& $this->parentRefs[$new_branch];
-    $this->parentRefs[$old_branch] =& $mixed;
+    $parentRef =& $this->getReference("parent", $new_branch);
+    $parentRef->removeChild($tag);
+    $mixed =& $this->getReference("parent", $new_branch);
+    $this->setReference("parent", $old_branch, $mixed);
     switch ($new_branch)
     {
-      case "related": unset($this->relatedRefs[$tag]);
+      case "related": unset($this->references["related"][$tag]);
         break;
-      case "mixed": unset($this->mixedRefs[$tag]);
+      case "mixed": unset($this->references["mixed"][$tag]);
         break;
     }
   }
@@ -711,48 +747,55 @@ class Swift_Message extends Swift_Message_Mime
   {
     switch (true)
     {
-      case (!empty($this->mixedRefs) && !empty($this->relatedRefs) && !empty($this->alternativeRefs)):
-        if (array_keys($this->relatedRefs) == array("_alternative"))
+      case (!empty($this->references["mixed"]) && !empty($this->references["related"]) && !empty($this->references["alternative"])):
+        if (array_keys($this->references["related"]) == array("_alternative"))
         {
-          $alt =& $this->parentRefs["related"]->getChild("_alternative");
-          $this->parentRefs["mixed"]->addChild($alt, "_alternative", -1);
-          $this->mixedRefs["_alternative"] =& $alt;
-          $this->parentRefs["related"]->removeChild("_alternative");
-          unset($this->relatedRefs["_alternative"]);
-          $this->parentRefs["mixed"]->removeChild("_related");
-          unset($this->mixedRefs["_related"]);
+          $parentRef =& $this->getReference("parent", "related");
+          $alt =& $parentRef->getChild("_alternative");
+          unset($parentRef); //?
+          $parentRef =& $this->getReference("parent", "mixed");
+          $parentRef->addChild($alt, "_alternative", -1);
+          unset($parentRef); //?
+          $this->setReference("mixed", "_alternative", $alt);
+          $parentRef =& $this->getReference("parent", "related");
+          $parentRef->removeChild("_alternative");
+          unset($parentRef); //?
+          unset($this->references["related"]["_alternative"]);
+          $parentRef =& $this->getReference("parent", "mixed");
+          $parentRef->removeChild("_related");
+          unset($this->references["mixed"]["_related"]);
         }
-        if (array_keys($this->mixedRefs) == array("_related"))
+        if (array_keys($this->references["mixed"]) == array("_related"))
         {
-          $this->moveBranchOut($this->relatedRefs, "related", "mixed", "_related");
+          $this->moveBranchOut($this->references["related"], "related", "mixed", "_related");
         }
         break;
-      case (!empty($this->mixedRefs) && !empty($this->relatedRefs)):
-        if (array_keys($this->mixedRefs) == array("_related"))
+      case (!empty($this->references["mixed"]) && !empty($this->references["related"])):
+        if (array_keys($this->references["mixed"]) == array("_related"))
         {
-          $this->moveBranchOut($this->relatedRefs, "related", "mixed", "_related");
+          $this->moveBranchOut($this->references["related"], "related", "mixed", "_related");
         }
-        if (isset($this->relatedRefs["_alternative"]))
+        if (isset($this->references["related"]["_alternative"]))
         {
           $this->detach("_alternative");
         }
         break;
-      case (!empty($this->mixedRefs) && !empty($this->alternativeRefs)):
-        if (array_keys($this->mixedRefs) == array("_alternative"))
+      case (!empty($this->references["mixed"]) && !empty($this->references["alternative"])):
+        if (array_keys($this->references["mixed"]) == array("_alternative"))
         {
-          $this->moveBranchOut($this->alternativeRefs, "alternative", "mixed", "_alternative");
+          $this->moveBranchOut($this->references["alternative"], "alternative", "mixed", "_alternative");
         }
         break;
-      case (!empty($this->relatedRefs) && !empty($this->alternativeRefs)):
-        if (array_keys($this->relatedRefs) == array("_alternative"))
+      case (!empty($this->references["related"]) && !empty($this->references["alternative"])):
+        if (array_keys($this->references["related"]) == array("_alternative"))
         {
-          $this->moveBranchOut($this->alternativeRefs, "alternative", "related", "_alternative");
+          $this->moveBranchOut($this->references["alternative"], "alternative", "related", "_alternative");
         }
         break;
-      case (!empty($this->mixedRefs)):
-        if (isset($this->mixedRefs["_related"])) $this->detach("_related");
-      case (!empty($this->relatedRefs)):
-        if (isset($this->relatedRefs["_alternative"]) || isset($this->mixedRefs["_alternative"]))
+      case (!empty($this->references["mixed"])):
+        if (isset($this->references["mixed"]["_related"])) $this->detach("_related");
+      case (!empty($this->references["related"])):
+        if (isset($this->references["related"]["_alternative"]) || isset($this->references["mixed"]["_alternative"]))
           $this->detach("_alternative");
         break;
     }

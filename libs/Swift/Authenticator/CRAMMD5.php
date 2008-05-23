@@ -30,7 +30,7 @@ class Swift_Authenticator_CRAMMD5 extends Swift_Authenticator
   function isAuthenticated($user, $pass, &$swift)
   {
     Swift_ClassLoader::load("Swift_Errors");
-    Swift_Errors::expect($e, "Swift_Connection_Exception");
+    Swift_Errors::expect($e, "Swift_ConnectionException");
       $res =& $swift->command("AUTH CRAM-MD5", 334);
       if (!$e) {
       $encoded_challenge = substr($res->getString(), 4);
@@ -42,7 +42,7 @@ class Swift_Authenticator_CRAMMD5 extends Swift_Authenticator
       $swift->reset();
       return false;
     }
-    Swift_Errors::clear("Swift_Connection_Exception");
+    Swift_Errors::clear("Swift_ConnectionException");
     return true;
   }
   /**

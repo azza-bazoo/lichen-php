@@ -108,6 +108,8 @@ class Swift_Plugin_Decorator extends Swift_Events_Listener
   function beforeSendPerformed(&$e)
   {
     $message =& $e->getMessage();
+    $this->recursiveRestore($message, $this->store);
+    
     $recipients =& $e->getRecipients();
     $to = array_keys($recipients->getTo());
     if (count($to) > 0) $to = $to[0];
@@ -188,23 +190,17 @@ class Swift_Plugin_Decorator extends Swift_Events_Listener
     return str_replace(array_keys($replacements), array_values($replacements), $value);
   }
   /**
-   * Called just after Swift sends a message.
-   * We restore the message here.
-   * @param Swift_Events_SendEvent The event object for sending a message
-   */
-  function sendPerformed(&$e)
-  {
-    $message =& $e->getMessage();
-    $this->recursiveRestore($message, $this->store);
-    $this->store = null;
-  }
-  /**
    * Put the original values back in the message after it was modified before sending.
    * @param Swift_Message_Mime The message (or part)
    * @param array The location of the stored values
    */
   function recursiveRestore(&$mime, &$store)
   {
+    if (empty($store)) //3.3.3 bugfix
+    {
+      return;
+    }
+    
     //Restore headers
     foreach ($store["headers"] as $name => $array)
     {

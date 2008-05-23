@@ -105,7 +105,7 @@ class Swift_Plugin_MailSend extends Swift_Events_Listener
    * Swift's SendEvent listener.
    * Invoked when Swift sends a message
    * @param Swift_Events_SendEvent The event information
-   * @throws Swift_Connection_Exception If mail() returns false
+   * @throws Swift_ConnectionException If mail() returns false
    */
   function sendPerformed(&$e)
   {
@@ -161,7 +161,7 @@ class Swift_Plugin_MailSend extends Swift_Events_Listener
     if (!$success)
     {
       @ini_set("sendmail_from", $original_from);
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "Sending failed using mail() as PHP's default mail() function returned boolean FALSE."));
       return;
     }

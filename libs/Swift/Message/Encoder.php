@@ -186,16 +186,17 @@ class Swift_Message_Encoder
           if (preg_match('/^.{1,'.($init_chunk-3).'}[^=]{2}(?!=[A-F0-9]{2})/', $string, $matches)
             || preg_match('/^.{1,'.($init_chunk-6).'}([^=]{0,3})?/', $string, $matches))
           {
-            $ret .= $matches[0] . "=";
+            $ret .= $this->fixLE($matches[0] . "=", $le); //fixLE added 24/08/07
             $string = substr($string, strlen($matches[0]));
           }
         }
         elseif ($init_chunk) $ret .= "=";
         
         while (preg_match('/^.{1,'.($init_chunk-3).'}[^=]{2}(?!=[A-F0-9]{2})/', $string, $matches)
-          || preg_match('/^.{1,'.($chunk-6).'}([^=]{0,3})?/', $string, $matches))
+          || preg_match('/^.{1,'.($chunk-6).'}([^=]{0,3})?/', $string, $matches)
+          || (strlen($string) > 0 && $matches = array($string)))
         {
-          $ret .= $le . $matches[0] . "=";
+          $ret .= $this->fixLE($le . $matches[0] . "=", $le); //fixLE added 24/08/07
           $string = substr($string, strlen($matches[0]));
         }
       }
@@ -269,7 +270,7 @@ class Swift_Message_Encoder
     {
       $next = $this->rawQPEncode($bytes, true);
       preg_match_all('/.{1,'.($chunk-6).'}([^=]{0,3})?/', $next, $next);
-      if (count($next[0])) $cache->write("qp", implode("=" . $le, $next[0]));
+      if (count($next[0])) $cache->write("qp", $this->fixLE(implode("=" . $le, $next[0]), $le));
     }
     $os =& $cache->getOutputStream("qp");
     return $os;
@@ -283,7 +284,7 @@ class Swift_Message_Encoder
    */
   function encode7Bit($data, $chunk=76, $le="\r\n")
   {
-    return wordwrap($this->fixLE($data, $le), $chunk-2, $le, 1);
+    return $this->fixLE(wordwrap($data, $chunk-2, $le, 1), $le);
   }
   /**
    * Return a 7bit string from a file
@@ -303,8 +304,8 @@ class Swift_Message_Encoder
     }
     $cache =& Swift_CacheFactory::getCache();
     $ret = "";
-    while (false !== $byte = $file->read(8192)) $ret .= $this->fixLE($byte, $le);
-    $cache->write("7b", wordwrap($ret, $chunk-2, $le, 1));
+    while (false !== $bytes = $file->read(8192)) $ret .= $bytes;
+    $cache->write("7b", $this->fixLE(wordwrap($ret, $chunk-2, $le, 1), $le));
     $os =& $cache->getOutputStream("7b");
     return $os;
   }
@@ -317,7 +318,7 @@ class Swift_Message_Encoder
    */
   function encode8Bit($data, $chunk=76, $le="\r\n")
   {
-    return wordwrap($this->fixLE($data, $le), $chunk-2, $le, 1);
+    return $this->fixLE(wordwrap($data, $chunk-2, $le, 1), $le);
   }
   /**
    * Return a 8bit string from a file
@@ -337,8 +338,8 @@ class Swift_Message_Encoder
     }
     $cache =& Swift_CacheFactory::getCache();
     $ret = "";
-    while (false !== $byte = $file->read(8192)) $ret .= $this->fixLE($byte, $le);
-    $cache->write("8b", wordwrap($ret, $chunk-2, $le, 1));
+    while (false !== $bytes = $file->read(8192)) $ret .= $bytes;
+    $cache->write("8b", $this->fixLE(wordwrap($ret, $chunk-2, $le, 1), $le));
     $os =& $cache->getOutputStream("8b");
     return $os;
   }

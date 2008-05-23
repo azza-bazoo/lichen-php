@@ -32,13 +32,13 @@ class Swift_Authenticator_PLAIN extends Swift_Authenticator
     //The authorization string uses ascii null as a separator (See RFC 2554)
     $credentials = base64_encode($user . chr(0) . $user . chr(0) . $pass);
     Swift_ClassLoader::load("Swift_Errors");
-    Swift_Errors::expect($e, "Swift_Connection_Exception");
+    Swift_Errors::expect($e, "Swift_ConnectionException");
       $swift->command("AUTH PLAIN " . $credentials, 235);
     if ($e) {
       $swift->reset();
       return false;
     }
-    Swift_Errors::clear("Swift_Connection_Exception");
+    Swift_Errors::clear("Swift_ConnectionException");
     return true;
   }
   /**

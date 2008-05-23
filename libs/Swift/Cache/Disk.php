@@ -36,8 +36,8 @@ class Swift_Cache_Disk extends Swift_Cache
    */
   function Swift_Cache_Disk()
   {
-    $this->prefix = md5(uniqid(microtime(), true));
-    register_shutdown_function(array(&$this, "__destruct"));
+     $this->prefix = md5(uniqid(microtime(), true));
+     if(PHP_VERSION < 5) register_shutdown_function(array(&$this, "__destruct"));
   }
   /**
    * Set the save path of the disk - this is a global setting and called statically!

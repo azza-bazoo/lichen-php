@@ -71,7 +71,7 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
    */
   function Swift_Connection_Sendmail($command="/usr/sbin/sendmail -bs", $timeout=10)
   {
-    register_shutdown_function(array(&$this, "__destruct"));
+    if(PHP_VERSION < 5) register_shutdown_function(array(&$this, "__destruct"));
     $this->setCommand($command);
     $this->setTimeout($timeout);
   }
@@ -131,9 +131,18 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
    */
   function findSendmail()
   {
+    $log =& Swift_LogContainer::getLog();
+    if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+    {
+      $log->add("Sendmail path auto-detection in progress.  Trying `which sendmail`");
+    }
     $path = @trim(shell_exec('which sendmail'));
     if (!is_executable($path))
     {
+      if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+      {
+        $log->add("No luck so far, trying some common paths...");
+      }
       $common_locations = array(
         '/usr/bin/sendmail',
         '/usr/lib/sendmail',
@@ -146,6 +155,10 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
       {
         if (is_executable($path)) return $path;
       }
+      if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+      {
+        $log->add("Falling back to /usr/sbin/sendmail (but it doesn't look good)!");
+      }
       //Fallback (swift will still throw an error)
       return "/usr/sbin/sendmail";
     }
@@ -154,7 +167,7 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
   /**
    * Set the sendmail command (path + flags)
    * @param string Command
-   * @throws Swift_Connection_Exception If the command is not correctly structured
+   * @throws Swift_ConnectionException If the command is not correctly structured
    */
   function setCommand($command)
   {
@@ -162,7 +175,7 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
     
     if (!strrpos($command, " -"))
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "Cannot set sendmail command with no command line flags. e.g. /usr/sbin/sendmail -t"));
       return;
     }
@@ -182,19 +195,19 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
   /**
    * Write a command to the open pipe
    * @param string The command to write
-   * @throws Swift_Connection_Exception If the pipe cannot be written to
+   * @throws Swift_ConnectionException If the pipe cannot be written to
    */
   function pipeIn($command, $end="\r\n")
   {
     if (!$this->isAlive())
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "The sendmail process is not alive and cannot be written to."));
       return;
     }
     if (!@fwrite($this->pipes[0], $command . $end)  && !empty($command))
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "The sendmail process did not allow the command '" . $command . "' to be sent."));
     }
     fflush($this->pipes[0]);
@@ -202,14 +215,14 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
   /**
    * Read data from the open pipe
    * @return string
-   * @throws Swift_Connection_Exception If the pipe is not operating as expected
+   * @throws Swift_ConnectionException If the pipe is not operating as expected
    */
   function pipeOut()
   {
     if (strpos($this->getFlags(), "t") !== false) return;
     if (!$this->isAlive())
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception("The sendmail process is not alive and cannot be read from."));
+      Swift_Errors::trigger(new Swift_ConnectionException("The sendmail process is not alive and cannot be read from."));
       return;
     }
     $ret = "";
@@ -221,7 +234,7 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
       $tmp = @fgets($this->pipes[1]);
       if ($tmp === false)
       {
-        Swift_Errors::trigger(new Swift_Connection_Exception(
+        Swift_Errors::trigger(new Swift_ConnectionException(
           "There was a problem reading line " . $line . " of a sendmail SMTP response. The response so far was:<br />[" . $ret . "].  It appears the process has died."));
         return;
       }
@@ -234,7 +247,7 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
   /**
    * Read a full response from the buffer (this is spoofed if running in -t mode)
    * @return string
-   * @throws Swift_Connection_Exception Upon failure to read
+   * @throws Swift_ConnectionException Upon failure to read
    */
   function read()
   {
@@ -262,7 +275,7 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
   /**
    * Write a command to the process (leave off trailing CRLF)
    * @param string The command to send
-   * @throws Swift_Connection_Exception Upon failure to write
+   * @throws Swift_ConnectionException Upon failure to write
    */
   function write($command, $end="\r\n")
   {
@@ -280,20 +293,28 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
   }
   /**
    * Try to start the connection
-   * @throws Swift_Connection_Exception Upon failure to start
+   * @throws Swift_ConnectionException Upon failure to start
    */
   function start()
   {
+    $log =& Swift_LogContainer::getLog();
+    if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+    {
+      $log->add("Trying to start a sendmail process.");
+    }
     if (!$this->getPath() || !$this->getFlags())
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "Sendmail cannot be started without a path to the binary including flags."));
       return;
     }
-    
+    if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+    {
+      $log->add("Trying to stat the executable '" . $this->getPath() . "'.");
+    }
     if (!@lstat($this->getPath()))
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "Sendmail cannot be seen with lstat().  The command given [" . $this->getCommand() . "] does not appear to be valid."));
       return;
     }
@@ -310,7 +331,7 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
     
     if (!$this->isAlive())
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "The sendmail process failed to start.  Please verify that the path exists and PHP has permission to execute it."));
       return;
     }
@@ -320,6 +341,11 @@ class Swift_Connection_Sendmail extends Swift_ConnectionBase
    */
   function stop()
   {
+    $log =& Swift_LogContainer::getLog();
+    if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+    {
+      $log->add("Terminating sendmail process.");
+    }
     foreach ((array)$this->pipes as $pipe)
     {
       @fclose($pipe);

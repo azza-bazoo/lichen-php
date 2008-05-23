@@ -6,11 +6,12 @@
  * @copyright Chris Corbyn <chris@w3style.co.uk>
  * @author Chris Corbyn <chris@w3style.co.uk>
  * @package Swift
- * @version 3.2.6
+ * @version 3.3.2
  * @license GNU Lesser General Public License
  */
 
 require_once dirname(__FILE__) . "/Swift/ClassLoader.php";
+Swift_ClassLoader::load("Swift_LogContainer");
 Swift_ClassLoader::load("Swift_Errors");
 Swift_ClassLoader::load("Swift_ConnectionBase");
 Swift_ClassLoader::load("Swift_BadResponseException");
@@ -22,7 +23,7 @@ Swift_ClassLoader::load("Swift_BatchMailer");
 Swift_ClassLoader::load("Swift_Events");
 Swift_ClassLoader::load("Swift_Events_Listener");
 
-if (!defined("SWIFT_VERSION")) define("SWIFT_VERSION", "3.2.6_4");
+if (!defined("SWIFT_VERSION")) define("SWIFT_VERSION", "3.3.2_4");
 if (!defined("SWIFT_NO_START")) define("SWIFT_NO_START", 2);
 if (!defined("SWIFT_NO_HANDSHAKE")) define("SWIFT_NO_HANDSHAKE", 4);
 if (!defined("SWIFT_ENABLE_LOGGING")) define("SWIFT_ENABLE_LOGGING", 8);
@@ -32,7 +33,7 @@ if (!defined("SWIFT_NO_POST_CONNECT")) define("SWIFT_NO_POST_CONNECT", 16);
  * Swift is the central component in the Swift library.
  * @package Swift
  * @author Chris Corbyn <chris@w3style.co.uk>
- * @version 3.2.6
+ * @version 3.3.2
  */
 class Swift
 {
@@ -58,11 +59,6 @@ class Swift
    */
   var $connection = null;
   /**
-   * The logger object
-   * @var Swift_Log
-   */
-  var $log = null;
-  /**
    * The domain name of this server (should technically be a FQDN)
    * @var string
    */
@@ -83,7 +79,7 @@ class Swift
    * @param Swift_Connection The connection object to deal with I/O
    * @param string The domain name of this server (the client) as a FQDN
    * @param int Optional flags
-   * @throws Swift_Connection_Exception If a connection cannot be established or the connection is behaving incorrectly
+   * @throws Swift_ConnectionException If a connection cannot be established or the connection is behaving incorrectly
    */
   function Swift(&$conn, $domain=false, $options=null)
   {
@@ -95,10 +91,12 @@ class Swift
     }
     $this->initializeEventListenerContainer();
     $this->setOptions($options);
-    Swift_ClassLoader::load("Swift_Log_DefaultLog");
-    $this->setLogger(new Swift_Log_DefaultLog());
+    $log =& Swift_LogContainer::getLog();
     
-    if ($this->hasOption($this->ENABLE_LOGGING)) $this->log->enable();
+    if ($this->hasOption($this->ENABLE_LOGGING) && !$log->isEnabled())
+    {
+      $log->setLogLevel(SWIFT_LOG_NETWORK);
+    }
     
     if (!$domain) $domain = !empty($_SERVER["SERVER_ADDR"]) ? "[" . $_SERVER["SERVER_ADDR"] . "]" : "localhost.localdomain";
     
@@ -107,7 +105,7 @@ class Swift
     
     if ($conn && !$this->hasOption($this->NO_START))
     {
-      if ($this->log->isEnabled()) $this->log->add("Trying to connect...", SWIFT_LOG_NORMAL);
+      if ($log->hasLevel(SWIFT_LOG_EVERYTHING)) $log->add("Trying to connect...", SWIFT_LOG_NORMAL);
       $this->connect();
     }
   }
@@ -186,19 +184,6 @@ class Swift
     }
   }
   /**
-   * Set the logger to use
-   * @param Swift_Log The instantiated logger
-   */
-  function setLogger(&$logger)
-  {
-    if (!is_a($logger, "Swift_Log"))
-    {
-      trigger_error("Swift::setLogger requires parameter 1 to be instance of Swift_Log.");
-      return;
-    }
-    $this->log =& $logger;
-  }
-  /**
    * Check if an option flag has been set
    * @param string Option name
    * @return boolean
@@ -234,7 +219,7 @@ class Swift
   }
   /**
    * Attempt to establish a connection with the service
-   * @throws Swift_Connection_Exception If the connection cannot be established or behaves oddly
+   * @throws Swift_ConnectionException If the connection cannot be established or behaves oddly
    */
   function connect()
   {
@@ -249,7 +234,7 @@ class Swift
   }
   /**
    * Disconnect from the MTA
-   * @throws Swift_Connection_Exception If the connection will not stop
+   * @throws Swift_ConnectionException If the connection will not stop
    */
   function disconnect()
   {
@@ -274,8 +259,9 @@ class Swift
     $codes = (array)$codes;
     if (!in_array($response->getCode(), $codes))
     {
+      $log =& Swift_LogContainer::getLog();
       $error = "Expected response code(s) [" . implode(", ", $codes) . "] but got response [" . $response->getString() . "]";
-      if ($this->log->isEnabled()) $this->log->add($error, SWIFT_LOG_ERROR);
+      if ($log->hasLevel(SWIFT_LOG_ERRORS)) $log->add($error, SWIFT_LOG_ERROR);
       Swift_Errors::trigger(new Swift_BadResponseException($error));
       return false;
     }
@@ -284,7 +270,7 @@ class Swift
   /**
    * Have a polite greeting with the server and work out what it's capable of
    * @param Swift_Events_ResponseEvent The initial service line respoonse
-   * @throws Swift_Connection_Exception If conversation is not going very well
+   * @throws Swift_ConnectionException If conversation is not going very well
    */
   function handshake(&$greeting)
   {
@@ -324,11 +310,12 @@ class Swift
    * @param string The command to execute (leave off any CRLF!!!)
    * @param int The code to check for in the response, if any. -1 indicates that no response is wanted.
    * @return Swift_Events_ResponseEvent The server's response (could be multiple lines)
-   * @throws Swift_Connection_Exception If a code was expected but does not match the one returned
+   * @throws Swift_ConnectionException If a code was expected but does not match the one returned
    */
   function &command($command, $code=null)
   {
     $null = null;
+    $log =& Swift_LogContainer::getLog();
     if (Swift_Errors::halted()) return $null;
     
     if ($command !== "")
@@ -337,7 +324,7 @@ class Swift
       $command_event =& new Swift_Events_CommandEvent($command, $code);
       $command = null; //For memory reasons
       $this->notifyListeners($command_event, "BeforeCommandListener");
-      if ($this->log->isEnabled() && $code != -1) $this->log->add($command_event->getString(), SWIFT_LOG_COMMAND);
+      if ($log->hasLevel(SWIFT_LOG_NETWORK) && $code != -1) $log->add($command_event->getString(), SWIFT_LOG_COMMAND);
       $end = ($code != -1) ? "\r\n" : null;
       $this->connection->write($command_event->getString(), $end);
       $this->notifyListeners($command_event, "CommandListener");
@@ -348,7 +335,7 @@ class Swift
     Swift_ClassLoader::load("Swift_Events_ResponseEvent");
     $response_event =& new Swift_Events_ResponseEvent($this->connection->read());
     $this->notifyListeners($response_event, "ResponseListener");
-    if ($this->log->isEnabled()) $this->log->add($response_event->getString(), SWIFT_LOG_RESPONSE);
+    if ($log->hasLevel(SWIFT_LOG_NETWORK)) $log->add($response_event->getString(), SWIFT_LOG_RESPONSE);
     if ($command !== "" && $command_event->getCode() !== null)
     {
       $this->assertCorrectResponse($response_event, $command_event->getCode());
@@ -357,7 +344,7 @@ class Swift
   }
   /**
    * Reset a conversation which has gone badly
-   * @throws Swift_Connection_Exception If the service refuses to reset
+   * @throws Swift_ConnectionException If the service refuses to reset
    */
   function reset()
   {
@@ -369,7 +356,7 @@ class Swift
    * @param mixed The recipients to send to.  Can be a string, Swift_Address or Swift_RecipientList. Note that all addresses apart from Bcc recipients will appear in the message headers
    * @param mixed The address to send the message from.  Can either be a string or an instance of Swift_Address.
    * @return int The number of successful recipients
-   * @throws Swift_Connection_Exception If sending fails for any reason.
+   * @throws Swift_ConnectionException If sending fails for any reason.
    */
   function send(&$message, $recipients, $from)
   {
@@ -404,7 +391,7 @@ class Swift
       return;
     }
     
-    $log_active = $this->log->isEnabled();
+    $log =& Swift_LogContainer::getLog();
     
     if (!$message->getEncoding() && !$this->connection->hasExtension("8BITMIME"))
     {
@@ -450,7 +437,7 @@ class Swift
       } else {
         $failed++;
         $send_event->addFailedRecipient($address->getAddress());
-        if ($log_active) $this->log->addfailedRecipient($address->getAddress());
+        if ($log->hasLevel(SWIFT_LOG_FAILURES)) $log->addfailedRecipient($address->getAddress());
       }
     }
     $it =& $list->getIterator("cc");
@@ -469,7 +456,7 @@ class Swift
       } else {
         $failed++;
         $send_event->addFailedRecipient($address->getAddress());
-        if ($log_active) $this->log->addfailedRecipient($address->getAddress());
+        if ($log->hasLevel(SWIFT_LOG_FAILURES)) $log->addfailedRecipient($address->getAddress());
       }
     }
     
@@ -488,7 +475,7 @@ class Swift
     
     while (false !== $bytes = $data->read())
       $this->command($bytes, -1);
-    if ($log_active) $this->log->add("<MESSAGE DATA>", SWIFT_LOG_COMMAND);
+    if ($log->hasLevel(SWIFT_LOG_NETWORK)) $log->add("<MESSAGE DATA>", SWIFT_LOG_COMMAND);
     Swift_Errors::expect($e, "Swift_BadResponseException");
       $this->command("\r\n.", 250);
     if (!$e) {
@@ -516,7 +503,7 @@ class Swift
           $data =& $message->build();
           while (false !== $bytes = $data->read())
             $this->command($bytes, -1);
-          if ($log_active) $this->log->add("<MESSAGE DATA>", SWIFT_LOG_COMMAND);
+          if ($log->hasLevel(SWIFT_LOG_NETWORK)) $log->add("<MESSAGE DATA>", SWIFT_LOG_COMMAND);
           $this->command("\r\n.", 250);
         }
       if (!$e) {
@@ -525,7 +512,7 @@ class Swift
       } else {
         $failed++;
         $send_event->addFailedRecipient($address->getAddress());
-        if ($log_active) $this->log->addfailedRecipient($address->getAddress());
+        if ($log->hasLevel(SWIFT_LOG_FAILURES)) $log->addfailedRecipient($address->getAddress());
         $this->reset();
       }
     }
@@ -543,7 +530,7 @@ class Swift
     if (!$has_bcc) $message->setBcc(null);
     if (!$has_message_id) $message->setId(null);
     
-    if ($this->log->isEnabled()) $this->log->add("Message sent to " . $sent . "/" . $total . " recipients", SWIFT_LOG_NORMAL);
+    if ($log->hasLevel(SWIFT_LOG_NETWORK)) $log->add("Message sent to " . $sent . "/" . $total . " recipients", SWIFT_LOG_NORMAL);
     
     return $sent;
   }

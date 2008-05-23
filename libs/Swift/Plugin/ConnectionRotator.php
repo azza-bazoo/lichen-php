@@ -68,7 +68,7 @@ class Swift_Plugin_ConnectionRotator extends Swift_Events_Listener
    * Swift's SendEvent listener.
    * Invoked when Swift sends a message
    * @param Swift_Events_SendEvent The event information
-   * @throws Swift_Connection_Exception If the connection cannot be rotated
+   * @throws Swift_ConnectionException If the connection cannot be rotated
    */
   function sendPerformed(&$e)
   {

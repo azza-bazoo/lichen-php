@@ -52,19 +52,24 @@ class Swift_Connection_Multi extends Swift_ConnectionBase
       trigger_error("Swift_Connection_Multi::addConnection expects parameter 1 to be instance of Swift_Connection.");
       return false;
     }
+    $log =& Swift_LogContainer::getLog();
+    if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+    {
+      $log->add("Adding new connection of type '" . get_class($connection) . "' to the multi-redundant connection.");
+    }
     if ($id !== null) $this->connections[$id] =& $connection;
     else $this->connections[] =& $connection;
   }
   /**
    * Read a full response from the buffer
    * @return string
-   * @throws Swift_Connection_Exception Upon failure to read
+   * @throws Swift_ConnectionException Upon failure to read
    */
   function read()
   {
     if ($this->active === null)
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "None of the connections set have been started"));
       return;
     }
@@ -73,13 +78,13 @@ class Swift_Connection_Multi extends Swift_ConnectionBase
   /**
    * Write a command to the server (leave off trailing CRLF)
    * @param string The command to send
-   * @throws swift_Connection_Exception Upon failure to write
+   * @throws Swift_ConnectionException Upon failure to write
    */
   function write($command, $end="\r\n")
   {
     if ($this->active === null)
     {
-      Swift_Errors::trigger(new Swift_Connection_Exception(
+      Swift_Errors::trigger(new Swift_ConnectionException(
         "None of the connections set have been started"));
       return;
     }
@@ -87,35 +92,40 @@ class Swift_Connection_Multi extends Swift_ConnectionBase
   }
   /**
    * Try to start the connection
-   * @throws Swift_Connection_Exception Upon failure to start
+   * @throws Swift_ConnectionException Upon failure to start
    */
   function start()
   {
+    $log =& Swift_LogContainer::getLog();
     $fail_messages = array();
     foreach ($this->connections as $id => $conn)
     {
-      Swift_Errors::expect($e, "Swift_Connection_Exception");
+      Swift_Errors::expect($e, "Swift_ConnectionException");
       //
         $this->connections[$id]->start();
       if (!$e) {
         if ($this->connections[$id]->isAlive())
         {
-          Swift_Errors::clear("Swift_Connection_Exception");
+          Swift_Errors::clear("Swift_ConnectionException");
           $this->active = $id;
           return true;
         }
-        Swift_Errors::trigger(new Swift_Connection_Exception(
+        if ($log->hasLevel(SWIFT_LOG_EVERYTHING))
+        {
+          $log->add("Connection (" . $id . ") failed. Will try next connection if available.");
+        }
+        Swift_Errors::trigger(new Swift_ConnectionException(
           "The connection started but reported that it was not active"));
       }
       $fail_messages[] = $id . ": " . $e->getMessage();
       $e = null;
     }
     $failure = implode("<br />", $fail_messages);
-    Swift_Errors::trigger(new Swift_Connection_Exception($failure));
+    Swift_Errors::trigger(new Swift_ConnectionException($failure));
   }
   /**
    * Try to close the connection
-   * @throws Swift_Connection_Exception Upon failure to close
+   * @throws Swift_ConnectionException Upon failure to close
    */
   function stop()
   {

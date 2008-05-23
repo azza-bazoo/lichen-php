@@ -29,7 +29,7 @@ class Swift_Authenticator_LOGIN extends Swift_Authenticator
   function isAuthenticated($user, $pass, &$swift)
   {
     Swift_ClassLoader::load("Swift_Errors");
-    Swift_Errors::expect($e, "Swift_Connection_Exception");
+    Swift_Errors::expect($e, "Swift_ConnectionException");
       if (!$e) $swift->command("AUTH LOGIN", 334);
       if (!$e) $swift->command(base64_encode($user), 334);
       if (!$e) $swift->command(base64_encode($pass), 235);
@@ -37,7 +37,7 @@ class Swift_Authenticator_LOGIN extends Swift_Authenticator
       $swift->reset();
       return false;
     }
-    Swift_Errors::clear("Swift_Connection_Exception");
+    Swift_Errors::clear("Swift_ConnectionException");
     return true;
   }
   /**
