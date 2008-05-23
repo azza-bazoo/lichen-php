@@ -946,7 +946,6 @@ function request_sendMessage() {
 
 		// Send the message.
 		$messageSender =& new Swift( $smtpConnection );
-		$messageSender->log->enable();
 		$numberRecipients = $messageSender->send( $mimeMessage, $messageRecipients, $FROM_EMAIL );
 
 		if ( $numberRecipients == 0 ) {
