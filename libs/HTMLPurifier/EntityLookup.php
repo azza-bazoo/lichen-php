@@ -36,7 +36,7 @@ class HTMLPurifier_EntityLookup {
             $instance = $prototype;
         } elseif (!$instance) {
             $instance = new HTMLPurifier_EntityLookup();
-            $instance->setup();
+//            $instance->setup();
         }
         return $instance;
     }

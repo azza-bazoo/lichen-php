@@ -4,7 +4,7 @@
 // an appropriate environment for the little bit of HTMLPurifier that we do use.
 
 set_include_path(dirname(__FILE__) . PATH_SEPARATOR . get_include_path() );
-define( HTMLPURIFIER_PREFIX, '' );
+define( 'HTMLPURIFIER_PREFIX', '' );
 
 include( 'HTMLPurifier/Config.php' );
 include( 'HTMLPurifier/Context.php' );
