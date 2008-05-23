@@ -32,7 +32,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 // TODO: support $preferredType ...?
 function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 	global $mbox, $mailbox, $IMAP_CONNECT;
-	global $DATE_FORMAT_MSG;
+	global $DATE_FORMAT_MSG, $DATE_FORMAT_OLD;
 
 	$processedResult = array();
 
