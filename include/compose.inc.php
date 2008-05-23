@@ -222,7 +222,7 @@ function generateComposerData( $mode, $uid, $mailto ) {
 		case 'reply':
 		case 'replyall':
 			// TODO: The date format below will be different depending on what time the message was replied to.
-			$compData['comp_msg'] .= sprintf( _("At %s, %s wrote:\n"), $msgArray['localdate'], $msgArray['from'] );
+			$compData['comp_msg'] .= sprintf( _("At %s, %s wrote:\n"), $msgArray['shortdate'], $msgArray['from'] );
 //			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['texthtml'], 'text/html', 'reply' );
 //			$compData['comp_msg'] .= "\n";
 			$compData['comp_msg'] .= markupQuotedMessage( $msgArray['textplain'], 'text/plain', 'reply' );
