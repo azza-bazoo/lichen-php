@@ -173,8 +173,8 @@ var MessageComposer = new Class({
 		composer += "<label class=\"comp-label\" for=\"comp_subj\">" + _('Subject:') + "</label> <input type=\"text\" name=\"comp_subj\" id=\"comp_subj\" value=\"";
 		composer += compData.comp_subj + "\" />";
 
-		composer += "<div><a href=\"#\" onclick=\"Lichen.MessageCompose.makeHTMLMail();return false\">" + _('HTML Message') + "</a> | ";
-		composer += "<a href=\"#\" onclick=\"Lichen.MessageCompose.makePlainMail();return false\">" + _('Plain Message') + "</a></div>";
+//		composer += "<div><a href=\"#\" onclick=\"Lichen.MessageCompose.makeHTMLMail();return false\">" + _('HTML Message') + "</a> | ";
+//		composer += "<a href=\"#\" onclick=\"Lichen.MessageCompose.makePlainMail();return false\">" + _('Plain Message') + "</a></div>";
 
 		// Build the text area. Text only at the moment.
 		composer += "<textarea name=\"comp_msg\" id=\"comp_msg\" onchange=\"Lichen.MessageCompose.draftSaveTimeout();\">";
