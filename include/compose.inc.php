@@ -151,20 +151,23 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	$compData['comp_cc'] = "";
 	if ( isset( $msgArray['cc'] ) && !empty( $msgArray['cc'] ) ) {
 		// Don't CC yourself when replying-to-all.
-		if ( $action == "replyall" ) {
-			$ccList  = parseRecipientList( $msgArray['to'] );
-			$ccList += parseRecipientList( $msgArray['cc'] );
-			$output = array();
-			foreach ( $ccList as $index => $ccer ) {
-				if ( $ccer['address'] == $compData['identity']['address'] ) {
-					// Skip this address...
-				} else {
-					$output[] = $ccer;
+		switch ($action) {
+			case 'replyall':
+				$ccList  = parseRecipientList( $msgArray['to'] );
+				$ccList += parseRecipientList( $msgArray['cc'] );
+				$output = array();
+				foreach ( $ccList as $index => $ccer ) {
+					if ( $ccer['address'] == $compData['identity']['address'] ) {
+						// Skip this address...
+					} else {
+						$output[] = $ccer;
+					}
 				}
-			}
-			$compData['comp_cc'] .= htmlentities( formatRecipientList( $output ) );
-		} else {
-			$compData['comp_cc'] .= htmlentities( $msgArray['cc'] );
+				$compData['comp_cc'] .= htmlentities( formatRecipientList( $output ) );
+				break;
+			case 'draft':
+				$compData['comp_cc'] .= htmlentities( $msgArray['cc'] );
+				break;
 		}
 	}
 	if ( isset( $mailtoDetails['cc'] ) ) {
@@ -173,6 +176,8 @@ function generateComposerData( $mode, $uid, $mailto ) {
 	$compData['show_cc'] = !empty( $compData['comp_cc'] );
 
 	// Determine BCC address(es), if we need them.
+	// These will only be set if reading from a draft - otherwise,
+	// we won't see them.
 	$compData['comp_bcc'] = "";
 	if ( isset( $msgArray['bcc'] ) && !empty( $msgArray['bcc'] ) ) {
 		$compData['comp_bcc'] .= htmlentities( $msgArray['bcc'] );
