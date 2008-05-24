@@ -152,7 +152,35 @@ function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
 	// FINAL CONTENT FLAGS
 	// Determine what we have.
 	if ( count( $processedResult['texthtml'] ) > 0 ) {
-		$processedResult['texthtmlpresent'] = true;
+		// If all the HTML was blank (eg, we were unable to parse it correctly)
+		// display the text part instead. Make a note, though.
+		foreach ( $processedResult['texthtml'] as $html ) {
+			$html = trim($html);
+			if ( !empty( $html ) ) {
+				$processedResult['texthtmlpresent'] = true;
+			}
+		}
+
+		if ( !isset( $processedResult['texthtmlpresent'] ) ) {
+			$processedResult['texthtmlpresent'] = false;
+			$processedResult['texthtml'] = array();
+
+			$errorMessage = 
+				"-----------------\n" .
+				"There was a HTML part to this message, but Lichen was unable to parse it.\n" . 
+				"This is a bug - if the email is not sensitive, please forward it to us so we\n" .
+				"can fix the bug.\n" .
+				"PLEASE DO NOT FORWARD US EMAILS WITH PERSONAL OR SENSITIVE INFORMATION.\n" .
+				"-----------------\n\n";
+
+			if ( count( $processedResult['textplain'] ) > 0 ) {
+				$processedResult['textplain'][0] = 
+					$errorMessage .
+					$processedResult['textplain'][0];
+			} else {
+				$processedResult['textplain'][] = $errorMessage;
+			}
+		}
 	} else {
 		$processedResult['texthtmlpresent'] = false;
 	}
