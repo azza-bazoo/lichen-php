@@ -167,10 +167,7 @@ function retrieveMessage( $msgUid, $preview=false, $debugMode = false ) {	// $pr
 
 			$errorMessage = 
 				"-----------------\n" .
-				"There was a HTML part to this message, but Lichen was unable to parse it.\n" . 
-				"This is a bug - if the email is not sensitive, please forward it to us so we\n" .
-				"can fix the bug.\n" .
-				"PLEASE DO NOT FORWARD US EMAILS WITH PERSONAL OR SENSITIVE INFORMATION.\n" .
+				"There was a HTML part to this message, but Lichen was unable to fetch it.\n" . 
 				"-----------------\n\n";
 
 			if ( count( $processedResult['textplain'] ) > 0 ) {
