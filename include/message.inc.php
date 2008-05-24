@@ -30,7 +30,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 // If in preview mode, doesn't return the header metadata - because you've probably
 // already got that data!
 // TODO: support $preferredType ...?
-function retrieveMessage( $msgUid, $preview=false ) {	// $preferredType='plain',
+function retrieveMessage( $msgUid, $preview=false, $debugMode = false ) {	// $preferredType='plain',
 	global $mbox, $mailbox, $IMAP_CONNECT;
 	global $DATE_FORMAT_MSG, $DATE_FORMAT_OLD;
 
@@ -245,19 +245,26 @@ function separateMsgParts( $partsObject, $msgNo, $partPrefix, $preview=false ) {
 			$approxSize = floor( 0.741 * $thisPart->bytes );
 		}
 
+		$newPartNo = $partNo + 1;
 		if ( $contentType == "text/plain" || $contentType == "text/html" ) {
 			if ( $approxSize > 524288 ) { // 512 kilobytes
 				// It's a little big to include directly.
 				// TODO: we need to stream it out...
-				$fullPartNo = "{$partPrefix}" . ($partNo + 1);
+				$fullPartNo = "{$partPrefix}" . (string)$newPartNo;
 				$separatedParts[ $contentType ][] = "LICHENTOOLARGE({$fullPartNo})" . _("[error: message part too large to display]");
 			} else {
 				// Fetch the content of this part and add to the return array.
 				if ( $preview ) {
-					$partContents = imap_fetchbody( $mbox, $msgNo, $partPrefix.($partNo+1), FT_PEEK );
+					$partContents = imap_fetchbody( $mbox, $msgNo, $partPrefix.((string)$newPartNo), FT_PEEK );
 				} else {
-					$partContents = imap_fetchbody( $mbox, $msgNo, $partPrefix.($partNo+1) );
+					$partContents = imap_fetchbody( $mbox, $msgNo, $partPrefix.((string)$newPartNo) );
 				}
+
+				//echo "-------------------\n";
+				//echo "PART {$partPrefix}{$newPartNo}\n";
+				//echo "TYPE {$contentType}\n";
+				//echo "{$partContents}\n";
+				//echo "-------------------\n";
 
 				$separatedParts[ $contentType ][] = decodeText( $partContents, $charset, $transferEncoding );
 			}
@@ -265,7 +272,7 @@ function separateMsgParts( $partsObject, $msgNo, $partPrefix, $preview=false ) {
 		} elseif ( $thisPart->type == 1 || $contentType == "message/rfc822" ) {
 			// This part is another message embedded within the
 			// main message, so we must recurse.
-			$subParts = separateMsgParts( $thisPart->parts, $msgNo, $partPrefix.($partNo+1).'.', $preview );
+			$subParts = separateMsgParts( $thisPart->parts, $msgNo, $partPrefix.((string)$newPartNo).'.', $preview );
 			$separatedParts['text/html'] = array_merge( $separatedParts['text/html'], $subParts['text/html'] );
 			$separatedParts['text/plain'] = array_merge( $separatedParts['text/plain'], $subParts['text/plain'] );
 			$separatedParts['attachments'] = array_merge( $separatedParts['attachments'], $subParts['attachments'] );

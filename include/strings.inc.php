@@ -478,7 +478,7 @@ $HTML_MODIFYATTRS = array(
 
 // Clean HTML up - utilize the HTML Lexer that is part of HTMLPurifier,
 // but do our own cleaning.
-function cleanHTML( $inputHtml, &$modifyData ) {
+function cleanHTML( $inputHtml, &$modifyData, $debugMode = false ) {
 	global $HTML_ALLOWEDELEMENTS, $HTML_ALLOWEDATTRS,
 		$HTML_MODIFYTAGS, $HTML_MODIFYATTRS;
 
@@ -490,6 +490,10 @@ function cleanHTML( $inputHtml, &$modifyData ) {
 
 	// Parse the HTML...
 	$tokenisedHtml = $lexer->tokenizeHTML( $inputHtml, $lexerConfig, $context );
+
+	if ( $debugMode ) {
+		print_r( $tokenisedHtml );
+	}
 
 	// Now iterate over the result and parse it appropriately.
 	ob_start();

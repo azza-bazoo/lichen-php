@@ -76,9 +76,45 @@ if ( isset( $_GET['filename'] ) ) {
 
 	echo "\n-----------------------\n";
 
-	$msgArray = retrieveMessage( $msgNo, false );
+	$msgArray = retrieveMessage( $msgUid, false );
 
 	print_r( $msgArray );
+
+} elseif ( isset( $_GET['htmlstruct'] ) ) {
+
+//
+// Debug code - show parsing structure for a HTML message
+//
+
+	header( "Content-type: text/plain" );
+
+	$msgNo = imap_msgno( $mbox, $msgUid );
+
+	print_r( imap_headerinfo( $mbox, $msgNo ) );
+
+	echo "\n-----------------------\n";
+
+	$msgArray = retrieveMessage( $msgUid, false, true );
+
+	print_r( $msgArray );
+
+	$modifyData = array();
+	$modifyData['mailbox']    = $mailbox;
+	$modifyData['uid']        = $msgUid;
+	$modifyData['remoteimg']  = array();
+	$modifyData['imgcounter'] = 0;
+
+	print_r($msgArray);
+
+	foreach ( $msgArray['texthtml'] as $html ) {
+		echo "\n-----------------------\n";
+		$result = cleanHTML( $inputHTML, $modifyData, true );
+
+		echo $result;
+		print_r($modifyData);
+		
+		echo "\n-----------------------\n";
+	}
 
 
 } elseif ( isset( $_GET['source'] ) ) {
