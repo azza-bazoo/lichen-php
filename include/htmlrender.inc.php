@@ -661,6 +661,8 @@ function render_composer( $requestData, $requestParams ) {
 	echo "<div class=\"header-bar\"><img src=\"themes/", $USER_SETTINGS['theme'], "/top-corner.png\" alt=\"\" class=\"top-corner\" /><div class=\"header-right\">&nbsp;</div><div class=\"comp-header\">", _('New message'), "</div></div>";
 
 	echo "<form enctype=\"multipart/form-data\" action=\"", $LICHEN_URL, "ajax.php\" method=\"post\" id=\"compose\">";
+	
+	echo "<div id=\"comp_top_fields\">";
 	echo "<input type=\"hidden\" name=\"sequence\" value=\"comp\" />";
 	echo "<input type=\"hidden\" name=\"format\" value=\"text/plain\" />";
 
@@ -717,7 +719,7 @@ function render_composer( $requestData, $requestParams ) {
 
 	// Build the subject area.
 	echo "<label class=\"comp-label\" for=\"comp_subj\">", _('Subject:'), "</label> <input type=\"text\" name=\"comp_subj\" id=\"comp_subj\" value=\"";
-	echo $requestData['comp_subj'], "\" />";
+	echo $requestData['comp_subj'], "\" /></div> ";
 
 	// Build the text area. Text only for the HTML version.
 	echo "<textarea name=\"comp_msg\" id=\"comp_msg\">";

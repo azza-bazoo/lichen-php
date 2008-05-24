@@ -120,6 +120,7 @@ var MessageComposer = new Class({
 
 		composer += "<form action=\"" + lichenURL + "\" method=\"post\" id=\"compose\" onsubmit=\"Lichen.MessageCompose.sendMessage();return false\">";
 
+		composer += "<div id=\"comp_top_fields\">";
 		composer += "<input type=\"hidden\" name=\"comp_mode\" id=\"comp_mode\" value=\"" + compData.comp_mode + "\" />";
 
 		if ( compData.comp_quoteuid ) {
@@ -171,7 +172,7 @@ var MessageComposer = new Class({
 
 		// Build the subject area.
 		composer += "<label class=\"comp-label\" for=\"comp_subj\">" + _('Subject:') + "</label> <input type=\"text\" name=\"comp_subj\" id=\"comp_subj\" value=\"";
-		composer += compData.comp_subj + "\" />";
+		composer += compData.comp_subj + "\" /></div> ";
 
 //		composer += "<div><a href=\"#\" onclick=\"Lichen.MessageCompose.makeHTMLMail();return false\">" + _('HTML Message') + "</a> | ";
 //		composer += "<a href=\"#\" onclick=\"Lichen.MessageCompose.makePlainMail();return false\">" + _('Plain Message') + "</a></div>";
