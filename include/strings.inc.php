@@ -78,6 +78,13 @@ function parseRecipientList( $inputString ) {
 
 		if ( isEmailAddress( $thisBit ) ) {
 			// We think it's an email address, add the address.
+			// First, through, remove the quotes around $currentName, if they exist.
+			$currentName = trim( $currentName );
+			if ( !empty( $currentName ) && strlen( $currentName ) > 2 ) {
+				if ( $currentName[0] == '"' && $currentName[strlen($currentName) - 1] == '"' ) {
+					$currentName = substr( $currentName, 1, strlen( $currentName ) - 2 );
+				}
+			}
 			$foundAddresses[] = array( "name" => trim( $currentName ), "address" => $thisBit );
 			$currentName = "";
 		} else {
