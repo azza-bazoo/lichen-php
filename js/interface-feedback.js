@@ -87,7 +87,12 @@ var PaneTransition = new Class({
 	initialize: function ( targetElementName ) {
 		this.fadeOut = new Fx.Style( targetElementName, 'opacity', { duration: 1500 } );
 		this.elementID = targetElementName;
-		this.fadeOut.start( 0.9, 0 );
+		if ( !window.ie ) {
+			// we couldn't get this to work properly in IE6 in
+			// time for release -- sometimes opacity wasn't going
+			// back to 1 -- and there's the ClearType problem!
+			this.fadeOut.start( 0.9, 0 );
+		}
 	},
 
 	end: function () {
