@@ -121,31 +121,34 @@ function generateComposerData( $mode, $uid, $mailto ) {
 
 	// Determine the "to" address.
 	$compData['comp_to'] = "";
+	$toList = array();
 	switch ($action) {
-		case 'reply':
-			// This is probably not the right thing to do.
-			if ( isset( $msgArray['replyto'] ) && !empty( $msgArray['replyto'] ) ) {
-				$compData['comp_to'] = $msgArray['reply_to'];
-			} else {
-				$compData['comp_to'] = $msgArray['from'];
-			}
-			break;
 		case 'replyall':
-			// TODO: pick the right header
+			// For reply-all, include people in the 'To' header -
+			// put them back into the To header.
+			if ( isset( $msgArray['to'] ) && !empty( $msgArray['to'] ) ) {
+				$toList = array_merge( $toList, parseRecipientList( $msgArray['to'] ) );
+			}
+			// Fall through and do the actions for reply, too.
+		case 'reply':
+			// For reply and reply-all, include the reply-to or from address.
 			if ( isset( $msgArray['replyto'] ) && !empty( $msgArray['replyto'] ) ) {
-				$compData['comp_to'] = $msgArray['replyto'];
+				// If a reply-to field exists, use that as the primary to address.
+				$toList = array_merge( $toList, parseRecipientList( $msgArray['replyto'] ) );
 			} else {
-				$compData['comp_to'] = $msgArray['from'];
+				// Otherwise, use the 'From' address.
+				$toList = array_merge( $toList, parseRecipientList( $msgArray['from'] ) );
 			}
 			break;
 		case 'draft':
-			$compData['comp_to'] = $msgArray['to'];
+			$toList = parseRecipientList( $msgArray['to'] );
 			break;
 		case 'mailto':
-			$compData['comp_to'] = $mailtoDetails['email-to'];
+			$toList = parseRecipientList( $mailtoDetails['email-to'] );
 			break;
 	}
-	$compData['comp_to'] = htmlentities( $compData['comp_to'] );
+	$toList = removeMeFromList( $toList, $compData['identity']['address'] );
+	$compData['comp_to'] = htmlentities( formatRecipientList( $toList ) );
 
 	// Determine CC address(es), if we need them.
 	$compData['comp_cc'] = "";
@@ -153,16 +156,9 @@ function generateComposerData( $mode, $uid, $mailto ) {
 		// Don't CC yourself when replying-to-all.
 		switch ($action) {
 			case 'replyall':
-				$ccList  = parseRecipientList( $msgArray['to'] );
-				$ccList += parseRecipientList( $msgArray['cc'] );
-				$output = array();
-				foreach ( $ccList as $index => $ccer ) {
-					if ( $ccer['address'] == $compData['identity']['address'] ) {
-						// Skip this address...
-					} else {
-						$output[] = $ccer;
-					}
-				}
+				$ccList = array();
+				$ccList = array_merge( $ccList, parseRecipientList( $msgArray['cc'] ) );
+				$output = removeMeFromList( $ccList, $compData['identity']['address'] );
 				$compData['comp_cc'] .= htmlentities( formatRecipientList( $output ) );
 				break;
 			case 'draft':

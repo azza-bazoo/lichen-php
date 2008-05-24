@@ -156,6 +156,24 @@ function getUserIdentity( $byAddress = NULL, $substringMode = false ) {
 	return NULL;
 }
 
+// Function to remove our email address from a list of recipients.
+// The input is a list of recipients, as generated with parseRecipientList().
+// The output is all the addresses that are not us - that is, not the address
+// given as the $ourAddress parameter.
+function removeMeFromList( $inputList, $ourAddress ) {
+	$output = array();
+
+	foreach ( $inputList as $index => $address ) {
+		if ( strtolower( $address['address'] ) == strtolower( $ourAddress ) ) {
+			// Skip this address...
+		} else {
+			$output[] = $address;
+		}
+	}
+
+	return $output;
+}
+
 // HTML encode a set of identities.
 function encodeIdentities( $input ) {
 	$output = array();
