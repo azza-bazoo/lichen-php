@@ -57,10 +57,7 @@ if ( !$result ) {
 // Load the user settings.
 $USER_SETTINGS = getUserSettings();
 
-if ( version_compare( PHP_VERSION, '5.1.0', '>=' ) ) {
-	date_default_timezone_set( $USER_SETTINGS['timezone'] );
-}
-
+date_default_timezone_set( $USER_SETTINGS['timezone'] );
 
 // Helper function to rengenerate attachment data.
 // This function should not be here, but doesn't seem to fit anywhere else.

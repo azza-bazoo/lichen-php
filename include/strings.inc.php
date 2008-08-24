@@ -185,40 +185,6 @@ function decodeText( $string, $charset, $transferEncoding ) {
 }
 
 
-/* These functions copied from http://php.net/html_entity_decode
-   -- a workaround for PHP4 issues with that function */
-if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
-	function html_entity_decode_utf8($string)
-	{
-		static $trans_tbl;
-
-		// replace numeric entities
-		$string = preg_replace('~&#x([0-9a-f]+);~ei', 'code2utf(hexdec("\\1"))', $string);
-		$string = preg_replace('~&#([0-9]+);~e', 'code2utf(\\1)', $string);
-
-		// replace literal entities
-		if (!isset($trans_tbl))
-		{
-			$trans_tbl = array();
-
-			foreach (get_html_translation_table(HTML_ENTITIES) as $val=>$key)
-				$trans_tbl[$key] = utf8_encode($val);
-		}
-
-		return strtr($string, $trans_tbl);
-	}
-
-	// Returns the utf string corresponding to the unicode value (from php.net, courtesy - romans@void.lv)
-	function code2utf($num)
-	{
-		if ($num < 128) return chr($num);
-		if ($num < 2048) return chr(($num >> 6) + 192) . chr(($num & 63) + 128);
-		if ($num < 65536) return chr(($num >> 12) + 224) . chr((($num >> 6) & 63) + 128) . chr(($num & 63) + 128);
-		if ($num < 2097152) return chr(($num >> 18) + 240) . chr((($num >> 12) & 63) + 128) . chr((($num >> 6) & 63) + 128) . chr(($num & 63) + 128);
-		return '';
-	}
-}
-
 // One key for each allowed element.
 // If it has specific allowed attributes, then each key
 // should have an associated array of allowed attributes.
@@ -740,13 +706,9 @@ function processMsgMarkup( $string, $contentType, $mailbox, $uid, &$outMsgFlags 
 
 	} else {
 		// Assume we're dealing with plain text.
-		if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
-			$string = html_entity_decode_utf8( $string );
-		} else {
-			// UTF-8 here is for mailers (e.g. Slashdot) that put UTF-8
-			// characters in supposedly ASCII messages.
-			$string = html_entity_decode( $string, ENT_COMPAT, 'UTF-8' );
-		}
+		// UTF-8 here is for mailers (e.g. Slashdot) that put UTF-8
+		// characters in supposedly ASCII messages.
+		$string = html_entity_decode( $string, ENT_COMPAT, 'UTF-8' );
 
 		// Now reinsert the entities, keeping in mind the charset.
 		$string = htmlspecialchars( $string, ENT_COMPAT, 'UTF-8' );
@@ -777,12 +739,8 @@ function filterHeader( $header ) {
 
 	// To ensure HTML entities are displayed correctly by the JavaScript
 	/*
-	if ( version_compare( PHP_VERSION, '5', '>=' ) ) {
-		$returnString = html_entity_decode( $returnString, ENT_QUOTES, 'UTF-8' );
-	} else {
-		$returnString = html_entity_decode( $returnString, ENT_QUOTES );
-	}
-	 */
+	$returnString = html_entity_decode( $returnString, ENT_QUOTES, 'UTF-8' );
+	*/
 
 	$returnString = str_replace( "\r", "", $returnString );
 	$returnString = str_replace( "\n", " ", $returnString );
@@ -924,11 +882,7 @@ function markupQuotedMessage( $input, $inputType, $mode ) {
 		$message = trim( wordwrap( strip_tags( $message ), 75 ) );
 
 		// Decode all the HTML entities.
-		if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
-			$message = html_entity_decode_utf8( $message );
-		} else {
-			$message = html_entity_decode( $message, ENT_COMPAT, 'UTF-8' );
-		}
+		$message = html_entity_decode( $message, ENT_COMPAT, 'UTF-8' );
 
 		// Wordwrap at 80 chars.
 		$message = wordwrap( $message, 80 );
@@ -975,92 +929,25 @@ function chooseDateFormat( $timeStamp ) {
 
 // Takes the e-mail header Date: and converts it to the user's local
 // time zone, formatted according to their preferences.
-// PHP 5.1 introduced much-improved timezone handling that we use if
-// available; otherwise, use the clunky putenv() trick and separate
-// zone database from PEAR's Date library.
-if ( version_compare( PHP_VERSION, '5.2.0', '>=' ) ) {
+function processDate( $headerString, $dateFormat='' ) {
+	global $DATE_FORMAT_OLD, $DATE_FORMAT_NEW, $DATE_FORMAT_LONG;
 
-	function processDate( $headerString, $dateFormat='' ) {
-		global $DATE_FORMAT_OLD, $DATE_FORMAT_NEW, $DATE_FORMAT_LONG;
-
-		if ( substr( $headerString, -3 ) == " UT" ) {
-			// Hack: UT is a valid abbreviation for UTC in
-			// mail headers, but strtotime doesn't recognise it.
-			$headerString .= "C";
-		}
-
-		// Convert the string from the header to a Unix timestamp,
-		// then format it; PHP will adjust for the user's timezone
-		// because we called date_default_timezone_set earlier.
-		$adjustedTime = strtotime( $headerString );
-
-		if ( $dateFormat == '' ) {
-			$dateFormat = chooseDateFormat( $adjustedTime );
-		}
-
-		return date( $dateFormat, $adjustedTime );
+	if ( substr( $headerString, -3 ) == " UT" ) {
+		// Hack: UT is a valid abbreviation for UTC in
+		// mail headers, but strtotime doesn't recognise it.
+		$headerString .= "C";
 	}
 
-} else {
+	// Convert the string from the header to a Unix timestamp,
+	// then format it; PHP will adjust for the user's timezone
+	// because we called date_default_timezone_set earlier.
+	$adjustedTime = strtotime( $headerString );
 
-	include( "libs/TimeZone.php" );
-
-	// TODO: this works only on Linux
-	if ( isset( $_ENV['TZ'] ) ) {
-		$SYSTEM_TIMEZONE = $_ENV['TZ'];
-	} elseif ( file_exists( '/etc/timezone' ) && !is_link( '/etc/timezone' ) ) {
-		$SYSTEM_TIMEZONE = rtrim( file_get_contents( '/etc/timezone' ) );
-	} else {
-		$SYSTEM_TIMEZONE = 'UTC';
+	if ( $dateFormat == '' ) {
+		$dateFormat = chooseDateFormat( $adjustedTime );
 	}
 
-	function processDate( $headerString, $dateFormat='' ) {
-		global $USER_SETTINGS, $DATE_FORMAT_OLD, $DATE_FORMAT_NEW;
-		global $SYSTEM_TIMEZONE;
-
-		if ( substr( $headerString, -3 ) == " UT" ) {
-			$headerString .= "C";
-		}
-
-		$timestamp = strtotime( $headerString );
-
-		$timestamp = convertToOrFromUTC( $timestamp, $SYSTEM_TIMEZONE, -1 );
-
-		$adjustedTime = convertToOrFromUTC( $timestamp, $USER_SETTINGS['timezone'], 1 );
-
-		if ( $dateFormat == '' ) {
-			$dateFormat = chooseDateFormat( $adjustedTime );
-		}
-
-		return date( $dateFormat, $adjustedTime );
-	}
-
-
-	function convertToOrFromUTC( $timestamp, $timezoneName, $direction=-1 ) {
-		global $_DATE_TIMEZONE_DATA;
-
-		// First adjust the timestamp assuming
-		// there's no daylight saving.
-		$timestamp = $timestamp + $direction * $_DATE_TIMEZONE_DATA[ $timezoneName ][ 'offset' ] / 1000;
-
-		// This block copied from the PEAR Date library.
-		$env_tz = '';
-		if( isset( $_ENV['TZ'] ) && getenv('TZ') ) {
-			$env_tz = getenv('TZ');
-		}
-		putenv( 'TZ=' . $timezoneName );
-		$ltime = localtime( $timestamp, true );
-		if ( $env_tz != '' ) {
-			putenv( 'TZ=' . $env_tz );
-		}
-
-		if ( $ltime['tm_isdst'] ) {
-			// DST is currently active in the target timezone.
-			return $timestamp + $direction * 3600;
-		} else {
-			return $timestamp;
-		}
-	}
+	return date( $dateFormat, $adjustedTime );
 }
 
 ?>
