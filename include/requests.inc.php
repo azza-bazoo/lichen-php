@@ -672,8 +672,8 @@ function request_sendMessage() {
 	global $LICHEN_VERSION, $SPECIAL_FOLDERS;
 	global $SMTP_SERVER, $SMTP_PORT, $SMTP_USE_SSL, $SMTP_USE_TLS, $SMTP_AUTH;
 
-	include ( 'libs/Swift.php' );
-	include ( 'libs/Swift/Connection/SMTP.php' );
+	include ( 'libs/swift/Swift.php' );
+	include ( 'libs/swift/Swift/Connection/SMTP.php' );
 	include_once ( 'libs/streamattach.php' );
 
 	$result = array();
