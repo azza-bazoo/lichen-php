@@ -40,7 +40,8 @@ function hashifyFilename( $filename ) {
 
 // Check if a given string is likely an email address.
 function isEmailAddress( $address ) {
-	if ( preg_match( "/^([\w\d])+([\w\d\._])*@([\w\d_-])+([\w\d\._-]+)+$/", $address ) ) {
+        // TODO: fixed for Trac #81 but need to re-check RFC for all valid characters
+        if ( preg_match( "/^([\w\d])+([\w\d\._-])*@([\w\d_-])+([\w\d\._-]+)+$/", $address ) ) {
 		return true;
 	}
 	return false;
