@@ -698,14 +698,21 @@ function request_sendMessage() {
 	$mimeMessage =& new Swift_Message( $_POST['comp_subj'] );
 	$mimeMessage->headers->set( 'User-Agent', 'Lichen ' . $LICHEN_VERSION );
 
-	// If this is a reply/forward of another message, get some details about that.
-	// Specifically, for generating an "In-Reply-To" header.
-	if ( isset( $_POST['comp_mode'] ) && ( $_POST['comp_mode'] == "reply" || substr( $_POST['comp_mode'], 0, 7 ) == "forward" ) ) {
+	// If this is a reply/forward of another message, get the headers of that message
+	// and set In-Reply-To: and References:
+	if ( isset( $_POST['comp_mode'] ) &&
+		( substr( $_POST['comp_mode'], 0, 5 ) == "reply" ||
+		substr( $_POST['comp_mode'], 0, 7 ) == "forward" ) ) {
+
 		$oldMailbox = $mailbox;
 		changeMailbox( $_POST['comp_quotemailbox'] );
 		$replyData = imap_headerinfo( $mbox, imap_msgno( $mbox, $_POST['comp_quoteuid'] ) );
 		changeMailbox( $oldMailbox );
+		
+		// TODO: for forwards, maybe don't set both headers.
+		// Gmail sets both, Apple Mail sets only References, Thunderbird sets neither
 		$mimeMessage->headers->set( 'In-Reply-To', $replyData->message_id );
+		$mimeMessage->headers->set( 'References', $replyData->message_id );
 	}
 
 	// Set the "from" address based on the identity.
