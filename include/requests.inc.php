@@ -729,24 +729,10 @@ function request_sendMessage() {
 
 	$mimeMessage->setFrom( $FROM_EMAIL );
 
-	//die( print_r( parseRecipientList( $_POST['comp_to'] ) ) );
-
-	// Set the Various recipient addresses.
-	/* Long diatribe about why we do the following twice, to end up with $messageRecipients and $mimeMessageRecipients.
-	   PHP5: Creating a single $messageRecipients and using it for creating the appropriate headers in
-	   the message (with $mimeMessage->setTo( $messageRecipients->getTo() ) works fine, and then we use
-	   the same $messageRecipients object for the Swift::send() call, to let it know where to send the email.
-	   PHP4: This doesn't work, Swift::send() dies with a fatal error. Cause: when we call
-	   $mimeMessage->setTo( $messageRecipients->getTo() ) what happens is that $messageRecipients->getTo() returns
-	   a reference to the internal array of Swift_Address objects that $messageRecipients stores. $mimeMessage->setTo()
-	   then proceeds to iterate over the array, replacing each key in the array with the results of calling the build()
-	   function of each element of the array (which returns a string representation of the email address stored by the
-	   Swift_Address object). Because getTo() returns a reference, setTo()'s actions do this in place, changing 
-	   $messageRecipients internal state. And then when it comes time to call Swift:send(), it's expecting
-	   $messageRecipients to have an array of Swift_Address objects, not strings. I hope that's confusing enough.
-	*/
+	// Set the various recipient addresses.
+	// (old $mimeMessageRecipients is removed, which is hopefully OK in all PHP5 uses!)
 	$messageRecipients =& new Swift_RecipientList();
-	$mimeMessageRecipients =& new Swift_RecipientList();
+
 	// TO:
 	$toRecipients = parseRecipientList( $_POST['comp_to'] );
 
@@ -760,7 +746,6 @@ function request_sendMessage() {
 
 	foreach ( $toRecipients as $recipient ) {
 		$messageRecipients->addTo( $recipient['address'], $recipient['name'] );
-		$mimeMessageRecipients->addTo( $recipient['address'], $recipient['name'] );
 	}
 
 	// CC:
@@ -769,7 +754,6 @@ function request_sendMessage() {
 	if ( count( $ccRecipients ) != 0 ) {
 		foreach ( $ccRecipients as $recipient ) {
 			$messageRecipients->addCc( $recipient['address'], $recipient['name'] );
-			$mimeMessageRecipients->addCc( $recipient['address'], $recipient['name'] );
 		}
 	}
 
@@ -779,24 +763,49 @@ function request_sendMessage() {
 	if ( count( $bccRecipients ) != 0 ) {
 		foreach ( $bccRecipients as $recipient ) {
 			$messageRecipients->addBcc( $recipient['address'], $recipient['name'] );
-			$mimeMessageRecipients->addBcc( $recipient['address'], $recipient['name'] );
 		}
 	}
-
-	//die( var_dump( $messageRecipients ) );
 
 	// The Swift docs say that these don't need to be set to send a message,
 	// but it does seem to be harmless - if we don't set them, then when we save
 	// a draft we have no idea what these addresses are.
-	$mimeMessage->setTo( $mimeMessageRecipients->getTo() );
-	$mimeMessage->setCc( $mimeMessageRecipients->getCc() );
-	$mimeMessage->setBcc( $mimeMessageRecipients->getBcc() );
+	$mimeMessage->setTo( $messageRecipients->getTo() );
+	$mimeMessage->setCc( $messageRecipients->getCc() );
+	$mimeMessage->setBcc( $messageRecipients->getBcc() );
 
 	// Do the body of the email.
 	// TODO: The body coming back should be UTF-8... so set this as the encoding...
 	if ( $_POST['format'] == "text/plain" ) {
-		// Just a plain text email.
-		$mimeMessage->attach( new Swift_Message_Part( $_POST['comp_msg'], "text/plain" ) );
+		// process text body: wordwrap if not a draft (but don't rewrap quoted lines)
+		// TODO: handle \r\n? efficiency? do input validation?
+		$message_string = '';
+		if ( !$draftMode ) {
+			$message_lines = explode( '\n', $_POST['comp_msg'] );
+			$this_block = $next_line = '';
+			$inside_quote_block = false;
+			do {
+				if(substr( ltrim( $next_line ), 0, 1 ) != '>') {
+					if ( $inside_quote_block ) {
+						$inside_quote_block = false;
+						$message_string .= $this_block;
+						$this_block = '';
+					}
+				} else {
+					if ( !$inside_quote_block ) {
+						$inside_quote_block = true;
+						$message_string .= wordwrap( $this_block, 75, " \n" );
+						$this_block = '';
+					}
+				}
+				$this_block .= $next_line;
+				$next_line = array_pop( $message_lines );
+			} while ( $next_line );
+			$message_string .= $this_block;
+		} else {
+			$message_string = $_POST['comp_msg'];
+		}
+
+		$mimeMessage->attach( new Swift_Message_Part( $message_string, "text/plain" ) );
 	} else {
 		// It's a HTML email. This is fun!
 		// First part of the message is the HTML version of the email.
@@ -809,11 +818,9 @@ function request_sendMessage() {
 		$htmlVersion .= "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n";
 		$htmlVersion .= "<meta http-equiv=\"Generator\" content=\"Lichen Webmail / TinyMCE\" />\n";
 		$htmlVersion .= "<title>{$_POST['comp_subj']}</title>\n";
-		$htmlVersion .= "</head>\n";
-		$htmlVersion .= "<body>\n";
+		$htmlVersion .= "</head><body>\n";
 		$htmlVersion .= $source;
-		$htmlVersion .= "\n</body>\n";
-		$htmlVersion .= "</html>\n";
+		$htmlVersion .= "\n</body></html>\n";
 
 		// Now generate a text version. TODO: This is crude.
 		//$textVersion = strip_tags( $source );
@@ -913,8 +920,7 @@ function request_sendMessage() {
 			$result['draftUid']  = $draftUID;
 		}
 	} else {
-		// Time to send the message.
-		// Save it into Sent first.
+		// Time to send the message; first, check that the Sent folder exists
 		if ( !imapCheckMailboxExistence( $SPECIAL_FOLDERS['sent'] ) ) {
 			$result['success']     = false;
 			$result['errorCode']   = 'SENT';
@@ -922,20 +928,8 @@ function request_sendMessage() {
 			
 			return $result; // TODO: Returning in the middle of a function... don't do it!
 		}
-		$res = streamSaveMessage( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $IMAP_USE_TLS, $_SESSION['user'], $_SESSION['pass'],
-			$SPECIAL_FOLDERS['sent'], $rawMessage, $messageLength, "");
-		if ( $res != null ) {
-			$msg = sprintf( _("Unable to save sent message: %s - message NOT sent."), $res );
-			
-			$result['success']     = false;
-			$result['errorCode']   = 'SENT';
-			$result['errorString'] = $msg;
-			
-			return $result; // TODO: Returning in the middle of a function... don't do it!
-		}
 
 		// Create the connection to the remote SMTP server.
-		// TODO: Add TLS support.
 		$smtpConnection = null;
 		if ( $SMTP_USE_SSL ) {
 			$smtpConnection =& new Swift_Connection_SMTP( $SMTP_SERVER, $SMTP_PORT, SWIFT_SMTP_ENC_SSL );
@@ -979,7 +973,20 @@ function request_sendMessage() {
 				}
 			}
 
-			// Remove the draft that this message was based on. ?? Actually, not yet.
+			// now save the sent message ...
+			$res = streamSaveMessage( $IMAP_SERVER, $IMAP_PORT, $IS_SSL, $IMAP_USE_TLS, $_SESSION['user'], $_SESSION['pass'],
+				$SPECIAL_FOLDERS['sent'], $rawMessage, $messageLength, "");
+			if ( $res != null ) {
+				$msg = sprintf( _("Unable to save sent message: %s - message NOT sent."), $res );
+				
+				$result['success']     = false;
+				$result['errorCode']   = 'SENT';
+				$result['errorString'] = $msg;
+				
+				return $result; // TODO: Returning in the middle of a function... don't do it!
+			}
+
+			// TODO: ... and delete the draft, if there was one
 
 			// Mark the original message as answered, in the case of Replies.
 			if ( isset( $_POST['comp_mode'] ) && ( $_POST['comp_mode'] == "reply" || $_POST['comp_mode'] == "replyall" ) ) {
